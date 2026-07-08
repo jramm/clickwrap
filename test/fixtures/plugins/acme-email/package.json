@@ -1,0 +1,7 @@
+{
+  "name": "@acme/clickwrap-email",
+  "version": "1.0.0",
+  "description": "Test fixture: a third-party e-mail provider plugin exactly as it would be published to npm.",
+  "main": "index.js",
+  "clickwrap": { "kind": "email-provider", "key": "acme" }
+}

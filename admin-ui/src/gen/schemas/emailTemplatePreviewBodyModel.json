@@ -1,0 +1,1 @@
+{"type":"object","properties":{"documentTypeKey":{"type":"string","example":"dpa","description":"Scope the sample documentType value to this key."}},"x-readme-ref-name":"EmailTemplatePreviewBodyModel"}

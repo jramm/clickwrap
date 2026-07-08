@@ -1,0 +1,51 @@
+{
+  "name": "clickwrap-server-admin-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Admin web UI for clickwrap-server (agreement acceptance management)",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "generate:api": "kubb generate",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/icons-material": "^6.3.0",
+    "@mui/material": "^6.3.0",
+    "@mui/x-data-grid": "^7.23.5",
+    "@react-oauth/google": "^0.12.1",
+    "@tanstack/react-query": "^5.62.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-email-editor": "^2.0.0",
+    "react-router-dom": "^6.28.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@kubb/cli": "^4.39.2",
+    "@kubb/core": "^4.39.2",
+    "@kubb/plugin-client": "^4.39.2",
+    "@kubb/plugin-oas": "^4.39.2",
+    "@kubb/plugin-react-query": "^4.39.2",
+    "@kubb/plugin-ts": "^4.39.2",
+    "@kubb/plugin-zod": "^4.39.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^25.0.1",
+    "msw": "^2.7.0",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}

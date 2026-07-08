@@ -1,0 +1,49 @@
+{
+  "name": "clickwrap-server",
+  "version": "0.1.0",
+  "description": "Self-hosted agreement/clickwrap acceptance service: versioned contract documents, active click-consent and passive tacit acceptance, and a compliance-gate API.",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "jest",
+    "test:integration": "jest --config jest.integration.config.js",
+    "test:watch": "jest --watch",
+    "lint": "tsc --noEmit",
+    "start:dev": "ts-node src/main.ts",
+    "seed-example": "ts-node scripts/seed-example.ts",
+    "openapi": "ts-node scripts/openapi.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.0.1",
+    "@nestjs/swagger": "^11.4.5",
+    "@prisma/client": "^6.10.0",
+    "dotenv": "^17.4.2",
+    "google-auth-library": "^10.9.0",
+    "jose": "^5.10.0",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.3",
+    "postmark": "^4.0.5",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.0.1",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^22.10.0",
+    "@types/nodemailer": "^8.0.1",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
+    "prisma": "^6.10.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

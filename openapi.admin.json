@@ -1,0 +1,3981 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/admin/auth/methods": {
+      "get": {
+        "description": "Returns the login methods of the ACTIVE admin-auth strategies (env ADMIN_AUTH, ordered). Deliberately unauthenticated: the login page needs it before any credential exists.",
+        "operationId": "AuthMethodsController_methods",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthMethodsResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Login-method discovery for the admin UI (unauthenticated)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/admin/documents": {
+      "post": {
+        "operationId": "AgreementsAdminController_createDocument",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDocumentBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (duplicate) · UNKNOWN_DOCUMENT_TYPE · UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Create a document (one per type × audience)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "get": {
+        "operationId": "AgreementsAdminController_listDocuments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "List documents (flat) including the current PUBLISHED version DTO (or null)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/documents/{id}/versions": {
+      "get": {
+        "operationId": "AgreementsAdminController_listVersions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionListResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Version history of a document — every entry carries a presigned pdfUrl",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "AgreementsAdminController_createVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVersionBodyModel"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVersionBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateVersionResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PDF missing / invalid number field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (unknown document)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Create a DRAFT version (multipart/form-data primary; base64 JSON fallback)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/versions/{id}": {
+      "get": {
+        "operationId": "AgreementsAdminController_getVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Version detail (incl. presigned pdfUrl)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "operationId": "AgreementsAdminController_patchVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchVersionBodyModel"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchVersionBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated version entity."
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VERSION_IMMUTABLE (not a DRAFT)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Patch a DRAFT version (metadata and/or replacement PDF)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "delete": {
+        "operationId": "AgreementsAdminController_deleteVersion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VERSION_IMMUTABLE (not a DRAFT)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Delete a DRAFT version",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customers": {
+      "get": {
+        "operationId": "AdminController_listCustomers",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "1-based page (50 rows per page).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive substring match on name, externalRef and contactEmails. Applied before pagination; `total` reflects the filtered count.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerListResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "List customers (paginated, 50/page, sorted by name/externalRef).",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "description": "Roles are validated against the audiences; a role change takes effect on the next publish/rollout only (no auto-rollout here). Optional `acceptedVersions` records already signed versions as IMPORT acceptances. externalRef is unique only among customers with OVERLAPPING roles — the partner and customer external ID spaces are separate, so the same externalRef may coexist on records with disjoint roles; a duplicate that shares at least one role → 422 INVALID_STATE.",
+        "operationId": "AdminController_createCustomer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCustomerResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND (acceptedVersions)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (externalRef duplicate sharing a role, invalid e-mail) · UNKNOWN_AUDIENCE · ROLE_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Create a customer",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customers/{id}": {
+      "patch": {
+        "description": "A `roles` change takes effect on the next publish/rollout only (no auto-rollout on role add). Adding a role is rejected with 422 INVALID_STATE if it would overlap another customer that already shares this externalRef.",
+        "operationId": "AdminController_updateCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRowModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (invalid e-mail, externalRef overlap on role add) · UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Update a customer (subset of name/roles/contactEmails)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customers/{id}/acceptance-links": {
+      "post": {
+        "description": "Returns `${PUBLIC_BASE_URL}/accept/<token>` — a capability URL the admin sends directly to the person who has to accept (no portal integration needed). The raw token appears only in this response; the server persists just its SHA-256. Optional `audienceKey` scopes the page to one audience; `expiresInDays` defaults to 30 (max 365). Writes an ACCEPTANCE_LINK_CREATE audit entry.",
+        "operationId": "AdminController_createAcceptanceLink",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAcceptanceLinkBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAcceptanceLinkResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (PUBLIC_BASE_URL unset, expiresInDays out of range) · UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Mint a hosted acceptance link for a customer",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/versions/{id}/publish": {
+      "post": {
+        "description": "Retires the previous version, supersedes its open customer states, creates PENDING_NOTIFICATION states for all customers with a matching role and triggers e-mails. Scheduled effectiveness: with a FUTURE validFrom the rollout still happens immediately (advance acceptance), but the previous version stays PUBLISHED — it remains the compliance baseline until the flip at validFrom, when the activation sweeper retires it and supersedes its open states.",
+        "operationId": "AdminController_publish",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "VERSION_IMMUTABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "CHANGE_SUMMARY_REQUIRED · CONSENT_TEXT_REQUIRED · INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Publish a DRAFT version (immutable afterwards) + rollout",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/overview": {
+      "get": {
+        "operationId": "AdminController_overview",
+        "parameters": [
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "non_compliant",
+                "pending",
+                "objected",
+                "unreachable",
+                "deadline_lt_7d"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Audience key.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentType",
+            "required": false,
+            "in": "query",
+            "description": "Document type key.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive substring on the customer name / externalRef / contactEmails.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Acceptance matrix (pages of 50) — cells keyed TYPE_AUDIENCE",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/dashboard": {
+      "get": {
+        "description": "One entry per RELEVANT version (the current published version and, if any, the upcoming scheduled published version of every document) with acceptance counters: totalCustomers (relevant/non-SUPERSEDED states), accepted, acceptedByChannel/Method, pending, blocked, objected and acceptanceRate.",
+        "operationId": "AdminController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Per-version acceptance dashboard — current + upcoming published versions",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/versions/{id}/stats": {
+      "get": {
+        "operationId": "AdminController_versionStats",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionStatsModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Acceptance counters for a single version",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/versions/{id}/customers": {
+      "get": {
+        "description": "Every row reports the customer state and acceptance FOR THIS version (not the currently effective one) — so drilling into an upcoming version shows who has (not) accepted THAT version. SUPERSEDED states are excluded; `acceptance` is the effective acceptance of this version only. `stats` reuses the dashboard per-version counters so the header matches the card.",
+        "operationId": "AdminController_versionCustomers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "accepted",
+                "pending",
+                "blocked",
+                "objected"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive substring on the customer name / externalRef / contactEmails.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionCustomersResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Per-version customer status list (pages of 50)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customers/{id}/history": {
+      "get": {
+        "operationId": "AdminController_history",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerHistoryResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Full customer history incl. evidence and rollout states",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customers/{id}/acceptances": {
+      "post": {
+        "operationId": "AdminController_manualAcceptance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualAcceptanceBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualAcceptanceResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ALREADY_ACCEPTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (missing reason/evidence) · ROLE_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Manual (back-dated) acceptance recording — reason + evidence required",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customer-version-states/{id}": {
+      "patch": {
+        "operationId": "AdminController_patchState",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchStateBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerVersionStateModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND (unknown state id)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Extend a deadline / suspend a block (reason required)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customer-version-states/{id}/remind": {
+      "post": {
+        "operationId": "AdminController_remind",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerVersionStateModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND (unknown state id)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Re-send the reminder e-mail (remindersSent++)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/audiences": {
+      "get": {
+        "operationId": "AdminController_listAudiences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NamedEntityModel"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "List audiences (sorted by key)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "AdminController_createAudience",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNamedEntityBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NamedEntityModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (invalid slug, duplicate key, missing name)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Create an audience",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/audiences/{id}": {
+      "patch": {
+        "operationId": "AdminController_updateAudience",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNamedEntityBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NamedEntityModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (key in the body)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Rename an audience (key is immutable)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminController_deleteAudience",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (still referenced)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Delete an unreferenced audience",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/document-types": {
+      "get": {
+        "operationId": "AdminController_listDocumentTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentTypeModel"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "List document types (sorted by key) incl. e-mail template assignments",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "AdminController_createDocumentType",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNamedEntityBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NamedEntityModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (invalid slug, duplicate key, missing name)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Create a document type",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/document-types/{id}": {
+      "patch": {
+        "description": "Assign per-document-type notification/reminder templates via notificationTemplateId / reminderTemplateId (must reference an existing template of the matching kind); `null` clears an assignment, an omitted field keeps it.",
+        "operationId": "AdminController_updateDocumentType",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentTypeBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentTypeModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (key in the body, unknown/incompatible template)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Rename a document type / assign e-mail templates (key is immutable)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminController_deleteDocumentType",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (still referenced)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Delete an unreferenced document type",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/email-templates": {
+      "get": {
+        "operationId": "AdminController_listEmailTemplates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmailTemplateModel"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "List e-mail templates (sorted by name; default rows flagged)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "AdminController_createEmailTemplate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmailTemplateBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailTemplateModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Create an e-mail template",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/email-templates/{id}": {
+      "patch": {
+        "operationId": "AdminController_updateEmailTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmailTemplateBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailTemplateModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Update an e-mail template (default rows are editable)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminController_deleteEmailTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (default template, or still assigned to a document type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Delete an e-mail template (default rows and assigned ones are refused)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/email-templates/{id}/preview": {
+      "post": {
+        "operationId": "AdminController_previewEmailTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailTemplatePreviewBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailTemplatePreviewResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Render a template with realistic sample values (subject/html/text)",
+        "tags": [
+          "admin"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "clickwrap-server — admin API",
+    "description": "Administration surface (`/admin/**`): documents & versions, publish/rollout, customers, operations (overview, history, manual acceptance, deadlines/reminders) and the dynamic entities (audiences, document types). Errors are always `{ code, message }` — the codes are documented in docs/API.md §7.",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "google-sso": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Google ID token (Google SSO; domain/allowlist checked server-side)."
+      },
+      "admin-token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-admin-token",
+        "description": "Static admin token fallback (dev/CI; ADMIN_API_TOKEN). Optional: x-admin-user names the actor."
+      }
+    },
+    "schemas": {
+      "LoginMethodModel": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "google-sso",
+            "description": "Plugin key of the admin-auth strategy."
+          },
+          "flow": {
+            "type": "string",
+            "enum": [
+              "google",
+              "token",
+              "oidc-redirect"
+            ],
+            "description": "How the login page obtains a credential: 'google' = Google Identity Services with params.clientId (send the ID token as Authorization: Bearer); 'token' = static token prompt (send as x-admin-token); 'oidc-redirect' = redirect to params.authorizeUrl, the returned access token is sent as Authorization: Bearer."
+          },
+          "label": {
+            "type": "string",
+            "example": "Sign in with Google"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Flow parameters — google: { clientId }, token: {}, oidc-redirect: { authorizeUrl, clientId? }. The Google clientId comes from the BACKEND env (GOOGLE_CLIENT_ID); a frontend-side VITE_GOOGLE_CLIENT_ID is obsolete.",
+            "example": {
+              "clientId": "1234-abc.apps.googleusercontent.com"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "flow",
+          "label",
+          "params"
+        ]
+      },
+      "AuthMethodsResponseModel": {
+        "type": "object",
+        "properties": {
+          "methods": {
+            "description": "Advertised methods, in ADMIN_AUTH order.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LoginMethodModel"
+            }
+          }
+        },
+        "required": [
+          "methods"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "INVALID_STATE",
+            "description": "Stable DomainErrorCode (see docs/API.md §7)."
+          },
+          "message": {
+            "type": "string",
+            "example": "A customer with externalRef \"ext-1\" and an overlapping role already exists"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "CreateDocumentBodyModel": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "dpa",
+            "description": "Document type key (must exist)."
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer",
+            "description": "Audience key (must exist)."
+          },
+          "name": {
+            "type": "string",
+            "example": "DPA — Customers"
+          }
+        },
+        "required": [
+          "type",
+          "audience",
+          "name"
+        ]
+      },
+      "DocumentModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "doc-1c2d…"
+          },
+          "type": {
+            "type": "string",
+            "example": "dpa"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer"
+          },
+          "name": {
+            "type": "string",
+            "example": "DPA — Customers"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "audience",
+          "name"
+        ]
+      },
+      "VersionModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "documentId": {
+            "type": "string",
+            "example": "doc-1c2d…"
+          },
+          "versionLabel": {
+            "type": "string",
+            "example": "June 2026 edition"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "RETIRED"
+            ]
+          },
+          "acceptanceMode": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PASSIVE"
+            ]
+          },
+          "changeSummary": {
+            "type": "string",
+            "example": "New sub-processor for e-mail delivery."
+          },
+          "consentText": {
+            "type": "string",
+            "description": "Exact checkbox consent text (ACTIVE only)."
+          },
+          "objectionPeriodDays": {
+            "type": "number",
+            "example": 14,
+            "description": "PASSIVE only: objection period in days."
+          },
+          "gracePeriodDays": {
+            "type": "number",
+            "example": 14,
+            "description": "ACTIVE only: grace period until hard block."
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "contentHash": {
+            "type": "string",
+            "example": "sha256:9c1e…",
+            "description": "SHA-256 of the PDF content."
+          },
+          "fileName": {
+            "type": "string",
+            "example": "dpa-2026-06.pdf"
+          },
+          "pdfUrl": {
+            "type": "string",
+            "description": "Presigned, time-limited PDF download/preview URL (15-minute TTL)."
+          }
+        },
+        "required": [
+          "id",
+          "documentId",
+          "versionLabel",
+          "status",
+          "acceptanceMode",
+          "changeSummary",
+          "validFrom",
+          "contentHash",
+          "fileName",
+          "pdfUrl"
+        ]
+      },
+      "DocumentListEntryModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "doc-1c2d…"
+          },
+          "type": {
+            "type": "string",
+            "example": "dpa",
+            "description": "Document type key."
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer",
+            "description": "Audience key."
+          },
+          "name": {
+            "type": "string",
+            "example": "DPA — Customers"
+          },
+          "currentVersion": {
+            "nullable": true,
+            "description": "Current PUBLISHED version or null.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VersionModel"
+              }
+            ]
+          },
+          "upcomingVersion": {
+            "nullable": true,
+            "description": "Next UPCOMING published version (validFrom in the future, scheduled publish) or null. The current version stays the compliance baseline until the flip at its validFrom.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VersionModel"
+              }
+            ]
+          },
+          "latestPdfUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Stable public URL (`${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf`) that always 302-redirects to the currently effective published PDF — deterministic from the document keys, valid across future publishes (for rendering into offers). Null when no published version is in effect or PUBLIC_BASE_URL is unset.",
+            "example": "https://clickwrap.example.org/documents/dpa/customer/latest.pdf"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "audience",
+          "name"
+        ]
+      },
+      "DocumentListResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentListEntryModel"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "VersionListResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionModel"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreateVersionBodyModel": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "PDF (multipart field) or base64 string (JSON fallback)."
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Required with the base64 JSON fallback."
+          },
+          "versionLabel": {
+            "type": "string",
+            "example": "June 2026 edition"
+          },
+          "changeSummary": {
+            "type": "string",
+            "example": "New sub-processor for e-mail delivery."
+          },
+          "acceptanceMode": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PASSIVE"
+            ]
+          },
+          "consentText": {
+            "type": "string"
+          },
+          "objectionPeriodDays": {
+            "type": "number",
+            "example": 14
+          },
+          "gracePeriodDays": {
+            "type": "number",
+            "example": 14
+          },
+          "validFrom": {
+            "type": "string",
+            "example": "2026-07-01",
+            "description": "ISO date from which the revision applies. May lie in the FUTURE (scheduled effectiveness): publishing rolls out immediately for advance acceptance, while the previous version stays the compliance baseline until this date."
+          }
+        },
+        "required": [
+          "file",
+          "versionLabel",
+          "changeSummary",
+          "acceptanceMode",
+          "validFrom"
+        ]
+      },
+      "CreateVersionResponseModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT"
+            ]
+          },
+          "contentHash": {
+            "type": "string",
+            "example": "sha256:9c1e…"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "dpa-2026-06.pdf"
+          }
+        },
+        "required": [
+          "versionId",
+          "status",
+          "contentHash",
+          "fileName"
+        ]
+      },
+      "PatchVersionBodyModel": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "Replacement PDF."
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "versionLabel": {
+            "type": "string"
+          },
+          "changeSummary": {
+            "type": "string"
+          },
+          "acceptanceMode": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PASSIVE"
+            ]
+          },
+          "consentText": {
+            "type": "string"
+          },
+          "objectionPeriodDays": {
+            "type": "number"
+          },
+          "gracePeriodDays": {
+            "type": "number"
+          },
+          "validFrom": {
+            "type": "string",
+            "example": "2026-07-01"
+          }
+        }
+      },
+      "CustomerRowModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "c-8a71…"
+          },
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711",
+            "description": "Unique external reference (CRM id)."
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Company display name ('' when unknown)."
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "description": "Audience keys.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactEmails": {
+            "example": [
+              "legal@acme.example"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "externalRef",
+          "name",
+          "roles",
+          "contactEmails"
+        ]
+      },
+      "CustomerListResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerRowModel"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 173
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ]
+      },
+      "AcceptedVersionImportModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Signature date; backdating is allowed for IMPORT. Defaults to now."
+          },
+          "reference": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer",
+            "description": "Evidence reference."
+          }
+        },
+        "required": [
+          "versionId"
+        ]
+      },
+      "CreateCustomerBodyModel": {
+        "type": "object",
+        "properties": {
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711"
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme GmbH"
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "description": "Audience keys (validated).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactEmails": {
+            "example": [
+              "legal@acme.example"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptedVersions": {
+            "description": "Versions already accepted out-of-band (signed offer) — recorded as IMPORT acceptances.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AcceptedVersionImportModel"
+            }
+          }
+        },
+        "required": [
+          "externalRef",
+          "roles",
+          "contactEmails"
+        ]
+      },
+      "ImportedAcceptanceModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "acceptanceId": {
+            "type": "string",
+            "example": "a-991…"
+          }
+        },
+        "required": [
+          "versionId",
+          "acceptanceId"
+        ]
+      },
+      "CreateCustomerResponseModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "c-8a71…"
+          },
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711",
+            "description": "Unique external reference (CRM id)."
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Company display name ('' when unknown)."
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "description": "Audience keys.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactEmails": {
+            "example": [
+              "legal@acme.example"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "importedAcceptances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportedAcceptanceModel"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "externalRef",
+          "name",
+          "roles",
+          "contactEmails",
+          "importedAcceptances"
+        ]
+      },
+      "UpdateCustomerBodyModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Acme GmbH"
+          },
+          "roles": {
+            "description": "Takes effect on the next publish/rollout.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactEmails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateAcceptanceLinkBodyModel": {
+        "type": "object",
+        "properties": {
+          "audienceKey": {
+            "type": "string",
+            "example": "customer",
+            "description": "Optional scope: restrict the hosted page to documents of this audience key."
+          },
+          "expiresInDays": {
+            "type": "number",
+            "example": 30,
+            "description": "Link validity in days (default 30, max 365)."
+          }
+        }
+      },
+      "CreateAcceptanceLinkResponseModel": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string",
+            "example": "al-4f6e…"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://clickwrap.example.org/accept/3q2-…",
+            "description": "Shareable URL (`${PUBLIC_BASE_URL}/accept/<token>`). The raw token appears ONLY here — the server persists just its SHA-256."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "linkId",
+          "url",
+          "expiresAt"
+        ]
+      },
+      "PublishResponseModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PUBLISHED"
+            ]
+          },
+          "rolloutCustomers": {
+            "type": "number",
+            "example": 921,
+            "description": "Number of customers the rollout targeted."
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "versionId",
+          "status",
+          "rolloutCustomers",
+          "publishedAt"
+        ]
+      },
+      "OverviewCellModel": {
+        "type": "object",
+        "properties": {
+          "acceptedVersion": {
+            "type": "string",
+            "example": "April 2026 edition"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "ACTIVE_CONSENT",
+              "TACIT",
+              "IMPORT"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ]
+          },
+          "requiredVersion": {
+            "type": "string",
+            "example": "June 2026 edition",
+            "description": "Only set while the current version is not accepted."
+          },
+          "deadlineAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "blocking"
+        ]
+      },
+      "OverviewRowModel": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "example": "c-8a71…"
+          },
+          "customerName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Company display name ('' when unknown)."
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cells": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/OverviewCellModel"
+            },
+            "description": "One cell per TYPE_AUDIENCE detail key (e.g. DPA_CUSTOMER)."
+          }
+        },
+        "required": [
+          "customerId",
+          "customerName",
+          "roles",
+          "cells"
+        ]
+      },
+      "OverviewResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OverviewRowModel"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 921
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ]
+      },
+      "AcceptedByChannelModel": {
+        "type": "object",
+        "properties": {
+          "PORTAL": {
+            "type": "number",
+            "example": 12
+          },
+          "LINK": {
+            "type": "number",
+            "example": 3
+          },
+          "ADMIN": {
+            "type": "number",
+            "example": 5
+          },
+          "SYSTEM": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "PORTAL",
+          "LINK",
+          "ADMIN",
+          "SYSTEM"
+        ]
+      },
+      "AcceptedByMethodModel": {
+        "type": "object",
+        "properties": {
+          "ACTIVE_CONSENT": {
+            "type": "number",
+            "example": 14
+          },
+          "TACIT": {
+            "type": "number",
+            "example": 6
+          },
+          "IMPORT": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "ACTIVE_CONSENT",
+          "TACIT",
+          "IMPORT"
+        ]
+      },
+      "VersionAcceptanceStatsModel": {
+        "type": "object",
+        "properties": {
+          "totalCustomers": {
+            "type": "number",
+            "example": 42,
+            "description": "Relevant (non-SUPERSEDED) states of the version."
+          },
+          "accepted": {
+            "type": "number",
+            "example": 22
+          },
+          "acceptedByChannel": {
+            "$ref": "#/components/schemas/AcceptedByChannelModel"
+          },
+          "acceptedByMethod": {
+            "$ref": "#/components/schemas/AcceptedByMethodModel"
+          },
+          "pending": {
+            "type": "number",
+            "example": 12,
+            "description": "PENDING_NOTIFICATION + NOTIFIED."
+          },
+          "blocked": {
+            "type": "number",
+            "example": 5,
+            "description": "EXPIRED_BLOCKING."
+          },
+          "objected": {
+            "type": "number",
+            "example": 3,
+            "description": "OBJECTED."
+          },
+          "acceptanceRate": {
+            "type": "number",
+            "example": 0.5238,
+            "description": "accepted / totalCustomers (0 when totalCustomers is 0)."
+          }
+        },
+        "required": [
+          "totalCustomers",
+          "accepted",
+          "acceptedByChannel",
+          "acceptedByMethod",
+          "pending",
+          "blocked",
+          "objected",
+          "acceptanceRate"
+        ]
+      },
+      "VersionStatsModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "documentName": {
+            "type": "string",
+            "example": "DPA — Customers"
+          },
+          "documentType": {
+            "type": "string",
+            "example": "dpa"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer"
+          },
+          "versionLabel": {
+            "type": "string",
+            "example": "June 2026 edition"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "RETIRED"
+            ]
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "upcoming": {
+            "type": "boolean",
+            "example": false,
+            "description": "Scheduled for the future (validFrom > now)."
+          },
+          "stats": {
+            "$ref": "#/components/schemas/VersionAcceptanceStatsModel"
+          }
+        },
+        "required": [
+          "versionId",
+          "documentName",
+          "documentType",
+          "audience",
+          "versionLabel",
+          "status",
+          "validFrom",
+          "upcoming",
+          "stats"
+        ]
+      },
+      "DashboardResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "One entry per current + upcoming published version of every document.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionStatsModel"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "VersionCustomerAcceptanceModel": {
+        "type": "object",
+        "properties": {
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "ACTIVE_CONSENT",
+              "TACIT",
+              "IMPORT"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PORTAL",
+              "ADMIN",
+              "SYSTEM",
+              "LINK"
+            ]
+          },
+          "actorName": {
+            "type": "string",
+            "example": "Jane Doe",
+            "description": "Display name of the accepting actor."
+          }
+        },
+        "required": [
+          "acceptedAt",
+          "method",
+          "channel"
+        ]
+      },
+      "VersionCustomerRowModel": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "example": "c-8a71…"
+          },
+          "customerName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Company display name ('' when unknown)."
+          },
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ],
+            "description": "The CustomerVersionState value for THIS version."
+          },
+          "notifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadlineAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "carryOverBlocking": {
+            "type": "boolean"
+          },
+          "acceptance": {
+            "description": "The effective acceptance OF THIS VERSION only.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VersionCustomerAcceptanceModel"
+              }
+            ]
+          }
+        },
+        "required": [
+          "customerId",
+          "customerName",
+          "externalRef",
+          "state"
+        ]
+      },
+      "VersionCustomersResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionCustomerRowModel"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "stats": {
+            "description": "Reused per-version dashboard stats (header numbers match the card).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VersionStatsModel"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "stats"
+        ]
+      },
+      "ActorModel": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "u-42"
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane@customer.example"
+          },
+          "portalRole": {
+            "type": "string",
+            "example": "admin"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "HistoryEvidenceModel": {
+        "type": "object",
+        "properties": {
+          "ipAddress": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "consentText": {
+            "type": "string"
+          },
+          "consentTextHash": {
+            "type": "string",
+            "example": "sha256:…"
+          },
+          "contentHash": {
+            "type": "string",
+            "example": "sha256:…"
+          },
+          "evidenceNote": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer",
+            "description": "IMPORT only."
+          }
+        }
+      },
+      "HistoryAcceptanceModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "string",
+            "example": "dpa"
+          },
+          "versionLabel": {
+            "type": "string",
+            "example": "June 2026 edition"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "ACTIVE_CONSENT",
+              "TACIT",
+              "IMPORT"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PORTAL",
+              "ADMIN",
+              "SYSTEM",
+              "LINK"
+            ]
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/ActorModel"
+          },
+          "isEffective": {
+            "type": "boolean"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/HistoryEvidenceModel"
+          }
+        },
+        "required": [
+          "versionId",
+          "method",
+          "channel",
+          "acceptedAt",
+          "actor",
+          "isEffective",
+          "evidence"
+        ]
+      },
+      "HistoryObjectionModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "versionId": {
+            "type": "string"
+          },
+          "objectedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/ActorModel"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PORTAL",
+              "ADMIN",
+              "SYSTEM",
+              "LINK"
+            ]
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "WITHDRAWN",
+              "RESOLVED_ACCEPTED",
+              "RESOLVED_TERMINATED"
+            ]
+          },
+          "resolvedBy": {
+            "type": "string"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "versionId",
+          "objectedAt",
+          "actor",
+          "channel"
+        ]
+      },
+      "HistoryNotificationModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "EMAIL",
+              "PORTAL",
+              "LINK"
+            ]
+          },
+          "deliveredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "versionId",
+          "channel",
+          "deliveredAt"
+        ]
+      },
+      "HistoryStateModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cvs-1"
+          },
+          "versionId": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "string",
+            "example": "dpa"
+          },
+          "versionLabel": {
+            "type": "string",
+            "example": "June 2026 edition"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ]
+          },
+          "notifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadlineAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "remindersSent": {
+            "type": "number",
+            "example": 1
+          },
+          "carryOverBlocking": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "versionId",
+          "state",
+          "remindersSent"
+        ]
+      },
+      "CustomerHistoryResponseModel": {
+        "type": "object",
+        "properties": {
+          "acceptances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryAcceptanceModel"
+            }
+          },
+          "objections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryObjectionModel"
+            }
+          },
+          "notifications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryNotificationModel"
+            }
+          },
+          "states": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryStateModel"
+            }
+          }
+        },
+        "required": [
+          "acceptances",
+          "objections",
+          "notifications",
+          "states"
+        ]
+      },
+      "ManualAcceptanceBodyModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "ACTIVE_CONSENT",
+              "IMPORT"
+            ],
+            "description": "TACIT is excluded (sweeper only)."
+          },
+          "reason": {
+            "type": "string",
+            "example": "Consent received by letter on 2026-07-01"
+          },
+          "evidenceDocument": {
+            "type": "string",
+            "description": "Evidence document as base64."
+          },
+          "evidenceFileName": {
+            "type": "string",
+            "example": "letter.pdf"
+          }
+        },
+        "required": [
+          "versionId",
+          "method",
+          "reason",
+          "evidenceDocument",
+          "evidenceFileName"
+        ]
+      },
+      "ManualAcceptanceResponseModel": {
+        "type": "object",
+        "properties": {
+          "acceptanceId": {
+            "type": "string",
+            "example": "a-991…"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ]
+          }
+        },
+        "required": [
+          "acceptanceId",
+          "state"
+        ]
+      },
+      "PatchStateBodyModel": {
+        "type": "object",
+        "properties": {
+          "deadlineAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "suspendBlock": {
+            "type": "boolean",
+            "description": "true: EXPIRED_BLOCKING → NOTIFIED with a new deadlineAt (then required)."
+          },
+          "reason": {
+            "type": "string",
+            "example": "Customer in clarification with legal"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "CustomerVersionStateModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cvs-1"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "versionId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ]
+          },
+          "notifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadlineAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "remindersSent": {
+            "type": "number"
+          },
+          "carryOverBlocking": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "versionId",
+          "state",
+          "remindersSent"
+        ]
+      },
+      "NamedEntityModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "aud-1"
+          },
+          "key": {
+            "type": "string",
+            "example": "customer",
+            "description": "URL-safe slug, immutable after creation."
+          },
+          "name": {
+            "type": "string",
+            "example": "Customers"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name"
+        ]
+      },
+      "CreateNamedEntityBodyModel": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "customer",
+            "description": "URL-safe slug [a-z0-9-]{2,32}."
+          },
+          "name": {
+            "type": "string",
+            "example": "Customers"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ]
+      },
+      "UpdateNamedEntityBodyModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "End customers"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "DocumentTypeModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "dt-1"
+          },
+          "key": {
+            "type": "string",
+            "example": "dpa",
+            "description": "URL-safe slug, immutable after creation."
+          },
+          "name": {
+            "type": "string",
+            "example": "Data Processing Agreement"
+          },
+          "notificationTemplateId": {
+            "type": "string",
+            "example": "tpl-1",
+            "description": "Assigned VERSION_NOTIFICATION template id."
+          },
+          "reminderTemplateId": {
+            "type": "string",
+            "example": "tpl-2",
+            "description": "Assigned REMINDER template id."
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name"
+        ]
+      },
+      "UpdateDocumentTypeBodyModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Data Processing Agreement"
+          },
+          "notificationTemplateId": {
+            "type": "string",
+            "nullable": true,
+            "description": "VERSION_NOTIFICATION template id; null clears the assignment, omit to keep it."
+          },
+          "reminderTemplateId": {
+            "type": "string",
+            "nullable": true,
+            "description": "REMINDER template id; null clears the assignment, omit to keep it."
+          }
+        }
+      },
+      "EmailTemplateModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "tpl-default-notification"
+          },
+          "name": {
+            "type": "string",
+            "example": "Default — version notification"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "VERSION_NOTIFICATION",
+              "REMINDER"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "example": "{{appName}}: new version of {{documentName}}"
+          },
+          "design": {
+            "type": "string",
+            "description": "Unlayer design JSON (serialised)."
+          },
+          "html": {
+            "type": "string",
+            "description": "Exported e-mail HTML with {{placeholders}}."
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Built-in default row (editable but not deletable)."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "subject",
+          "design",
+          "html",
+          "isDefault",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateEmailTemplateBodyModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Welcome mail"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "VERSION_NOTIFICATION",
+              "REMINDER"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "example": "Hi {{customerName}}"
+          },
+          "design": {
+            "type": "string",
+            "description": "Unlayer design JSON (serialised)."
+          },
+          "html": {
+            "type": "string",
+            "description": "Exported e-mail HTML with {{placeholders}}."
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "subject",
+          "design",
+          "html"
+        ]
+      },
+      "UpdateEmailTemplateBodyModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Welcome mail"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "VERSION_NOTIFICATION",
+              "REMINDER"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "example": "Hi {{customerName}}"
+          },
+          "design": {
+            "type": "string",
+            "description": "Unlayer design JSON (serialised)."
+          },
+          "html": {
+            "type": "string",
+            "description": "Exported e-mail HTML with {{placeholders}}."
+          }
+        }
+      },
+      "EmailTemplatePreviewBodyModel": {
+        "type": "object",
+        "properties": {
+          "documentTypeKey": {
+            "type": "string",
+            "example": "dpa",
+            "description": "Scope the sample documentType value to this key."
+          }
+        }
+      },
+      "EmailTemplatePreviewResponseModel": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "example": "clickwrap-server: new version of DPA — Customers"
+          },
+          "html": {
+            "type": "string",
+            "description": "Rendered, self-contained e-mail HTML."
+          },
+          "text": {
+            "type": "string",
+            "description": "Plain-text part derived from the rendered HTML."
+          }
+        },
+        "required": [
+          "subject",
+          "html",
+          "text"
+        ]
+      }
+    }
+  }
+}

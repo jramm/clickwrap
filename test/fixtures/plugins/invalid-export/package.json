@@ -1,0 +1,7 @@
+{
+  "name": "invalid-export",
+  "version": "1.0.0",
+  "description": "Test fixture: valid manifest but the default export is not a plugin — must be a hard boot error.",
+  "main": "index.js",
+  "clickwrap": { "kind": "email-provider", "key": "invalid" }
+}

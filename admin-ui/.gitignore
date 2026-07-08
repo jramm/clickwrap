@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*
+!.env.example
+coverage
+.DS_Store
+
+# TypeScript incremental build info
+*.tsbuildinfo
+openapi.patched.json

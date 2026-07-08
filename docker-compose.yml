@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      # Must match DATABASE_URL in .env.example:
+      # postgresql://clickwrap:clickwrap@localhost:5432/clickwrap
+      POSTGRES_USER: clickwrap
+      POSTGRES_PASSWORD: clickwrap
+      POSTGRES_DB: clickwrap
+    ports:
+      - '5432:5432'
+    volumes:
+      - clickwrap-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U clickwrap -d clickwrap']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  clickwrap-postgres-data:

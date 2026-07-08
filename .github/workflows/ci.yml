@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Backend (lint, unit tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Enable pnpm via corepack
+        run: corepack enable
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-backend-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-backend-${{ runner.os }}-
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+
+  backend-integration:
+    # Runs the Prisma repository specs (*.prisma.spec.ts) against a real Postgres 16 —
+    # these are excluded from the unit run and verify the invariants that cannot be
+    # proven in-memory: the partial unique index on effective acceptances (P2002
+    # translation to ALREADY_ACCEPTED) and the atomic conditional state transitions
+    # (setNotifiedAtomically / transition) under concurrency.
+    name: Backend (Prisma integration tests, Postgres 16)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: clickwrap
+          POSTGRES_PASSWORD: clickwrap
+          POSTGRES_DB: clickwrap
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clickwrap -d clickwrap"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://clickwrap:clickwrap@localhost:5432/clickwrap
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-backend-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-backend-${{ runner.os }}-
+      - run: pnpm install --frozen-lockfile
+      - name: Push schema to the service database
+        run: pnpm exec prisma db push --skip-generate
+      - name: Apply post-migration SQL (partial unique index, append-only grants are skipped for the CI role)
+        # partial-indexes.sql contains role-specific GRANT/REVOKE statements for
+        # clickwrap_migrator/clickwrap_app which do not exist in CI — apply only the
+        # index/constraint section (statements up to the role management marker).
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=0 -f prisma/partial-indexes.sql || true
+          # The partial unique index is the piece the tests depend on — verify it exists:
+          psql "$DATABASE_URL" -tAc "SELECT indexname FROM pg_indexes WHERE indexname ILIKE '%effective%';" | grep -qi effective
+      - run: pnpm test:integration
+
+  spec-drift:
+    # The committed OpenAPI specs and the kubb-generated admin-ui client must always
+    # match the code — regenerate both and fail on any diff.
+    name: OpenAPI & generated-client drift check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-backend-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-backend-${{ runner.os }}-
+      - run: pnpm install --frozen-lockfile
+      - name: Regenerate OpenAPI specs
+        run: pnpm openapi
+      - name: Fail on spec drift
+        run: git diff --exit-code openapi.admin.json openapi.integration.json
+      - name: Install admin-ui deps
+        working-directory: admin-ui
+        run: pnpm install --frozen-lockfile
+      - name: Regenerate kubb client
+        working-directory: admin-ui
+        run: pnpm generate:api
+      - name: Fail on generated-client drift
+        run: git diff --exit-code admin-ui/src/gen
+
+  admin-ui:
+    name: Admin UI (lint, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: admin-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-adminui-${{ runner.os }}-${{ hashFiles('admin-ui/pnpm-lock.yaml') }}
+          restore-keys: pnpm-adminui-${{ runner.os }}-
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build

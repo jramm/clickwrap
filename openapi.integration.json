@@ -1,0 +1,1514 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/customers/{customerId}/acceptances": {
+      "post": {
+        "description": "The actor comes exclusively from the auth context; displayedConsentText is only a cross-check against the server-side versioned consent text. Replay with the same Idempotency-Key returns the identical 201 response.",
+        "operationId": "ConsentController_accept",
+        "parameters": [
+          {
+            "name": "x-customer-id",
+            "in": "header",
+            "description": "Authenticated customer (must match the path).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-user-id",
+            "in": "header",
+            "description": "Acting user in the calling tool.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-email",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-role",
+            "in": "header",
+            "description": "Portal role, logged with the evidence.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptanceBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptanceResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing Idempotency-Key / body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token or customer context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ALREADY_ACCEPTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VERSION_NOT_CURRENT · ROLE_MISMATCH · CONSENT_TEXT_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Record active consent (Idempotency-Key required)",
+        "tags": [
+          "integration-consent"
+        ]
+      }
+    },
+    "/customers/{customerId}/objections": {
+      "post": {
+        "operationId": "ConsentController_object",
+        "parameters": [
+          {
+            "name": "x-customer-id",
+            "in": "header",
+            "description": "Authenticated customer (must match the path).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-user-id",
+            "in": "header",
+            "description": "Acting user in the calling tool.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-email",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-role",
+            "in": "header",
+            "description": "Portal role, logged with the evidence.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectionBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectionResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing Idempotency-Key / body validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token or customer context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OBJECTION_NOT_APPLICABLE · OBJECTION_PERIOD_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Record an objection — PASSIVE versions within the objection period only (Idempotency-Key required)",
+        "tags": [
+          "integration-consent"
+        ]
+      }
+    },
+    "/customers/{customerId}/notifications": {
+      "post": {
+        "description": "notifiedAt is set to SERVER time, atomically and only from PENDING_NOTIFICATION. displayedAt is a plausibility check only. Naturally idempotent (no key needed).",
+        "operationId": "ConsentController_notify",
+        "parameters": [
+          {
+            "name": "x-customer-id",
+            "in": "header",
+            "description": "Authenticated customer (must match the path).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-user-id",
+            "in": "header",
+            "description": "Acting user in the calling tool.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-email",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-role",
+            "in": "header",
+            "description": "Portal role, logged with the evidence.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token or customer context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Report delivery (\"popup was displayed\") — starts the deadline",
+        "tags": [
+          "integration-consent"
+        ]
+      }
+    },
+    "/customers": {
+      "post": {
+        "description": "Creates a customer, optionally recording versions the customer already accepted out-of-band (e.g. by signing an offer) as IMPORT acceptances in the same call. A `roles` change takes effect on the next publish/rollout only. `externalRef` is unique only among customers with OVERLAPPING roles (the partner and customer external ID spaces are separate): a duplicate that shares at least one role returns 422 INVALID_STATE — integrators can treat that as the idempotency signal per overlapping role set. Use distinct refs per audience space, or GET first, to avoid ambiguity.",
+        "operationId": "CustomerOnboardingController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer created (with importedAcceptances).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCustomerResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema — no actor fields in the body).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND (acceptedVersions)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_STATE (externalRef duplicate sharing a role / invalid input) · UNKNOWN_AUDIENCE · ROLE_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Create a customer (integration onboarding)",
+        "tags": [
+          "integration-customers"
+        ]
+      }
+    },
+    "/customers/{customerId}/compliance": {
+      "get": {
+        "description": "compliant=false ONLY for EXPIRED_BLOCKING or a not-yet-accepted carry-over state. Without `audience` the result aggregates all of the customer's roles.",
+        "operationId": "ComplianceController_getCompliance",
+        "parameters": [
+          {
+            "name": "x-customer-id",
+            "in": "header",
+            "description": "Authenticated customer (must match the path).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-user-id",
+            "in": "header",
+            "description": "Acting user in the calling tool.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-email",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-role",
+            "in": "header",
+            "description": "Portal role, logged with the evidence.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Audience key of the calling tool.",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token or customer context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Compliance gate",
+        "tags": [
+          "integration-compliance"
+        ]
+      }
+    },
+    "/customers/{customerId}/pending-agreements": {
+      "get": {
+        "description": "Current PUBLISHED versions with an open state (PENDING_NOTIFICATION | NOTIFIED | EXPIRED_BLOCKING) plus UPCOMING published versions (validFrom in the future, marked `upcoming: true` with their `validFrom`) — acceptance may be collected in advance; the current version stays required until the flip.",
+        "operationId": "PendingAgreementsController_getPendingAgreements",
+        "parameters": [
+          {
+            "name": "x-customer-id",
+            "in": "header",
+            "description": "Authenticated customer (must match the path).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-user-id",
+            "in": "header",
+            "description": "Acting user in the calling tool.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-name",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-email",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-actor-role",
+            "in": "header",
+            "description": "Portal role, logged with the evidence.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Audience key of the calling tool.",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PendingAgreementItemModel"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token or customer context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Popup content — open items for the customer (empty = nothing to show)",
+        "tags": [
+          "integration-consent"
+        ]
+      }
+    },
+    "/documents/{typeKey}/{audienceKey}/latest.pdf": {
+      "get": {
+        "description": "Unauthenticated. The URL is DETERMINISTIC from the document keys (`/documents/<type>/<audience>/latest.pdf`), so it stays valid across every future publish — render it into offers/templates once. Each request redirects (302) to a fresh, time-limited presigned URL of the CURRENTLY EFFECTIVE published version (newest PUBLISHED with validFrom <= now — never an upcoming, not-yet-effective one: an offer must reference what is in force at signing time). Signature on the offer = implicit acceptance; record it later via `acceptedVersions` on customer creation. Side-effect-free: no notification/state/evidence writes.",
+        "operationId": "PublicDocumentsController_latestPdf",
+        "parameters": [
+          {
+            "name": "typeKey",
+            "required": true,
+            "in": "path",
+            "description": "Document type key, e.g. `terms`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audienceKey",
+            "required": true,
+            "in": "path",
+            "description": "Audience key, e.g. `customer`.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to a fresh presigned PDF URL (time-limited)."
+          },
+          "404": {
+            "description": "Uniform for unknown type/audience/document, no published version, or an only-upcoming version — never reveals which case it was."
+          }
+        },
+        "summary": "Stable public link to the latest effective PDF of a document (302 redirect)",
+        "tags": [
+          "Public documents"
+        ]
+      }
+    },
+    "/accept/{token}": {
+      "get": {
+        "description": "Auth: the link token in the path is the capability — no service token, no headers. Rendering the page counts as provable access: per pending agreement of the link’s customer a NotificationEvent (channel LINK) is recorded and the deadline starts (atomic, first access wins, SUPERSEDED is never revived). Language: `?lang=de|en`, then Accept-Language, default en. Invalid/expired/revoked tokens all render the SAME 404 page.",
+        "operationId": "AcceptPageController_page",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "description": "Capability token from the minted acceptance-link URL.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "en",
+                "de"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "accept-language",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Self-contained HTML page (inline CSS/JS, mobile-first)."
+          },
+          "404": {
+            "description": "Uniform HTML 404 page — never reveals whether the token existed."
+          },
+          "429": {
+            "description": "Per-token rate limit exceeded (JSON `{ code: RATE_LIMITED }`)."
+          }
+        },
+        "summary": "Hosted acceptance page (server-rendered HTML)",
+        "tags": [
+          "Hosted acceptance page"
+        ]
+      }
+    },
+    "/accept/{token}/acceptances": {
+      "post": {
+        "description": "Full acceptance flow with channel LINK: current-version check, role coverage, CONSENT_TEXT_MISMATCH cross-check against the server-side versioned consent text. The actor is `link:<linkId>` plus the SELF-DECLARED signer name/e-mail; the evidence note records the self-declaration. Optional Idempotency-Key header (the page sends a random key per attempt).",
+        "operationId": "AcceptPageController_accept",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "description": "Capability token from the minted acceptance-link URL.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkAcceptanceBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkAcceptanceResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LINK_NOT_FOUND (unknown/expired/revoked — uniform) · VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ALREADY_ACCEPTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VERSION_NOT_CURRENT · ROLE_MISMATCH · CONSENT_TEXT_MISMATCH · INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (per-token, in-memory MVP limit).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Record consent from the hosted page (link token = auth, signer self-declared)",
+        "tags": [
+          "Hosted acceptance page"
+        ]
+      }
+    },
+    "/webhooks/postmark": {
+      "post": {
+        "description": "Delivery → sets notifiedAt atomically (deadline starts). Bounce → escalation \"unreachable\". Unknown MessageIDs and other RecordTypes → 200 no-op (stops redelivery).",
+        "operationId": "PostmarkWebhookController_handle",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "RecordType"
+                ],
+                "properties": {
+                  "RecordType": {
+                    "type": "string",
+                    "example": "Delivery"
+                  },
+                  "MessageID": {
+                    "type": "string"
+                  },
+                  "Recipient": {
+                    "type": "string",
+                    "description": "Delivery events."
+                  },
+                  "Email": {
+                    "type": "string",
+                    "description": "Bounce events."
+                  },
+                  "Inactive": {
+                    "type": "boolean",
+                    "description": "Bounce: recipient permanently deactivated."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid webhook token (stops Postmark retries).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "postmark-webhook-token": []
+          }
+        ],
+        "summary": "Postmark delivery/bounce webhook (mounted only when EMAIL_PROVIDER=postmark)",
+        "tags": [
+          "webhooks"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "clickwrap-server — integration API",
+    "description": "Service-to-service surface for the calling tools: compliance gate, pending-agreements popup feed, consent/objection/delivery writes, customer onboarding (`POST /customers`) and the Postmark delivery webhook. Auth: shared `x-service-token`; the customer-scoped routes additionally require the verified context headers (`x-customer-id`, `x-actor-*`) — actor and customer NEVER come from the body. Exception: the hosted acceptance page (`/accept/**`) is authenticated by its capability link token alone (no integration needed). Errors are always `{ code, message }`.",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "service-token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-service-token",
+        "description": "Shared service secret (SERVICE_API_TOKEN)."
+      },
+      "postmark-webhook-token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "token",
+        "description": "Postmark webhook token (POSTMARK_WEBHOOK_TOKEN)."
+      }
+    },
+    "schemas": {
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "INVALID_STATE",
+            "description": "Stable DomainErrorCode (see docs/API.md §7)."
+          },
+          "message": {
+            "type": "string",
+            "example": "A customer with externalRef \"ext-1\" and an overlapping role already exists"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "AcceptanceBodyModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-9"
+          },
+          "displayedConsentText": {
+            "type": "string",
+            "example": "I have read the new revision and agree.",
+            "description": "Cross-check only — the evidence uses the server-side versioned consentText."
+          }
+        },
+        "required": [
+          "versionId",
+          "displayedConsentText"
+        ]
+      },
+      "AcceptanceResponseModel": {
+        "type": "object",
+        "properties": {
+          "acceptanceId": {
+            "type": "string",
+            "example": "a-991"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACCEPTED"
+            ]
+          }
+        },
+        "required": [
+          "acceptanceId",
+          "state"
+        ]
+      },
+      "ObjectionBodyModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-9"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Sub-processor XY is not accepted."
+          }
+        },
+        "required": [
+          "versionId"
+        ]
+      },
+      "ObjectionResponseModel": {
+        "type": "object",
+        "properties": {
+          "objectionId": {
+            "type": "string",
+            "example": "o-17"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "OBJECTED"
+            ]
+          }
+        },
+        "required": [
+          "objectionId",
+          "state"
+        ]
+      },
+      "NotificationBodyModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-9"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PORTAL"
+            ]
+          },
+          "displayedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Plausibility check only — notifiedAt is ALWAYS server time (no backdating)."
+          }
+        },
+        "required": [
+          "versionId",
+          "channel"
+        ]
+      },
+      "NotificationResponseModel": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ]
+          },
+          "notifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadlineAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "AcceptedVersionImportModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Signature date; backdating is allowed for IMPORT. Defaults to now."
+          },
+          "reference": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer",
+            "description": "Evidence reference."
+          }
+        },
+        "required": [
+          "versionId"
+        ]
+      },
+      "CreateCustomerBodyModel": {
+        "type": "object",
+        "properties": {
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711"
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme GmbH"
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "description": "Audience keys (validated).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactEmails": {
+            "example": [
+              "legal@acme.example"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptedVersions": {
+            "description": "Versions already accepted out-of-band (signed offer) — recorded as IMPORT acceptances.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AcceptedVersionImportModel"
+            }
+          }
+        },
+        "required": [
+          "externalRef",
+          "roles",
+          "contactEmails"
+        ]
+      },
+      "ImportedAcceptanceModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-4f9f6a…"
+          },
+          "acceptanceId": {
+            "type": "string",
+            "example": "a-991…"
+          }
+        },
+        "required": [
+          "versionId",
+          "acceptanceId"
+        ]
+      },
+      "CreateCustomerResponseModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "c-8a71…"
+          },
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711",
+            "description": "Unique external reference (CRM id)."
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Company display name ('' when unknown)."
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "description": "Audience keys.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactEmails": {
+            "example": [
+              "legal@acme.example"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "importedAcceptances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportedAcceptanceModel"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "externalRef",
+          "name",
+          "roles",
+          "contactEmails",
+          "importedAcceptances"
+        ]
+      },
+      "ComplianceResponseModel": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "example": "c-123"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer",
+            "description": "Audience key the query was restricted to."
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "compliant": {
+            "type": "boolean",
+            "description": "false only for EXPIRED_BLOCKING or a not-yet-accepted carry-over state."
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ComplianceDetailModel"
+            },
+            "description": "One entry per TYPE_AUDIENCE detail key (e.g. DPA_CUSTOMER)."
+          }
+        },
+        "required": [
+          "customerId",
+          "roles",
+          "compliant",
+          "details"
+        ]
+      },
+      "PendingAgreementItemModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-9"
+          },
+          "documentType": {
+            "type": "string",
+            "example": "dpa",
+            "description": "Document type key."
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer",
+            "description": "Audience key."
+          },
+          "versionLabel": {
+            "type": "string",
+            "example": "June 2026 edition"
+          },
+          "changeSummary": {
+            "type": "string",
+            "example": "New sub-processor for e-mail delivery."
+          },
+          "pdfUrl": {
+            "type": "string",
+            "description": "Presigned, time-limited PDF URL (15-minute TTL)."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PASSIVE"
+            ]
+          },
+          "deadlineAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "blocking": {
+            "type": "boolean",
+            "description": "true → the tool shows the block screen."
+          },
+          "upcoming": {
+            "type": "boolean",
+            "description": "true = published but not yet in effect (validFrom in the future). The current version stays required until the flip; accepting the upcoming one in advance is valid."
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date from which the revision applies."
+          }
+        },
+        "required": [
+          "versionId",
+          "documentType",
+          "audience",
+          "versionLabel",
+          "changeSummary",
+          "pdfUrl",
+          "mode",
+          "blocking",
+          "upcoming",
+          "validFrom"
+        ]
+      },
+      "LinkAcceptanceBodyModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-9"
+          },
+          "displayedConsentText": {
+            "type": "string",
+            "example": "I have read the new revision and agree.",
+            "description": "Exact consent text as displayed — cross-checked server-side (CONSENT_TEXT_MISMATCH)."
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Max Mustermann",
+            "description": "Self-declared signer name (typed by the recipient)."
+          },
+          "signerEmail": {
+            "type": "string",
+            "example": "max@acme.example",
+            "description": "Self-declared signer e-mail (basic format check)."
+          }
+        },
+        "required": [
+          "versionId",
+          "displayedConsentText",
+          "signerName",
+          "signerEmail"
+        ]
+      },
+      "LinkAcceptanceResponseModel": {
+        "type": "object",
+        "properties": {
+          "acceptanceId": {
+            "type": "string",
+            "example": "a-991"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACCEPTED"
+            ]
+          }
+        },
+        "required": [
+          "acceptanceId",
+          "state"
+        ]
+      }
+    }
+  }
+}

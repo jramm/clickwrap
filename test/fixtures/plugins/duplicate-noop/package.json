@@ -1,0 +1,7 @@
+{
+  "name": "duplicate-noop",
+  "version": "1.0.0",
+  "description": "Test fixture: clashes with the built-in (email-provider, noop) — must be a hard boot error.",
+  "main": "index.js",
+  "clickwrap": { "kind": "email-provider", "key": "noop" }
+}

@@ -1,0 +1,16 @@
+export { PrismaAcceptanceRepo } from './acceptance.repo';
+export { PrismaAdminAuditRepo } from './admin-audit.repo';
+export { PrismaAgreementDocumentRepo } from './agreement-document.repo';
+export { PrismaAgreementVersionRepo } from './agreement-version.repo';
+export { PrismaAudienceRepo } from './audience.repo';
+export { PrismaCustomerRepo } from './customer.repo';
+export { PrismaDocumentTypeRepo } from './document-type.repo';
+export { PrismaEmailTemplateRepo } from './email-template.repo';
+export { PrismaCustomerVersionStateRepo } from './customer-version-state.repo';
+export { PrismaEscalationLog } from './escalation-log.repo';
+export { PrismaIdempotencyStore } from './idempotency-store.repo';
+export { PrismaNotificationEventRepo } from './notification-event.repo';
+export { PrismaObjectionRepo } from './objection.repo';
+export { PrismaOutboundEmailRepo } from './outbound-email.repo';
+export { PersistenceModule } from './persistence.module';
+export { PrismaService } from './prisma.service';

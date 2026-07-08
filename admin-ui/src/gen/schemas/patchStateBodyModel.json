@@ -1,0 +1,1 @@
+{"type":"object","properties":{"deadlineAt":{"type":"string","format":"date-time"},"suspendBlock":{"type":"boolean","description":"true: EXPIRED_BLOCKING → NOTIFIED with a new deadlineAt (then required)."},"reason":{"type":"string","example":"Customer in clarification with legal"}},"required":["reason"],"x-readme-ref-name":"PatchStateBodyModel"}

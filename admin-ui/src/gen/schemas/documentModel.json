@@ -1,0 +1,1 @@
+{"type":"object","properties":{"id":{"type":"string","example":"doc-1c2d…"},"type":{"type":"string","example":"dpa"},"audience":{"type":"string","example":"customer"},"name":{"type":"string","example":"DPA — Customers"}},"required":["id","type","audience","name"],"x-readme-ref-name":"DocumentModel"}

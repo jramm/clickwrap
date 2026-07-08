@@ -1,0 +1,7 @@
+import type { Actor } from '../common/auth/actor';
+
+/** Actor for acceptances recorded automatically, without human involvement (method=TACIT, channel=SYSTEM). */
+export const SWEEPER_SYSTEM_ACTOR: Actor = {
+  userId: 'system:deadline-sweeper',
+  name: 'Deadline-Sweeper',
+};

@@ -1,0 +1,484 @@
+// clickwrap-server — Prisma schema
+//
+// Important — what Prisma cannot express here (see prisma/partial-indexes.sql):
+// - Invariant "exactly one effective Acceptance per (customerId, versionId)" is a PARTIAL
+//   unique index (WHERE "isEffective"), not a hard @@unique — otherwise append-only corrections
+//   (old entry isEffective=false + new entry) would be impossible.
+// - Append-only enforcement on Acceptance/Objection/NotificationEvent via REVOKE UPDATE, DELETE
+//   for the app role is a DB-privilege concern, not a Prisma construct.
+// Both are shipped as post-migration SQL in prisma/partial-indexes.sql (docs/PERSISTENCE.md).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+/// Lifecycle of an AgreementVersion. PUBLISHED versions are immutable afterwards
+/// (metadata + PDF) — enforced in the application layer (PATCH only for DRAFT),
+/// not by a DB constraint.
+enum VersionStatus {
+  DRAFT
+  PUBLISHED
+  RETIRED
+}
+
+/// Consent mode per version.
+enum AcceptanceMode {
+  ACTIVE
+  PASSIVE
+}
+
+/// Rollout state per (customer, version) — see the domain state machine.
+/// SUPERSEDED is terminal: replaced by a newer version, ignored by the sweeper.
+enum RolloutState {
+  PENDING_NOTIFICATION
+  NOTIFIED
+  ACCEPTED
+  OBJECTED
+  EXPIRED_BLOCKING
+  SUPERSEDED
+}
+
+/// How an acceptance came about.
+enum AcceptanceMethod {
+  ACTIVE_CONSENT
+  TACIT
+  IMPORT
+}
+
+/// Channel through which an acceptance was recorded.
+/// Allowed combinations: ACTIVE_CONSENT×PORTAL, ACTIVE_CONSENT×LINK (hosted acceptance page),
+/// ACTIVE_CONSENT/IMPORT×ADMIN, TACIT×SYSTEM — validated in the application layer, not by a DB
+/// constraint.
+enum AcceptanceChannel {
+  PORTAL
+  ADMIN
+  SYSTEM
+  LINK
+}
+
+/// Resolution of an objection — no dead-end state.
+enum ObjectionResolution {
+  WITHDRAWN
+  RESOLVED_ACCEPTED
+  RESOLVED_TERMINATED
+}
+
+/// Channel of a delivery evidence entry (LINK = hosted acceptance page was rendered).
+enum NotificationChannel {
+  EMAIL
+  PORTAL
+  LINK
+}
+
+/// Which mail an EmailTemplate is written for (= src/domain/types.ts::EmailTemplateKind).
+enum EmailTemplateKind {
+  VERSION_NOTIFICATION
+  REMINDER
+}
+
+/// STANDARD = admin-minted, time-limited; PERMANENT = one per-customer, non-expiring link
+/// injected into rollout/reminder mails (= src/domain/types.ts::AcceptanceLinkKind).
+enum LinkKind {
+  STANDARD
+  PERMANENT
+}
+
+/// Admin actions that must be audited (actor + reason + timestamp).
+/// Values exactly = src/agreements/audit.ts::AdminAuditAction.
+enum AdminAuditAction {
+  PUBLISH
+  MANUAL_ACCEPTANCE
+  CUSTOMER_VERSION_STATE_PATCH
+  REMIND
+  AUDIENCE_CREATE
+  AUDIENCE_UPDATE
+  AUDIENCE_DELETE
+  DOCUMENT_TYPE_CREATE
+  DOCUMENT_TYPE_UPDATE
+  DOCUMENT_TYPE_DELETE
+  CUSTOMER_CREATE
+  CUSTOMER_UPDATE
+  ACCEPTANCE_LINK_CREATE
+  EMAIL_TEMPLATE_CREATE
+  EMAIL_TEMPLATE_UPDATE
+  EMAIL_TEMPLATE_DELETE
+}
+
+/// Source of an escalation entry — see src/common/escalation/escalation-log.ts.
+enum EscalationKind {
+  OBJECTION_AFTER_PERIOD
+  EMAIL_BOUNCE
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+/// Dynamic audience ("customer", "partner", ...). `key` is a URL-safe slug
+/// ([a-z0-9-]{2,32}, validated in the application layer) and is referenced by
+/// AgreementDocument.audience and Customer.roles as a plain string — deliberately
+/// WITHOUT a foreign key: Customer.roles is a Postgres array (no FK possible), and a
+/// one-sided FK on AgreementDocument only would make the integrity guarantees uneven.
+/// Referential integrity is enforced by the application layer instead
+/// (UNKNOWN_AUDIENCE on use of an unknown key, AudienceRepo.deleteIfUnused on delete).
+model Audience {
+  id   String @id @default(cuid())
+  key  String @unique
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Dynamic document type ("terms", "dpa", ...) — same key/referencing rules as Audience
+/// (referenced by AgreementDocument.type; UNKNOWN_DOCUMENT_TYPE on unknown keys,
+/// DocumentTypeRepo.deleteIfUnused on delete).
+model DocumentTypeDef {
+  id   String @id @default(cuid())
+  key  String @unique
+  name String
+
+  /// Optional per-document-type e-mail template assignments (EmailTemplate.id). No FK on purpose
+  /// (application-level integrity, same rationale as the key references above): the admin service
+  /// validates existence on assignment and EmailTemplateRepo.deleteIfUnused refuses to delete an
+  /// assigned template.
+  notificationTemplateId String?
+  reminderTemplateId     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Admin-managed e-mail template (rollout notification / reminder), selectable per document type.
+/// Authored with the Unlayer editor: `design` is the Unlayer design JSON, `html` the exported,
+/// self-contained e-mail HTML (both with {{placeholders}}). The two built-in default rows
+/// (fixed ids tpl-default-*) are seeded on boot, editable but never deletable.
+model EmailTemplate {
+  id      String            @id
+  name    String
+  kind    EmailTemplateKind
+  subject String
+  design  String // Unlayer design JSON (serialised)
+  html    String // exported e-mail HTML
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Document bracket per (document type key, audience key), e.g. "terms customer",
+/// "dpa partner". Exactly one active document per (type, audience); the versions hang
+/// below it. `type`/`audience` hold DocumentTypeDef.key / Audience.key (see above for
+/// why there is no FK).
+model AgreementDocument {
+  id        String   @id @default(cuid())
+  type      String
+  audience  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versions AgreementVersion[]
+
+  @@unique([type, audience])
+}
+
+/// One concrete revision (PDF + metadata), immutable once published
+/// (invariant: PDF & metadata of a PUBLISHED version never change).
+model AgreementVersion {
+  id           String            @id @default(cuid())
+  documentId   String
+  document     AgreementDocument @relation(fields: [documentId], references: [id])
+  versionLabel String
+  status       VersionStatus     @default(DRAFT)
+
+  acceptanceMode      AcceptanceMode
+  objectionPeriodDays Int? // PASSIVE only, e.g. 14
+  gracePeriodDays     Int? // ACTIVE only, default 14 (application layer), overridable per version
+
+  changeSummary String // required — short description for the portal popup
+  consentText   String? // required for ACTIVE — exact consent text, immutable after publish
+
+  // PDF metadata
+  storageKey  String // S3 key
+  fileName    String
+  contentHash String // SHA-256 of the PDF content
+  fileSize    Int
+
+  validFrom   DateTime
+  publishedAt DateTime?
+  publishedBy String? // admin user who published
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customerStates CustomerVersionState[]
+  acceptances    Acceptance[]
+  objections     Objection[]
+
+  // Hot path: "applicable revision per (type, audience) = newest PUBLISHED version with
+  // validFrom <= today" is looked up via documentId + status + validFrom.
+  @@index([documentId, status, validFrom])
+}
+
+/// Reference to master data (external company) — not maintained here, roles are synced
+/// from the CRM.
+model Customer {
+  id            String   @id @default(cuid())
+  // NOT globally unique: partner and customer external ID spaces are separate, so the same
+  // externalRef may legitimately appear on entities with non-overlapping roles. Uniqueness is
+  // enforced app-side, only among customers sharing at least one role (see PERSISTENCE.md /
+  // CustomerAdminService). Plain index for the lookup by ref.
+  externalRef   String
+  name          String   @default("") // human-readable company name (display label in the admin UI)
+  roles         String[] // audience keys; [] = no role (sync gap / role revoked)
+  // All known contact e-mail addresses (active portal users + contract/legal contact) —
+  // rollout/reminder mails go to ALL of them; [] = no e-mail channel (the customer shows up
+  // in the escalation report as unreachable).
+  contactEmails String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versionStates CustomerVersionState[]
+  acceptances   Acceptance[]
+  objections    Objection[]
+
+  @@index([externalRef])
+}
+
+/// Rollout state per customer x published version (domain state machine).
+model CustomerVersionState {
+  id         String           @id @default(cuid())
+  customerId String
+  customer   Customer         @relation(fields: [customerId], references: [id])
+  versionId  String
+  version    AgreementVersion @relation(fields: [versionId], references: [id])
+
+  state RolloutState @default(PENDING_NOTIFICATION)
+
+  notifiedAt DateTime? // first provable delivery — starts the deadline
+  deadlineAt DateTime? // notifiedAt + objectionPeriodDays or + gracePeriodDays
+
+  remindersSent  Int       @default(0) // counter
+  lastReminderAt DateTime? // timestamp of the last reminder — without it the reminder job
+  // ("7 and 2 days before deadlineAt") could not idempotently detect whether a reminder
+  // was already sent
+
+  // Block carry-over: predecessor state was EXPIRED_BLOCKING → this state starts blocking
+  // immediately upon delivery (state-machine.ts::recordAccess receives this as
+  // predecessorWasBlocking). Set by publish/rollout; default false = normal case.
+  carryOverBlocking Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notifications NotificationEvent[]
+
+  @@unique([customerId, versionId])
+  // Hot path compliance lookup (indexed, target <= 50ms).
+  @@index([customerId, state])
+  // Hot path deadline sweeper (daily).
+  @@index([state, deadlineAt])
+}
+
+/// Append-only evidence: customer accepted a version. Exactly one effective acceptance per
+/// (customerId, versionId) — enforced as a partial unique index, see
+/// prisma/partial-indexes.sql. Correction = new entry; the old entry gets
+/// isEffective=false + supersededByAcceptanceId.
+model Acceptance {
+  id         String           @id @default(cuid())
+  customerId String
+  customer   Customer         @relation(fields: [customerId], references: [id])
+  versionId  String
+  version    AgreementVersion @relation(fields: [versionId], references: [id])
+
+  method  AcceptanceMethod
+  channel AcceptanceChannel
+
+  isEffective              Boolean     @default(true)
+  supersededByAcceptanceId String?     @unique
+  supersededByAcceptance   Acceptance? @relation("AcceptanceSupersession", fields: [supersededByAcceptanceId], references: [id])
+  supersedes               Acceptance? @relation("AcceptanceSupersession")
+
+  acceptedAt DateTime // server-side, never from a client payload (CONVENTIONS.md)
+
+  // Actor exclusively from the auth context — never from the request body.
+  // userId is required (mirrors src/common/auth/actor.ts::Actor — only name/e-mail/portal
+  // role are optional); for TACIT/SYSTEM bookings the application layer supplies a sweeper actor.
+  actorUserId     String
+  actorName       String?
+  actorEmail      String?
+  actorPortalRole String?
+
+  // Evidence for ACTIVE_CONSENT
+  consentText     String? // copied server-side from AgreementVersion.consentText
+  consentTextHash String?
+  // Hash of the accepted version at the time of consent. The domain type
+  // (types.ts::Acceptance) declares contentHash optional — kept required here on purpose:
+  // an acceptance without a provable content hash is worthless as audit evidence. The
+  // Prisma mapping layer (persistence/prisma/mappers/acceptance.mapper.ts) therefore ALWAYS
+  // fills the field (fallback '' if the domain exceptionally provides no contentHash)
+  // instead of loosening it to optional here — see docs/PERSISTENCE.md.
+  contentHash     String
+  ipAddress       String?
+  userAgent       String?
+  // Free-text evidence reference for out-of-band acceptances (method=IMPORT), e.g. the signed
+  // offer / CRM deal that carried the customer's signature.
+  evidenceNote    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId, versionId])
+  @@index([versionId, isEffective])
+}
+
+/// Objection — append-only, PASSIVE versions only.
+model Objection {
+  id         String           @id @default(cuid())
+  customerId String
+  customer   Customer         @relation(fields: [customerId], references: [id])
+  versionId  String
+  version    AgreementVersion @relation(fields: [versionId], references: [id])
+
+  objectedAt DateTime
+  reason     String?
+  channel    AcceptanceChannel // from the auth context, like Acceptance
+
+  // Actor from the auth context, like Acceptance (userId required, see above).
+  actorUserId     String
+  actorName       String?
+  actorEmail      String?
+  actorPortalRole String?
+
+  resolution ObjectionResolution?
+  resolvedBy String?
+  resolvedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId, versionId])
+}
+
+/// Delivery evidence (append-only) — may start notifiedAt/deadlineAt on CustomerVersionState.
+/// providerRef = Postmark MessageID, correlation key for the webhook.
+model NotificationEvent {
+  id                     String               @id @default(cuid())
+  customerVersionStateId String
+  customerVersionState   CustomerVersionState @relation(fields: [customerVersionStateId], references: [id])
+
+  channel    NotificationChannel
+  recipient  String // user or e-mail address
+  occurredAt DateTime // server-side timestamp
+
+  providerRef String? // Postmark MessageID
+
+  createdAt DateTime @default(now())
+
+  // Hot path webhook: correlate Postmark delivery/bounce events via the MessageID.
+  @@index([providerRef])
+}
+
+/// Hosted acceptance link (capability token) — see src/domain/types.ts::AcceptanceLink.
+/// Only the SHA-256 of the URL token is stored; the raw token exists once, in the minted URL.
+/// customerId is a plain reference like elsewhere; audienceKey optionally scopes the page to one
+/// audience (no FK, same rationale as Audience above).
+model AcceptanceLink {
+  id          String    @id
+  tokenHash   String    @unique
+  customerId  String
+  kind        LinkKind  @default(STANDARD)
+  audienceKey String?
+  createdBy   String // admin user who minted the link ('system' for permanent links)
+  createdAt   DateTime // set by the service (Clock), not a DB default — evidence timestamp
+  expiresAt   DateTime? // set for STANDARD links; null for PERMANENT (never expires)
+  revokedAt   DateTime?
+  lastUsedAt  DateTime?
+
+  @@index([customerId])
+}
+
+/// Auditability of admin actions: publish, manual acceptance, deadline extension/block
+/// suspension, reminders — with actor + reason + timestamp.
+/// Structure exactly = port src/agreements/audit.ts::AdminAuditLog (actor as one field,
+/// reason optional — the per-action reason requirement is enforced by the application
+/// layer). targetType/targetId reference the affected object polymorphically — deliberately
+/// without an FK constraint, because the target table varies per action.
+model AdminAuditLog {
+  id     String           @id
+  action AdminAuditAction
+
+  actor String // admin user (from the auth context, never from the body)
+
+  targetType String // e.g. "AgreementVersion", "CustomerVersionState", "Acceptance"
+  targetId   String
+
+  reason   String? // required for manual acceptance/PATCH (application layer); otherwise optional
+  metadata Json? // extra info per action (e.g. old/new deadlineAt, rolloutCustomers)
+
+  createdAt DateTime // set by the service (Clock), not a DB default — the port supplies the value
+
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+/// Delivery record per sent e-mail (port src/postmark/outbound-email.ts): maps the Postmark
+/// MessageID to (customerId, versionId) for webhook + fallback polling. notifiedAt on
+/// CustomerVersionState is only set upon DELIVERY — never upon sending.
+model OutboundEmail {
+  messageId   String    @id // Postmark MessageID
+  customerId  String
+  versionId   String
+  recipient   String
+  sentAt      DateTime
+  deliveredAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  // Hot path fallback polling (every 10 min): open sends older than the cutoff.
+  @@index([deliveredAt, sentAt])
+}
+
+/// Idempotency store for writing portal endpoints (port src/consent/ports.ts::
+/// IdempotencyStore): same idempotency key → identical stored response.
+model IdempotencyRecord {
+  key   String @id // e.g. "acceptance:<customerId>:<Idempotency-Key>"
+  value Json
+
+  createdAt DateTime @default(now())
+}
+
+/// Escalation entry for admin/legal (port src/common/escalation/escalation-log.ts):
+/// objection after the deadline or e-mail bounce ("unreachable").
+model EscalationEntry {
+  id   String         @id
+  kind EscalationKind
+
+  customerId String? // missing for EMAIL_BOUNCE without a correlatable MessageID
+  versionId  String?
+  occurredAt DateTime
+
+  // OBJECTION_AFTER_PERIOD: actor from the auth context + free text.
+  actorUserId     String?
+  actorName       String?
+  actorEmail      String?
+  actorPortalRole String?
+  reason          String?
+  note            String?
+
+  // EMAIL_BOUNCE: affected address + Postmark deactivation flag.
+  recipient        String?
+  inactivatedEmail Boolean?
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId])
+}

@@ -1,0 +1,1 @@
+{"type":"object","properties":{"userId":{"type":"string","example":"u-42"},"name":{"type":"string","example":"Jane Doe"},"email":{"type":"string","example":"jane@customer.example"},"portalRole":{"type":"string","example":"admin"}},"required":["userId"],"x-readme-ref-name":"ActorModel"}

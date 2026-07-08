@@ -1,0 +1,1 @@
+{"type":"object","properties":{"audienceKey":{"type":"string","example":"customer","description":"Optional scope: restrict the hosted page to documents of this audience key."},"expiresInDays":{"type":"number","example":30,"description":"Link validity in days (default 30, max 365)."}},"x-readme-ref-name":"CreateAcceptanceLinkBodyModel"}

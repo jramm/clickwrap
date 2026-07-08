@@ -1,0 +1,1 @@
+{"type":"object","properties":{"id":{"type":"string","example":"aud-1"},"key":{"type":"string","example":"customer","description":"URL-safe slug, immutable after creation."},"name":{"type":"string","example":"Customers"}},"required":["id","key","name"],"x-readme-ref-name":"NamedEntityModel"}

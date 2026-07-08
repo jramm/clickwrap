@@ -1,0 +1,1 @@
+{"type":"object","properties":{"name":{"type":"string","example":"Acme GmbH"},"roles":{"description":"Takes effect on the next publish/rollout.","type":"array","items":{"type":"string"}},"contactEmails":{"type":"array","items":{"type":"string"}}},"x-readme-ref-name":"UpdateCustomerBodyModel"}

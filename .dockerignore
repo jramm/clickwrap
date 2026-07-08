@@ -1,0 +1,12 @@
+node_modules
+admin-ui/node_modules
+dist
+admin-ui/dist
+.git
+.env
+.local-files
+coverage
+docs
+*.md
+!README.md
+.github
