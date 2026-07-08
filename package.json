@@ -15,9 +15,9 @@
     "openapi": "ts-node scripts/openapi.ts"
   },
   "dependencies": {
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/common": "^11.1.28",
+    "@nestjs/core": "^11.1.28",
+    "@nestjs/platform-express": "^11.1.28",
     "@nestjs/schedule": "^6.0.1",
     "@nestjs/swagger": "^11.4.5",
     "@prisma/client": "^6.10.0",
@@ -32,7 +32,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@nestjs/testing": "^11.0.1",
+    "@nestjs/testing": "^11.1.28",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/multer": "^2.2.0",
