@@ -80,10 +80,29 @@ Notes:
 
 ```ts
 interface EmailDeliveryProvider {
-  send(mail: { to; subject; text; html? }): Promise<{ providerRef: string }>;
+  send(mail: {
+    to; subject; text; html?;
+    attachments?: Array<{ filename: string; contentBase64: string; contentType: string }>;
+  }): Promise<{ providerRef: string }>;
   fetchDeliveryStatus?(providerRef): Promise<{ kind: 'delivered' | 'pending' | 'unsupported' }>;
 }
 ```
+
+The `mail` fields:
+
+| Field | Meaning |
+|---|---|
+| `to` | Recipient address |
+| `subject` | Subject line |
+| `text` | Plain-text body (always set — derived from the HTML) |
+| `html` | Optional HTML body |
+| `attachments` | Optional files, each `{ filename, contentBase64, contentType }` (`contentBase64` = base64-encoded content). Used e.g. for the accepted document PDF on the acceptance-confirmation mail. |
+
+A provider that **cannot send attachments must document that it silently ignores** the
+`attachments` field (the host still records the send). Postmark maps them to `Attachments`
+(`{ Name, Content, ContentType }`), SMTP/nodemailer to `attachments`
+(`{ filename, content: Buffer.from(contentBase64, 'base64'), contentType }`), and the `noop`
+built-in just logs the filename + byte size.
 
 `providerRef` correlates later delivery/bounce events to the send. Providers with webhooks ship a
 controller via `module()` and hand translated `InboundDeliveryEvent`s to the host sink:
@@ -109,14 +128,17 @@ payload is informational only. Reference implementation: `src/plugins/builtins/p
 interface FileStorage {
   store(buffer: Buffer, meta: { fileName: string; contentType?: string }): Promise<{ storageKey: string }>;
   getPresignedUrl(storageKey: string): Promise<string>; // time-limited, tamper-proof; ~15 min TTL
+  retrieve(storageKey: string): Promise<Buffer>; // load the raw content back (e.g. to attach a PDF)
 }
 ```
 
 - The `storageKey` format is yours (S3 key, generated id, …). The host computes `contentHash`,
   `fileName`, `fileSize` itself — a plugin is never trusted with evidence metadata.
-- `getPresignedUrl` must reject unknown keys.
-- An **S3 plugin** is `store` = `PutObject`, `getPresignedUrl` = `getSignedUrl(GetObject, { expiresIn: 900 })`
-  — no `module()` needed, S3 serves the URL itself.
+- `getPresignedUrl` and `retrieve` must reject unknown keys.
+- `retrieve` loads the whole file into memory — the host uses it to attach the accepted document PDF
+  to the acceptance-confirmation mail.
+- An **S3 plugin** is `store` = `PutObject`, `getPresignedUrl` = `getSignedUrl(GetObject, { expiresIn: 900 })`,
+  `retrieve` = `GetObject` — no `module()` needed, S3 serves the URL itself.
 - The **`local` built-in** (`src/plugins/builtins/local-file-storage.plugin.ts` +
   `src/plugins/file-storage/local/`) is the copyable reference for storages that must serve files
   themselves: generated uuid-only keys (strict pattern check before any fs access), HMAC-signed

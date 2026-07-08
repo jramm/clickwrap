@@ -300,7 +300,7 @@ export class UpdateNamedEntityBodyModel {
   name!: string;
 }
 
-const EMAIL_TEMPLATE_KINDS = ['VERSION_NOTIFICATION', 'REMINDER'] as const;
+const EMAIL_TEMPLATE_KINDS = ['VERSION_NOTIFICATION', 'REMINDER', 'ACCEPTANCE_CONFIRMATION'] as const;
 
 export class DocumentTypeModel {
   @ApiProperty({ example: 'dt-1' })
@@ -317,6 +317,9 @@ export class DocumentTypeModel {
 
   @ApiPropertyOptional({ example: 'tpl-2', description: 'Assigned REMINDER template id.' })
   reminderTemplateId?: string;
+
+  @ApiPropertyOptional({ example: 'tpl-3', description: 'Assigned ACCEPTANCE_CONFIRMATION template id.' })
+  acceptanceConfirmationTemplateId?: string;
 }
 
 export class UpdateDocumentTypeBodyModel {
@@ -336,6 +339,13 @@ export class UpdateDocumentTypeBodyModel {
     description: 'REMINDER template id; null clears the assignment, omit to keep it.',
   })
   reminderTemplateId?: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    nullable: true,
+    description: 'ACCEPTANCE_CONFIRMATION template id; null clears the assignment, omit to keep it.',
+  })
+  acceptanceConfirmationTemplateId?: string | null;
 }
 
 export class EmailTemplateModel {

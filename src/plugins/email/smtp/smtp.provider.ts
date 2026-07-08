@@ -38,6 +38,11 @@ export class SmtpEmailProvider implements EmailDeliveryProvider {
       subject: mail.subject,
       text: mail.text,
       html: mail.html,
+      attachments: mail.attachments?.map((attachment) => ({
+        filename: attachment.filename,
+        content: Buffer.from(attachment.contentBase64, 'base64'),
+        contentType: attachment.contentType,
+      })),
     });
     return { providerRef };
   }

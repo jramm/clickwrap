@@ -28,4 +28,9 @@ export type DocumentTypeModel = {
      * @type string | undefined
     */
     reminderTemplateId?: string;
+    /**
+     * @description Assigned ACCEPTANCE_CONFIRMATION template id.
+     * @type string | undefined
+    */
+    acceptanceConfirmationTemplateId?: string;
 };

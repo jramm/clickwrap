@@ -60,6 +60,17 @@ export const emailTemplatesFixture = z.array(emailTemplateModelSchema).parse([
     updatedAt: '2026-07-01T00:00:00Z',
   },
   {
+    id: 'tpl-default-acceptance-confirmation',
+    name: 'Default — acceptance confirmation',
+    kind: 'ACCEPTANCE_CONFIRMATION',
+    subject: 'Your acceptance of {{documentName}}',
+    design: '{}',
+    html: '<p>Thank you {{customerName}}, accepted on {{acceptedAt}}</p>',
+    isDefault: true,
+    createdAt: '2026-07-01T00:00:00Z',
+    updatedAt: '2026-07-01T00:00:00Z',
+  },
+  {
     id: 'tpl-custom',
     name: 'Friendly welcome',
     kind: 'VERSION_NOTIFICATION',
@@ -478,6 +489,10 @@ export const handlers = [
           body.notificationTemplateId === null ? undefined : (body.notificationTemplateId as string | undefined),
         reminderTemplateId:
           body.reminderTemplateId === null ? undefined : (body.reminderTemplateId as string | undefined),
+        acceptanceConfirmationTemplateId:
+          body.acceptanceConfirmationTemplateId === null
+            ? undefined
+            : (body.acceptanceConfirmationTemplateId as string | undefined),
       }),
     );
   }),

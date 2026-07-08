@@ -62,11 +62,38 @@ describe('SettingsPage — category CRUD', () => {
     expect(await screen.findByText('Reseller')).toBeInTheDocument();
   });
 
-  it('renders per-document-type template selects (notification + reminder)', async () => {
+  it('renders per-document-type template selects (notification + reminder + acceptance confirmation)', async () => {
     renderWithProviders(<SettingsPage />);
     await screen.findByText('Data Processing Agreement');
-    // Two selects per document type (2 document types → 4 comboboxes).
-    await waitFor(() => expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(4));
+    // Three selects per document type (2 document types → 6 comboboxes).
+    await waitFor(() => expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(6));
+    expect(screen.getAllByLabelText('Acceptance confirmation template').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('assigns an acceptance-confirmation template to a document type via PATCH', async () => {
+    let patched: Record<string, unknown> | null = null;
+    server.use(
+      http.patch(`${BASE}/admin/document-types/:id`, async ({ params, request }) => {
+        patched = { id: params.id, ...((await request.json()) as object) };
+        return HttpResponse.json({
+          id: params.id,
+          key: 'terms',
+          name: 'Terms of Service',
+          acceptanceConfirmationTemplateId: 'tpl-default-acceptance-confirmation',
+        });
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderWithProviders(<SettingsPage />);
+    await screen.findByText('Data Processing Agreement');
+    const selects = await screen.findAllByLabelText('Acceptance confirmation template');
+
+    await user.click(selects[0]);
+    await user.click(await screen.findByRole('option', { name: /Default — acceptance confirmation/ }));
+
+    await waitFor(() => expect(patched).not.toBeNull());
+    expect(patched).toMatchObject({ acceptanceConfirmationTemplateId: 'tpl-default-acceptance-confirmation' });
   });
 
   it('assigns a notification template to a document type via PATCH', async () => {

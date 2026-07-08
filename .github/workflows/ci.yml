@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Enable pnpm via corepack
         run: corepack enable
       - name: Cache pnpm store
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-backend-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -58,12 +58,12 @@ jobs:
     env:
       DATABASE_URL: postgresql://clickwrap:clickwrap@localhost:5432/clickwrap
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: corepack enable
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-backend-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -89,12 +89,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: corepack enable
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-backend-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -121,12 +121,12 @@ jobs:
       run:
         working-directory: admin-ui
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: corepack enable
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-adminui-${{ runner.os }}-${{ hashFiles('admin-ui/pnpm-lock.yaml') }}

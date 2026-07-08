@@ -27,6 +27,7 @@ import { PLUGIN_DI_TOKENS, type EmailDeliveryProvider } from '../../plugin-sdk';
 import { createPluginContext } from '../registry/plugin-context';
 import { getPluginRegistry } from '../registry/plugin-registry';
 import { selectedEmailProviderKey } from '../registry/selection';
+import { AcceptanceConfirmationService } from './core/acceptance-confirmation.service';
 import { AgreementEmailService } from './core/agreement-email.service';
 import { AgreementRolloutNotifier } from './core/agreement-rollout-notifier';
 import { DeliveryEventService } from './core/delivery-event.service';
@@ -72,6 +73,7 @@ export class EmailModule {
       PermanentAcceptanceLinkService,
       EmailContentService,
       AgreementEmailService,
+      AcceptanceConfirmationService,
       DeliveryEventService,
       AgreementRolloutNotifier,
       ...((fragment?.providers ?? []) as Provider[]),
@@ -84,6 +86,7 @@ export class EmailModule {
       providers,
       exports: [
         AgreementEmailService,
+        AcceptanceConfirmationService,
         DeliveryEventService,
         AgreementRolloutNotifier,
         EmailContentService,

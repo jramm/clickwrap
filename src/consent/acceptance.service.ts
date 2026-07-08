@@ -2,8 +2,9 @@
  * Active consent from the portal popup (POST /customers/:id/acceptances).
  * Evidence chain is built server-side; actor/IP/UA come exclusively from the CustomerContext.
  */
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import type { CustomerContext } from '../common/auth/actor';
+import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { Clock } from '../domain/clock';
 import {
   assertCustomerHasRole,
@@ -60,6 +61,7 @@ export class AcceptanceService {
     @Inject(CONSENT_TOKENS.IdempotencyStore) private readonly idempotency: IdempotencyStore,
     @Inject(CONSENT_TOKENS.IdGenerator) private readonly ids: IdGenerator,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly confirmation?: AcceptanceConfirmationService,
   ) {}
 
   async accept(input: AcceptanceInput): Promise<AcceptanceResponse> {
@@ -161,6 +163,9 @@ export class AcceptanceService {
     // UnitOfWork). Current safeguards: conditional transition() + partial unique index
     // "one effective acceptance". See docs/PERSISTENCE.md "Open items: transactionality".
     await this.acceptances.append(acceptance);
+
+    // Best-effort acceptance confirmation (delivers the accepted PDF); never fails the acceptance.
+    await this.confirmation?.sendForAcceptance(version, acceptance);
 
     return { acceptanceId: acceptance.id, state: 'ACCEPTED' };
   }

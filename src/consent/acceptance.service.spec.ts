@@ -15,6 +15,7 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
 } from '../persistence/inmemory';
+import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { AcceptanceService } from './acceptance.service';
 import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory';
 
@@ -72,6 +73,35 @@ describe('AcceptanceService', () => {
     );
     await documents.save(aDocument());
     await customers.save(aCustomer());
+  });
+
+  describe('acceptance confirmation trigger', () => {
+    it.each(['PORTAL', 'LINK'] as const)(
+      'invokes the acceptance-confirmation sender for channel %s',
+      async (channel) => {
+        const confirmation = { sendForAcceptance: jest.fn().mockResolvedValue(undefined) };
+        const serviceWithConfirmation = new AcceptanceService(
+          versions,
+          documents,
+          customers,
+          states,
+          acceptances,
+          idempotency,
+          new SequentialIdGenerator(),
+          clock,
+          confirmation as unknown as AcceptanceConfirmationService,
+        );
+        const version = await seedVersion();
+
+        await serviceWithConfirmation.accept(acceptInput({ channel }));
+
+        expect(confirmation.sendForAcceptance).toHaveBeenCalledTimes(1);
+        expect(confirmation.sendForAcceptance).toHaveBeenCalledWith(
+          expect.objectContaining({ id: version.id }),
+          expect.objectContaining({ method: 'ACTIVE_CONSENT', channel }),
+        );
+      },
+    );
   });
 
   it('happy path (onboarding without a state): creates the state, records the acceptance with server-side evidence chain', async () => {

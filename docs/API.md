@@ -105,14 +105,17 @@ Using a `type`/`audience` key that does not exist as an entity raises `422 UNKNO
 
 ## 2a. Admin — e-mail templates
 
-Rollout **notification** and **reminder** mails are rendered from admin-managed templates,
-selectable **per document type** (so `terms` vs. `dpa` can use different wording). Templates are
-authored in the admin UI with the Unlayer drag-and-drop editor; the backend stores the Unlayer
-`design` JSON (for re-editing) and the exported, self-contained `html`. A template is
-`{ id, name, kind, subject, design, html, isDefault, createdAt, updatedAt }` where
-`kind ∈ { VERSION_NOTIFICATION, REMINDER }`.
+Rollout **notification**, **reminder** and **acceptance-confirmation** mails are rendered from
+admin-managed templates, selectable **per document type** (so `terms` vs. `dpa` can use different
+wording). Templates are authored in the admin UI with the Unlayer drag-and-drop editor; the backend
+stores the Unlayer `design` JSON (for re-editing) and the exported, self-contained `html`. A template
+is `{ id, name, kind, subject, design, html, isDefault, createdAt, updatedAt }` where
+`kind ∈ { VERSION_NOTIFICATION, REMINDER, ACCEPTANCE_CONFIRMATION }`.
 
-- `GET /admin/email-templates` — list (sorted by name). `isDefault=true` marks the two built-in rows.
+The **acceptance-confirmation** mail is sent on acceptance and carries the accepted document as a PDF
+attachment (see [INTEGRATION.md §6b](INTEGRATION.md#6b-acceptance-confirmation-e-mails)).
+
+- `GET /admin/email-templates` — list (sorted by name). `isDefault=true` marks the three built-in rows.
 - `POST /admin/email-templates` — create `{ name, kind, subject, design, html }` (strict body → 400).
 - `PATCH /admin/email-templates/:id` — partial update of the same fields. Default rows are editable.
 - `DELETE /admin/email-templates/:id` — refused for a default row or one still assigned to a
@@ -121,9 +124,10 @@ authored in the admin UI with the Unlayer drag-and-drop editor; the backend stor
   rendered with realistic sample values (the UI shows this in a sandboxed iframe).
 
 **Template resolution at send time:** the document's `DocumentTypeDef` assignment
-(`notificationTemplateId` / `reminderTemplateId` by kind) → the built-in **default** row
-(`tpl-default-notification` / `tpl-default-reminder`, seeded on boot). The two default rows are real,
-editable rows; they cannot be deleted.
+(`notificationTemplateId` / `reminderTemplateId` / `acceptanceConfirmationTemplateId` by kind) → the
+built-in **default** row (`tpl-default-notification` / `tpl-default-reminder` /
+`tpl-default-acceptance-confirmation`, seeded on boot). The three default rows are real, editable
+rows; they cannot be deleted.
 
 **Placeholders** — `{{name}}` in `subject` and `html`; values are HTML-escaped when substituted into
 `html` (the authored markup is trusted), and unknown placeholders are left visible as `{{name}}` so
@@ -139,6 +143,7 @@ authors notice typos. The plain-text part of a mail is derived from the substitu
 | `changeSummary` | Short change summary of the version |
 | `validFrom` | Date the version becomes effective (YYYY-MM-DD) |
 | `deadlineAt` | Acceptance deadline (reminder mails; YYYY-MM-DD) |
+| `acceptedAt` | When the acceptance was recorded (confirmation mails; ISO 8601 timestamp) |
 | `acceptanceLink` | The customer's permanent hosted-acceptance URL (empty if `PUBLIC_BASE_URL` unset) |
 | `documentPdfUrl` | Stable public latest-PDF URL (empty if `PUBLIC_BASE_URL` unset) |
 | `appName` | Configurable brand name (`APP_NAME`, default `clickwrap-server`) |
@@ -266,9 +271,10 @@ that is not already accepted — the customer shows up in pending-agreements (po
 acceptance page) right away instead of waiting for the next publish. An `acceptedVersions` import
 of the current version keeps its `ACCEPTED` state; an import of an **old (retired) version** still
 yields a `PENDING_NOTIFICATION` state for the current one (the customer is asked to accept the
-current revision). Unlike publish, the onboarding rollout sends **no e-mails**; deadlines start
-with the first provable access as usual. REMOVING a role still takes effect on the next
-publish/rollout only.
+current revision). Like publish, the onboarding rollout **sends an acceptance-notification e-mail**
+per newly rolled-out version (skipped for versions covered by an `acceptedVersions` import, and for
+customers without contact e-mails); deadlines start with the first provable access as usual.
+REMOVING a role still takes effect on the next publish/rollout only.
 
 ### POST /admin/customers/:id/acceptance-links — mint a hosted acceptance link
 ```json

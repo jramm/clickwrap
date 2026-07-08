@@ -10,5 +10,6 @@ import type { UpdateDocumentTypeBodyModel } from "../types/UpdateDocumentTypeBod
 export const updateDocumentTypeBodyModelSchema = z.object({
     "name": z.optional(z.string()),
 "notificationTemplateId": z.string().describe("VERSION_NOTIFICATION template id; null clears the assignment, omit to keep it.").nullish(),
-"reminderTemplateId": z.string().describe("REMINDER template id; null clears the assignment, omit to keep it.").nullish()
+"reminderTemplateId": z.string().describe("REMINDER template id; null clears the assignment, omit to keep it.").nullish(),
+"acceptanceConfirmationTemplateId": z.string().describe("ACCEPTANCE_CONFIRMATION template id; null clears the assignment, omit to keep it.").nullish()
     }) as unknown as ToZod<UpdateDocumentTypeBodyModel>

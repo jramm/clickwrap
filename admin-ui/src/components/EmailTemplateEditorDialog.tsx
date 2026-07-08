@@ -11,6 +11,7 @@ import {
 } from '../api/hooks';
 import type { EmailTemplate, EmailTemplateKind } from '../api/hooks';
 import { useTranslation } from '../i18n';
+import { EMAIL_TEMPLATE_KINDS, kindLabelKey } from '../lib/emailTemplateKinds';
 import { PLACEHOLDER_VARIABLES } from '../lib/placeholders';
 import { Button, Dialog, Select, TextField, useToast } from '../ui';
 import { UnlayerEditor, type UnlayerHandle } from './UnlayerEditor';
@@ -106,10 +107,7 @@ export function EmailTemplateEditorDialog({
           label={t('emailTemplates.kind')}
           value={kind}
           onChange={(event) => setKind(event.target.value as EmailTemplateKind)}
-          options={[
-            { value: 'VERSION_NOTIFICATION', label: t('emailTemplates.kindNotification') },
-            { value: 'REMINDER', label: t('emailTemplates.kindReminder') },
-          ]}
+          options={EMAIL_TEMPLATE_KINDS.map((value) => ({ value, label: t(kindLabelKey(value)) }))}
         />
         <TextField
           label={t('emailTemplates.subject')}

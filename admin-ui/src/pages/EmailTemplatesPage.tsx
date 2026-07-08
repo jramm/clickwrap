@@ -14,6 +14,7 @@ import { ApiError, errorMessageKey } from '../api/errors';
 import { useDeleteEmailTemplate, useEmailTemplates } from '../api/hooks';
 import type { EmailTemplate } from '../api/hooks';
 import { EmailTemplateEditorDialog } from '../components/EmailTemplateEditorDialog';
+import { kindLabelKey } from '../lib/emailTemplateKinds';
 import { useTranslation } from '../i18n';
 import { Button, Card, PageHeader, useToast } from '../ui';
 
@@ -109,14 +110,7 @@ function EmailTemplateRow({ template, onEdit }: { template: EmailTemplate; onEdi
         </Stack>
       </TableCell>
       <TableCell>
-        <Chip
-          size="small"
-          label={
-            template.kind === 'VERSION_NOTIFICATION'
-              ? t('emailTemplates.kindNotification')
-              : t('emailTemplates.kindReminder')
-          }
-        />
+        <Chip size="small" label={t(kindLabelKey(template.kind))} />
       </TableCell>
       <TableCell sx={{ maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {template.subject}

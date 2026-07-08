@@ -45,6 +45,7 @@ const sampleVars = (documentTypeName: string) => ({
   changeSummary: 'Added a new sub-processor for e-mail delivery.',
   validFrom: '2026-07-01',
   deadlineAt: '2026-07-21',
+  acceptedAt: '2026-07-08T14:12:03.000Z',
   acceptanceLink: 'https://clickwrap.example.org/accept/sample-token',
   documentPdfUrl: 'https://clickwrap.example.org/documents/dpa/customer/latest.pdf',
   appName: 'clickwrap-server',

@@ -1,9 +1,11 @@
 import { FixedClock } from './clock';
 import {
+  DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID,
   DEFAULT_NOTIFICATION_TEMPLATE_ID,
   DEFAULT_REMINDER_TEMPLATE_ID,
   EMAIL_TEMPLATE_VARIABLES,
   defaultEmailTemplates,
+  defaultTemplateIdForKind,
   deriveTextFromHtml,
   emptyTemplateVars,
   isDefaultEmailTemplateId,
@@ -21,6 +23,7 @@ const vars = (overrides: Partial<TemplateVars> = {}): TemplateVars => ({
   changeSummary: 'New sub-processor.',
   validFrom: '2026-07-01',
   deadlineAt: '2026-07-21',
+  acceptedAt: '2026-07-08T14:12:03.000Z',
   acceptanceLink: 'https://clickwrap.example.org/accept/tok',
   documentPdfUrl: 'https://clickwrap.example.org/documents/dpa/customer/latest.pdf',
   appName: 'Clickwrap',
@@ -77,16 +80,32 @@ describe('deriveTextFromHtml', () => {
 });
 
 describe('default templates', () => {
-  it('ships one notification and one reminder template with fixed ids and design+html', () => {
+  it('ships notification, reminder and acceptance-confirmation templates with fixed ids and design+html', () => {
     const templates = defaultEmailTemplates(new FixedClock(new Date('2026-07-08T00:00:00Z')));
     const byId = new Map(templates.map((t) => [t.id, t]));
+    expect(templates).toHaveLength(3);
     expect(byId.get(DEFAULT_NOTIFICATION_TEMPLATE_ID)?.kind).toBe('VERSION_NOTIFICATION');
     expect(byId.get(DEFAULT_REMINDER_TEMPLATE_ID)?.kind).toBe('REMINDER');
+    expect(byId.get(DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID)?.kind).toBe('ACCEPTANCE_CONFIRMATION');
     for (const t of templates) {
       expect(t.html).toContain('{{acceptanceLink}}');
       expect(t.html).toContain('{{documentPdfUrl}}');
       expect(() => JSON.parse(t.design)).not.toThrow();
     }
+  });
+
+  it('the acceptance-confirmation default uses the {{acceptedAt}} placeholder', () => {
+    const templates = defaultEmailTemplates(new FixedClock(new Date('2026-07-08T00:00:00Z')));
+    const confirmation = templates.find((t) => t.id === DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID);
+    expect(confirmation?.html).toContain('{{acceptedAt}}');
+  });
+
+  it('maps each kind to its default template id', () => {
+    expect(defaultTemplateIdForKind('VERSION_NOTIFICATION')).toBe(DEFAULT_NOTIFICATION_TEMPLATE_ID);
+    expect(defaultTemplateIdForKind('REMINDER')).toBe(DEFAULT_REMINDER_TEMPLATE_ID);
+    expect(defaultTemplateIdForKind('ACCEPTANCE_CONFIRMATION')).toBe(
+      DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID,
+    );
   });
 
   it('default html placeholders are all supported variables', () => {
@@ -111,6 +130,7 @@ describe('default templates', () => {
   it('recognises the default template ids', () => {
     expect(isDefaultEmailTemplateId(DEFAULT_NOTIFICATION_TEMPLATE_ID)).toBe(true);
     expect(isDefaultEmailTemplateId(DEFAULT_REMINDER_TEMPLATE_ID)).toBe(true);
+    expect(isDefaultEmailTemplateId(DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID)).toBe(true);
     expect(isDefaultEmailTemplateId('tpl-custom')).toBe(false);
   });
 });

@@ -56,7 +56,7 @@ function DocumentTypeTemplateControls({ documentType }: { documentType: Document
   const { data: templates = [] } = useEmailTemplates();
   const assign = useAssignDocumentTypeTemplates();
 
-  const optionsFor = (kind: 'VERSION_NOTIFICATION' | 'REMINDER') => [
+  const optionsFor = (kind: 'VERSION_NOTIFICATION' | 'REMINDER' | 'ACCEPTANCE_CONFIRMATION') => [
     { value: '', label: t('settings.templateDefault') },
     ...templates
       .filter((template) => template.kind === kind)
@@ -66,7 +66,10 @@ function DocumentTypeTemplateControls({ documentType }: { documentType: Document
       })),
   ];
 
-  const handleAssign = (field: 'notificationTemplateId' | 'reminderTemplateId', value: string) => {
+  const handleAssign = (
+    field: 'notificationTemplateId' | 'reminderTemplateId' | 'acceptanceConfirmationTemplateId',
+    value: string,
+  ) => {
     assign.mutate(
       { id: documentType.id, [field]: value === '' ? null : value },
       {
@@ -90,6 +93,12 @@ function DocumentTypeTemplateControls({ documentType }: { documentType: Document
         value={documentType.reminderTemplateId ?? ''}
         onChange={(event) => handleAssign('reminderTemplateId', event.target.value)}
         options={optionsFor('REMINDER')}
+      />
+      <Select
+        label={t('settings.acceptanceConfirmationTemplate')}
+        value={documentType.acceptanceConfirmationTemplateId ?? ''}
+        onChange={(event) => handleAssign('acceptanceConfirmationTemplateId', event.target.value)}
+        options={optionsFor('ACCEPTANCE_CONFIRMATION')}
       />
     </Stack>
   );

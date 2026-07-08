@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { newId } from '../agreements/ids';
+import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
 import type { Actor } from '../common/auth/actor';
 import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
@@ -87,12 +88,16 @@ interface ValidatedImport {
  * Roles are validated against the AudienceRepo. Creating a customer (and adding a role via
  * update) runs an ONBOARDING ROLLOUT: PENDING_NOTIFICATION states are created for every current
  * published version covered by the roles — without them the customer would never appear in
- * pending-agreements (popup/hosted page) until the next publish. Unlike publish, no rollout
- * e-mails are sent here (onboarding imports must not trigger mails); deadlines start with the
- * first provable access as usual. Removing a role takes effect on the next publish only.
+ * pending-agreements (popup/hosted page) until the next publish. Like publish, every rolled-out
+ * version triggers an acceptance-notification e-mail through the shared RolloutNotifier port;
+ * versions covered by an `acceptedVersions` import are already ACCEPTED and get no mail.
+ * Deadlines still start with the first provable access, never with the plain send. Removing a
+ * role takes effect on the next publish only.
  */
 @Injectable()
 export class CustomerAdminService {
+  private readonly logger = new Logger(CustomerAdminService.name);
+
   constructor(
     @Inject(TOKENS.CustomerRepo) private readonly customers: CustomerRepo,
     @Inject(TOKENS.AudienceRepo) private readonly audiences: AudienceRepo,
@@ -100,6 +105,7 @@ export class CustomerAdminService {
     @Inject(TOKENS.AgreementDocumentRepo) private readonly documents: AgreementDocumentRepo,
     @Inject(TOKENS.CustomerVersionStateRepo) private readonly states: CustomerVersionStateRepo,
     @Inject(TOKENS.AcceptanceRepo) private readonly acceptances: AcceptanceRepo,
+    @Inject(AGREEMENTS_TOKENS.RolloutNotifier) private readonly notifier: RolloutNotifier,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
   ) {}
@@ -147,10 +153,10 @@ export class CustomerAdminService {
     }
 
     // Onboarding rollout AFTER the imports: an imported acceptance of the CURRENT version keeps
-    // its ACCEPTED state; an import of an OLD (retired) version leaves the current version
-    // without a state, so it becomes PENDING_NOTIFICATION here — the customer is immediately
-    // asked to accept the current revision.
-    const rolloutStates = await this.rolloutCurrentVersions(saved.id, saved.roles);
+    // its ACCEPTED state (and gets no notification); an import of an OLD (retired) version leaves
+    // the current version without a state, so it becomes PENDING_NOTIFICATION here and the
+    // customer is immediately asked (state + notification mail) to accept the current revision.
+    const rolloutStates = await this.rolloutCurrentVersions(saved, saved.roles);
 
     await this.audit.append({
       id: newId('audit'),
@@ -193,9 +199,11 @@ export class CustomerAdminService {
     });
 
     // Onboarding rollout for ADDED roles: the customer is asked to accept the current published
-    // versions of the new audience right away (pending-agreements/hosted page pick them up).
+    // versions of the new audience right away (pending-agreements/hosted page pick them up, and a
+    // notification mail per newly rolled-out version is sent — versions of the existing roles
+    // already had their rollout and are NOT re-notified).
     const addedRoles = input.roles !== undefined ? input.roles.filter((role) => !existing.roles.includes(role)) : [];
-    const rolloutStates = addedRoles.length > 0 ? await this.rolloutCurrentVersions(id, addedRoles) : 0;
+    const rolloutStates = addedRoles.length > 0 ? await this.rolloutCurrentVersions(updated, addedRoles) : 0;
 
     await this.audit.append({
       id: newId('audit'),
@@ -210,18 +218,20 @@ export class CustomerAdminService {
   }
 
   /**
-   * Onboarding rollout — the state-creation half of PublishService.publish step 5: one
+   * Onboarding rollout — the per-customer counterpart of PublishService.publish step 5+6: one
    * PENDING_NOTIFICATION state per current published version whose audience is covered by
    * `roles` — plus one per UPCOMING published version (validFrom in the future), so the new
    * customer can accept a scheduled revision in advance exactly like existing customers.
-   * Versions that already have a state (e.g. just-imported ACCEPTED ones) are skipped.
-   * carryOverBlocking is irrelevant here (no predecessor state for this customer) and, unlike
-   * publish, no rollout e-mails are sent — the deadline starts with the first provable access.
+   * Versions that already have a state (e.g. just-imported ACCEPTED ones) are skipped — no state,
+   * no mail. Every created state triggers an acceptance-notification e-mail through the same
+   * RolloutNotifier publish uses (template per document type, permanent acceptance link).
+   * carryOverBlocking is irrelevant here (no predecessor state for this customer); the deadline
+   * still starts with the first provable access, never with the plain send.
    * Returns the number of created states (audit metadata).
    */
-  private async rolloutCurrentVersions(customerId: string, roles: string[]): Promise<number> {
+  private async rolloutCurrentVersions(customer: Customer, roles: string[]): Promise<number> {
     const now = this.clock.now();
-    let created = 0;
+    const rolledOut: AgreementVersion[] = [];
     for (const document of await this.documents.findAll()) {
       if (!roles.includes(document.audience)) {
         continue;
@@ -231,20 +241,51 @@ export class CustomerAdminService {
         await this.versions.findUpcomingPublished(document.type, document.audience, now),
       ];
       for (const version of rolloutVersions) {
-        if (!version || (await this.states.findByCustomerAndVersion(customerId, version.id))) {
+        if (!version || (await this.states.findByCustomerAndVersion(customer.id, version.id))) {
           continue;
         }
         await this.states.save({
           id: newId('cvs'),
-          customerId,
+          customerId: customer.id,
           versionId: version.id,
           state: 'PENDING_NOTIFICATION',
           remindersSent: 0,
         });
-        created++;
+        rolledOut.push(version);
       }
     }
-    return created;
+    await this.notifyRolledOut(customer, rolledOut);
+    return rolledOut.length;
+  }
+
+  /**
+   * Acceptance notifications for the onboarding rollout. A customer without contact e-mails is
+   * skipped with a single warn log — the states stay PENDING_NOTIFICATION and the customer shows
+   * up in the escalation report as unreachable. A notifier failure must never fail the customer
+   * create/update (customer + states are already persisted), so every version is attempted
+   * independently and failures are only logged.
+   */
+  private async notifyRolledOut(customer: Customer, versions: AgreementVersion[]): Promise<void> {
+    if (versions.length === 0) {
+      return;
+    }
+    if (customer.contactEmails.length === 0) {
+      this.logger.warn(
+        `Customer ${customer.id} has no contact e-mails — skipping ${versions.length} onboarding rollout ` +
+          'notification(s); the customer appears in the escalation report as unreachable',
+      );
+      return;
+    }
+    for (const version of versions) {
+      try {
+        await this.notifier.notifyVersionPublished(customer, version);
+      } catch (err) {
+        this.logger.error(
+          `Onboarding rollout notification failed for customer ${customer.id}, version ${version.id}`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      }
+    }
   }
 
   /**

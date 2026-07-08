@@ -162,6 +162,26 @@ Security trade-off (deliberate):
 The `{{documentPdfUrl}}` placeholder is the stable public latest-PDF link from §7. Both variables
 render empty when `PUBLIC_BASE_URL` is unset.
 
+### 6b. Acceptance-confirmation e-mails
+
+On acceptance the service e-mails the customer a confirmation with the **accepted document attached
+as a PDF**, rendered from the per-document-type `ACCEPTANCE_CONFIRMATION` template (falling back to
+the built-in `tpl-default-acceptance-confirmation` row). The template supports the `{{acceptedAt}}`
+and `{{documentPdfUrl}}` placeholders in addition to the usual set.
+
+**When it is sent** (the trigger rule):
+
+- method **`ACTIVE_CONSENT`** — portal popup (channel `PORTAL`), hosted acceptance page (`LINK`) and
+  admin manual recording (`ADMIN`); and
+- method **`TACIT`** — booked by the deadline sweeper (`SYSTEM`).
+- **Never** for method **`IMPORT`** (bulk / out-of-band onboarding acceptances get no confirmation).
+
+**Recipient:** the accepting actor's e-mail if present (portal actor / hosted-page self-declared
+signer), otherwise all of the customer's `contactEmails`. A customer with neither is skipped (a
+warning is logged). Delivery is **best-effort**: a failure to render/attach/send is logged and never
+fails the acceptance itself. The attachment requires the active `FileStorage` plugin to support
+`retrieve` (all built-ins do; an S3 plugin uses `GetObject`).
+
 ## 7. Public documents — a stable PDF link for offers
 
 `GET ${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf` (no auth, no token) 302-redirects

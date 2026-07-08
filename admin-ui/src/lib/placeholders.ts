@@ -12,6 +12,7 @@ export const PLACEHOLDER_VARIABLES = [
   'changeSummary',
   'validFrom',
   'deadlineAt',
+  'acceptedAt',
   'acceptanceLink',
   'documentPdfUrl',
   'appName',

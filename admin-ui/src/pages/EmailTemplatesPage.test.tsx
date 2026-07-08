@@ -31,6 +31,8 @@ describe('EmailTemplatesPage', () => {
     expect(screen.getByText('Friendly welcome')).toBeInTheDocument();
     // Default rows carry a Default badge.
     expect(screen.getAllByText('Default').length).toBeGreaterThan(0);
+    // The acceptance-confirmation kind gets its own badge label.
+    expect(screen.getByText('Acceptance confirmation')).toBeInTheDocument();
   });
 
   it('creates a template: exports design+html from the editor and POSTs them', async () => {

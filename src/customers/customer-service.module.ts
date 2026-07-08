@@ -1,14 +1,23 @@
 import { Module } from '@nestjs/common';
+import { AgreementRolloutNotifier } from '../plugins/email/core/agreement-rollout-notifier';
+import { AGREEMENTS_TOKENS } from '../agreements/ports';
 import { CustomerAdminService } from './customer-admin.service';
 
 /**
- * Provider-only module for the shared {@link CustomerAdminService}. All of its dependencies come
- * from the global RepositoryModule, so it needs no imports. Both the admin API (AdminModule) and
- * the integration API (ConsentModule → CustomerOnboardingController) import this module and reuse
- * the same service implementation — no logic duplication.
+ * Provider-only module for the shared {@link CustomerAdminService}. Domain repositories, Clock and
+ * AdminAuditRepo come from the global RepositoryModule. The RolloutNotifier token is bound locally
+ * to the globally-available AgreementRolloutNotifier (from the @Global EmailModule) — the same
+ * binding AgreementsModule uses — so onboarding rollout can send acceptance-notification e-mails
+ * without importing AgreementsModule (which would create an import cycle via AdminModule).
+ *
+ * Both the admin API (AdminModule) and the integration API (ConsentModule →
+ * CustomerOnboardingController) import this module and reuse the same service implementation.
  */
 @Module({
-  providers: [CustomerAdminService],
+  providers: [
+    CustomerAdminService,
+    { provide: AGREEMENTS_TOKENS.RolloutNotifier, useExisting: AgreementRolloutNotifier },
+  ],
   exports: [CustomerAdminService],
 })
 export class CustomerServiceModule {}

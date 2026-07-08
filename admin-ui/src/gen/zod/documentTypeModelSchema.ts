@@ -12,5 +12,6 @@ export const documentTypeModelSchema = z.object({
 "key": z.string().describe("URL-safe slug, immutable after creation."),
 "name": z.string(),
 "notificationTemplateId": z.optional(z.string().describe("Assigned VERSION_NOTIFICATION template id.")),
-"reminderTemplateId": z.optional(z.string().describe("Assigned REMINDER template id."))
+"reminderTemplateId": z.optional(z.string().describe("Assigned REMINDER template id.")),
+"acceptanceConfirmationTemplateId": z.optional(z.string().describe("Assigned ACCEPTANCE_CONFIRMATION template id."))
     }) as unknown as ToZod<DocumentTypeModel>

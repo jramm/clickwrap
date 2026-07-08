@@ -1,5 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { DomainError } from '../common/errors';
+import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { AGREEMENTS_TOKENS, type PdfStorage, type PdfUpload } from '../agreements/ports';
 import { newId } from '../agreements/ids';
@@ -50,6 +51,7 @@ export class ManualAcceptanceService {
     @Inject(AGREEMENTS_TOKENS.PdfStorage) private readonly pdf: PdfStorage,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly confirmation?: AcceptanceConfirmationService,
   ) {}
 
   async record(customerId: string, input: ManualAcceptanceInput, adminActor: Actor): Promise<ManualAcceptanceResult> {
@@ -136,6 +138,9 @@ export class ManualAcceptanceService {
       metadata: { customerId, versionId: version.id, method: input.method, evidenceStorageKey: stored.storageKey },
       createdAt: this.clock.now(),
     });
+
+    // Best-effort acceptance confirmation (skips IMPORT internally); never fails the recording.
+    await this.confirmation?.sendForAcceptance(version, acceptance);
 
     return { acceptanceId: saved.id, state: accepted.state };
   }

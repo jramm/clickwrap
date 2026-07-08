@@ -5,6 +5,7 @@ import { aState, anActiveVersion, aVersion } from '../domain/testing/fixtures';
 import type { AgreementVersion, CustomerVersionState } from '../domain/types';
 import { InMemoryAcceptanceRepo } from '../persistence/inmemory/acceptance.repo';
 import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo';
+import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { DeadlineSweeperService } from './deadline-sweeper.service';
 
 /** Minimal fake: only findById is needed by the sweeper; can be made to throw deliberately for error tests. */
@@ -109,6 +110,40 @@ describe('DeadlineSweeperService', () => {
     });
     expect(acceptance?.actor.userId).toBe('system:deadline-sweeper');
     expect(acceptance?.acceptedAt.toISOString()).toBe(T0.toISOString());
+  });
+
+  it('TACIT acceptance: invokes the acceptance-confirmation sender with the version + acceptance', async () => {
+    process.env.SWEEPER_ENABLED = 'true';
+    const version = aVersion({ id: 'v-1', objectionPeriodDays: 14, consentText: undefined });
+    const versionRepo = new FakeAgreementVersionRepo();
+    versionRepo.seed(version);
+    const stateRepo = new InMemoryCustomerVersionStateRepo();
+    await stateRepo.save(
+      aState({
+        id: 'cvs-1',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        state: 'NOTIFIED',
+        notifiedAt: new Date('2026-07-07T09:00:00Z'),
+        deadlineAt: new Date('2026-07-21T09:00:00Z'),
+      }),
+    );
+    const acceptanceRepo = new InMemoryAcceptanceRepo();
+    const confirmation = { sendForAcceptance: jest.fn().mockResolvedValue(undefined) };
+    const service = new DeadlineSweeperService(
+      stateRepo,
+      versionRepo,
+      acceptanceRepo,
+      new FixedClock(T0),
+      confirmation as unknown as AcceptanceConfirmationService,
+    );
+
+    await service.run();
+
+    expect(confirmation.sendForAcceptance).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'v-1' }),
+      expect.objectContaining({ method: 'TACIT', channel: 'SYSTEM' }),
+    );
   });
 
   it('carries over consentText/consentTextHash from the version, if present', async () => {

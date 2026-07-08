@@ -23,6 +23,7 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   'changeSummary',
   'validFrom',
   'deadlineAt',
+  'acceptedAt',
   'acceptanceLink',
   'documentPdfUrl',
   'appName',
@@ -118,18 +119,22 @@ export const renderTemplate = (
 
 export const DEFAULT_NOTIFICATION_TEMPLATE_ID = 'tpl-default-notification';
 export const DEFAULT_REMINDER_TEMPLATE_ID = 'tpl-default-reminder';
+export const DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID = 'tpl-default-acceptance-confirmation';
 
-const DEFAULT_TEMPLATE_IDS = new Set<string>([
-  DEFAULT_NOTIFICATION_TEMPLATE_ID,
-  DEFAULT_REMINDER_TEMPLATE_ID,
-]);
+const DEFAULT_TEMPLATE_ID_BY_KIND: Record<EmailTemplateKind, string> = {
+  VERSION_NOTIFICATION: DEFAULT_NOTIFICATION_TEMPLATE_ID,
+  REMINDER: DEFAULT_REMINDER_TEMPLATE_ID,
+  ACCEPTANCE_CONFIRMATION: DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID,
+};
+
+const DEFAULT_TEMPLATE_IDS = new Set<string>(Object.values(DEFAULT_TEMPLATE_ID_BY_KIND));
 
 /** The built-in default rows may be edited but never deleted (INVALID_STATE). */
 export const isDefaultEmailTemplateId = (id: string): boolean => DEFAULT_TEMPLATE_IDS.has(id);
 
 /** The default template used when a document type has no assignment for the given kind. */
 export const defaultTemplateIdForKind = (kind: EmailTemplateKind): string =>
-  kind === 'VERSION_NOTIFICATION' ? DEFAULT_NOTIFICATION_TEMPLATE_ID : DEFAULT_REMINDER_TEMPLATE_ID;
+  DEFAULT_TEMPLATE_ID_BY_KIND[kind];
 
 /** A clean, self-contained default e-mail HTML shared by both default templates. */
 const defaultHtml = (intro: string, ctaLabel: string): string =>
@@ -149,6 +154,32 @@ const defaultHtml = (intro: string, ctaLabel: string): string =>
     '</td></tr></table>',
     '<p style="margin:0 0 8px;font-size:14px;color:#4b5563;">You can read the full document here:</p>',
     '<p style="margin:0 0 24px;font-size:14px;"><a href="{{documentPdfUrl}}" style="color:#2563eb;">{{documentPdfUrl}}</a></p>',
+    '</td></tr>',
+    '<tr><td style="padding:20px 32px;background:#f9fafb;font-size:12px;color:#6b7280;">You receive this e-mail because your organisation has an agreement managed via {{appName}}.</td></tr>',
+    '</table></td></tr></table></body></html>',
+  ].join('\n');
+
+/**
+ * The acceptance-confirmation default html: confirms the acceptance (with `{{acceptedAt}}`), links
+ * to the document PDF (`{{documentPdfUrl}}`, also attached to the mail) and to the customer's
+ * permanent acceptance page (`{{acceptanceLink}}`) for their other agreements.
+ */
+const confirmationHtml = (): string =>
+  [
+    '<!DOCTYPE html>',
+    '<html><body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 0;">',
+    '<tr><td align="center">',
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;">',
+    '<tr><td style="background:#1f2937;padding:20px 32px;color:#ffffff;font-size:18px;font-weight:bold;">{{appName}}</td></tr>',
+    '<tr><td style="padding:32px;">',
+    '<p style="margin:0 0 16px;font-size:15px;">Hello {{customerName}},</p>',
+    '<p style="margin:0 0 16px;font-size:15px;line-height:1.5;">Thank you — we have recorded your acceptance of {{documentName}} ({{documentType}}), version {{versionLabel}}, on {{acceptedAt}}.</p>',
+    '<p style="margin:0 0 24px;font-size:15px;line-height:1.5;">A copy of the accepted document is attached to this e-mail for your records.</p>',
+    '<p style="margin:0 0 8px;font-size:14px;color:#4b5563;">You can also download it here:</p>',
+    '<p style="margin:0 0 24px;font-size:14px;"><a href="{{documentPdfUrl}}" style="color:#2563eb;">{{documentPdfUrl}}</a></p>',
+    '<p style="margin:0 0 8px;font-size:14px;color:#4b5563;">Manage your agreements at any time:</p>',
+    '<p style="margin:0 0 24px;font-size:14px;"><a href="{{acceptanceLink}}" style="color:#2563eb;">{{acceptanceLink}}</a></p>',
     '</td></tr>',
     '<tr><td style="padding:20px 32px;background:#f9fafb;font-size:12px;color:#6b7280;">You receive this e-mail because your organisation has an agreement managed via {{appName}}.</td></tr>',
     '</table></td></tr></table></body></html>',
@@ -182,7 +213,7 @@ const designForHtml = (html: string): string =>
     schemaVersion: 16,
   });
 
-/** The two built-in templates, timestamped via the clock (idempotent seeding uses the fixed ids). */
+/** The three built-in templates, timestamped via the clock (idempotent seeding uses the fixed ids). */
 export const defaultEmailTemplates = (clock: Clock): EmailTemplate[] => {
   const now = clock.now();
   const notificationHtml = defaultHtml(
@@ -193,6 +224,7 @@ export const defaultEmailTemplates = (clock: Clock): EmailTemplate[] => {
     '{{documentName}} ({{versionLabel}}) is still awaiting your acceptance. The deadline is {{deadlineAt}}.',
     'Review & accept',
   );
+  const acceptanceConfirmationHtml = confirmationHtml();
   return [
     {
       id: DEFAULT_NOTIFICATION_TEMPLATE_ID,
@@ -211,6 +243,16 @@ export const defaultEmailTemplates = (clock: Clock): EmailTemplate[] => {
       subject: 'Reminder: please accept {{documentName}} — {{versionLabel}}',
       design: designForHtml(reminderHtml),
       html: reminderHtml,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID,
+      name: 'Default — acceptance confirmation',
+      kind: 'ACCEPTANCE_CONFIRMATION',
+      subject: '{{appName}}: your acceptance of {{documentName}} — {{versionLabel}}',
+      design: designForHtml(acceptanceConfirmationHtml),
+      html: acceptanceConfirmationHtml,
       createdAt: now,
       updatedAt: now,
     },

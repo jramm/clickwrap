@@ -4,7 +4,7 @@
  */
 import { z } from 'zod';
 
-const emailTemplateKind = z.enum(['VERSION_NOTIFICATION', 'REMINDER']);
+const emailTemplateKind = z.enum(['VERSION_NOTIFICATION', 'REMINDER', 'ACCEPTANCE_CONFIRMATION']);
 
 export const createEmailTemplateBodySchema = z
   .object({
@@ -41,6 +41,7 @@ export const updateDocumentTypeBodySchema = z
     name: z.string().optional(),
     notificationTemplateId: z.string().nullable().optional(),
     reminderTemplateId: z.string().nullable().optional(),
+    acceptanceConfirmationTemplateId: z.string().nullable().optional(),
   })
   .strict();
 export type UpdateDocumentTypeBody = z.infer<typeof updateDocumentTypeBodySchema>;

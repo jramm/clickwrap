@@ -112,6 +112,29 @@ describe('DocumentTypeAdminService', () => {
       expect(updated.reminderTemplateId).toBe('tpl-r');
     });
 
+    it('assigns an acceptance-confirmation template (kind-validated) and clears it with null', async () => {
+      const created = await service.create({ key: 'dpa', name: 'DPA' }, 'admin-1');
+      await emailTemplates.save(aTemplate({ id: 'tpl-c', kind: 'ACCEPTANCE_CONFIRMATION' }));
+
+      const assigned = await service.update(
+        created.id,
+        { acceptanceConfirmationTemplateId: 'tpl-c' },
+        'admin-1',
+      );
+      expect(assigned.acceptanceConfirmationTemplateId).toBe('tpl-c');
+
+      const cleared = await service.update(created.id, { acceptanceConfirmationTemplateId: null }, 'admin-1');
+      expect(cleared.acceptanceConfirmationTemplateId).toBeUndefined();
+    });
+
+    it('rejects a non-ACCEPTANCE_CONFIRMATION template for the confirmation assignment', async () => {
+      const created = await service.create({ key: 'dpa', name: 'DPA' }, 'admin-1');
+      await emailTemplates.save(aTemplate({ id: 'tpl-n', kind: 'VERSION_NOTIFICATION' }));
+      await expect(
+        service.update(created.id, { acceptanceConfirmationTemplateId: 'tpl-n' }, 'admin-1'),
+      ).rejects.toMatchObject({ code: 'INVALID_STATE' });
+    });
+
     it('clears an assignment with explicit null and keeps it when the property is absent', async () => {
       const created = await service.create({ key: 'dpa', name: 'DPA' }, 'admin-1');
       await emailTemplates.save(aTemplate({ id: 'tpl-n', kind: 'VERSION_NOTIFICATION' }));

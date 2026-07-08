@@ -11,6 +11,7 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
 } from '../persistence/inmemory';
+import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { ManualAcceptanceService, type ManualAcceptanceInput } from './manual-acceptance.service';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
@@ -76,6 +77,28 @@ describe('ManualAcceptanceService', () => {
     const acceptance = await acceptances.findById(result.acceptanceId);
     expect(acceptance).toMatchObject({ method: 'IMPORT', channel: 'ADMIN', contentHash: 'sha256:9c1e' });
     expect(acceptance?.consentText).toBeUndefined();
+  });
+
+  it('invokes the acceptance-confirmation sender with the recorded acceptance (ADMIN manual)', async () => {
+    const confirmation = { sendForAcceptance: jest.fn().mockResolvedValue(undefined) };
+    const serviceWithConfirmation = new ManualAcceptanceService(
+      customers,
+      versions,
+      documents,
+      states,
+      acceptances,
+      pdf,
+      audit,
+      new FixedClock(T0),
+      confirmation as unknown as AcceptanceConfirmationService,
+    );
+
+    await serviceWithConfirmation.record('c-123', input(), adminActor);
+
+    expect(confirmation.sendForAcceptance).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'v-1' }),
+      expect.objectContaining({ method: 'ACTIVE_CONSENT', channel: 'ADMIN' }),
+    );
   });
 
   it('writes a MANUAL_ACCEPTANCE audit log incl. reason + evidenceStorageKey', async () => {

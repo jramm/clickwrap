@@ -55,9 +55,10 @@ export class EmailContentService {
     customer: Customer,
     version: AgreementVersion,
     deadlineAt?: Date,
+    acceptedAt?: Date,
   ): Promise<RenderedTemplate> {
     const template = await this.resolveTemplate(kind, version);
-    const vars = await this.buildVars(customer, version, deadlineAt);
+    const vars = await this.buildVars(customer, version, deadlineAt, acceptedAt);
     return renderTemplate(template, vars);
   }
 
@@ -106,6 +107,7 @@ export class EmailContentService {
     customer: Customer,
     version: AgreementVersion,
     deadlineAt?: Date,
+    acceptedAt?: Date,
   ): Promise<TemplateVars> {
     const document = await this.documents.findById(version.documentId);
     const documentType = document ? await this.documentTypes.findByKey(document.type) : undefined;
@@ -124,6 +126,7 @@ export class EmailContentService {
       changeSummary: version.changeSummary,
       validFrom: isoDate(version.validFrom),
       deadlineAt: deadlineAt ? isoDate(deadlineAt) : '',
+      acceptedAt: acceptedAt ? acceptedAt.toISOString() : '',
       acceptanceLink,
       documentPdfUrl,
       appName: this.config.appName,

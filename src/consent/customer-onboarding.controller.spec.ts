@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { InMemoryAdminAuditRepo, ADMIN_AUDIT_TOKEN } from '../agreements/audit';
+import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
 import { DomainErrorFilter } from '../common/http/domain-error.filter';
 import { FixedClock } from '../domain/clock';
 import { anAudience, aVersion } from '../domain/testing/fixtures';
@@ -25,6 +26,7 @@ describe('CustomerOnboardingController (integration surface)', () => {
   let customers: InMemoryCustomerRepo;
   let acceptances: InMemoryAcceptanceRepo;
   let audit: InMemoryAdminAuditRepo;
+  let notified: string[];
 
   beforeEach(async () => {
     process.env.SERVICE_API_TOKEN = SERVICE_TOKEN;
@@ -35,6 +37,15 @@ describe('CustomerOnboardingController (integration surface)', () => {
     const states = new InMemoryCustomerVersionStateRepo();
     acceptances = new InMemoryAcceptanceRepo();
     audit = new InMemoryAdminAuditRepo();
+    notified = [];
+    const notifier: RolloutNotifier = {
+      async notifyVersionPublished(_customer, version) {
+        notified.push(version.id);
+      },
+      async remind() {
+        /* unused */
+      },
+    };
     await audiences.save(anAudience({ id: 'aud-customer', key: 'customer', name: 'Customers' }));
     await documents.save({ id: 'doc-dpa-c', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
     await versions.save(aVersion({ id: 'v-pub', documentId: 'doc-dpa-c', status: 'PUBLISHED' }));
@@ -50,6 +61,7 @@ describe('CustomerOnboardingController (integration surface)', () => {
         { provide: TOKENS.CustomerVersionStateRepo, useValue: states },
         { provide: TOKENS.AcceptanceRepo, useValue: acceptances },
         { provide: ADMIN_AUDIT_TOKEN, useValue: audit },
+        { provide: AGREEMENTS_TOKENS.RolloutNotifier, useValue: notifier },
         { provide: TOKENS.Clock, useValue: new FixedClock(T0) },
       ],
     }).compile();

@@ -1,5 +1,6 @@
 import { FixedClock } from '../domain/clock';
 import {
+  DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID,
   DEFAULT_NOTIFICATION_TEMPLATE_ID,
   DEFAULT_REMINDER_TEMPLATE_ID,
 } from '../domain/email-template';
@@ -19,11 +20,12 @@ describe('DefaultEmailTemplateSeeder', () => {
     seeder = new DefaultEmailTemplateSeeder(templates, new FixedClock(new Date('2026-07-08T00:00:00Z')));
   });
 
-  it('creates both default rows on first bootstrap', async () => {
+  it('creates all default rows on first bootstrap', async () => {
     await seeder.onApplicationBootstrap();
     expect(await templates.findById(DEFAULT_NOTIFICATION_TEMPLATE_ID)).toBeDefined();
     expect(await templates.findById(DEFAULT_REMINDER_TEMPLATE_ID)).toBeDefined();
-    expect(await templates.findAll()).toHaveLength(2);
+    expect(await templates.findById(DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID)).toBeDefined();
+    expect(await templates.findAll()).toHaveLength(3);
   });
 
   it('is idempotent and never overwrites an edited default row', async () => {
@@ -35,6 +37,6 @@ describe('DefaultEmailTemplateSeeder', () => {
     await seeder.ensureDefaults();
 
     expect((await templates.findById(DEFAULT_NOTIFICATION_TEMPLATE_ID))?.subject).toBe('Admin-edited subject');
-    expect(await templates.findAll()).toHaveLength(2);
+    expect(await templates.findAll()).toHaveLength(3);
   });
 });

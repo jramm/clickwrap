@@ -470,6 +470,7 @@ export interface AssignDocumentTypeTemplatesInput {
   /** string = assign, null = clear, undefined = keep. */
   notificationTemplateId?: string | null;
   reminderTemplateId?: string | null;
+  acceptanceConfirmationTemplateId?: string | null;
 }
 
 export function useAssignDocumentTypeTemplates() {
@@ -481,6 +482,7 @@ export function useAssignDocumentTypeTemplates() {
         data: {
           notificationTemplateId: input.notificationTemplateId,
           reminderTemplateId: input.reminderTemplateId,
+          acceptanceConfirmationTemplateId: input.acceptanceConfirmationTemplateId,
         },
       }),
     onSuccess: () =>

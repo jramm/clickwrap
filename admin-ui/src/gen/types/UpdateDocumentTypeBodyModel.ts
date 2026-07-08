@@ -19,4 +19,9 @@ export type UpdateDocumentTypeBodyModel = {
      * @type string
     */
     reminderTemplateId?: string | null;
+    /**
+     * @description ACCEPTANCE_CONFIRMATION template id; null clears the assignment, omit to keep it.
+     * @type string
+    */
+    acceptanceConfirmationTemplateId?: string | null;
 };

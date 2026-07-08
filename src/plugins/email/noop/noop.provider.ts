@@ -11,6 +11,11 @@ export class NoopEmailProvider implements EmailDeliveryProvider {
   async send(mail: OutboundMail): Promise<SendResult> {
     // eslint-disable-next-line no-console
     console.warn(`[email:noop] e-mail to ${mail.to} NOT sent (noop provider). Subject: ${mail.subject}`);
+    for (const attachment of mail.attachments ?? []) {
+      const byteSize = Buffer.byteLength(attachment.contentBase64, 'base64');
+      // eslint-disable-next-line no-console
+      console.warn(`[email:noop] attachment "${attachment.filename}" (${byteSize} bytes) NOT sent (noop provider).`);
+    }
     return { providerRef: `noop-${randomUUID()}` };
   }
 }

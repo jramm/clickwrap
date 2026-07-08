@@ -1,11 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Clock } from '../domain/clock';
 import { consentTextHashFor } from '../domain/consent-rules';
 import type { AcceptanceRepo, AgreementVersionRepo, CustomerVersionStateRepo } from '../domain/ports';
 import { sweep } from '../domain/state-machine';
-import type { CustomerVersionState } from '../domain/types';
+import type { Acceptance, CustomerVersionState } from '../domain/types';
 import { TOKENS } from '../persistence/tokens';
+import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { SWEEPER_SYSTEM_ACTOR } from './system-actor';
 
 /** Kill switch: SWEEPER_ENABLED=false disables the sweeper entirely (a full no-op). */
@@ -26,6 +27,7 @@ export class DeadlineSweeperService {
     @Inject(TOKENS.AgreementVersionRepo) private readonly versionRepo: AgreementVersionRepo,
     @Inject(TOKENS.AcceptanceRepo) private readonly acceptanceRepo: AcceptanceRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly confirmation?: AcceptanceConfirmationService,
   ) {}
 
   /** Sweep run: finds due states and applies the matching transition logic per version. */
@@ -64,7 +66,7 @@ export class DeadlineSweeperService {
       return;
     }
     if (result.outcome === 'TACIT_ACCEPTED') {
-      await this.acceptanceRepo.append({
+      const acceptance: Acceptance = {
         id: randomUUID(),
         customerId: state.customerId,
         versionId: state.versionId,
@@ -76,7 +78,10 @@ export class DeadlineSweeperService {
         consentText: version.consentText,
         consentTextHash: version.consentText !== undefined ? consentTextHashFor(version) : undefined,
         contentHash: version.contentHash,
-      });
+      };
+      await this.acceptanceRepo.append(acceptance);
+      // Best-effort acceptance confirmation (delivers the accepted PDF); never fails the sweep.
+      await this.confirmation?.sendForAcceptance(version, acceptance);
     }
   }
 }

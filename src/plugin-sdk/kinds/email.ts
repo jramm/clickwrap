@@ -10,12 +10,27 @@
  * `PLUGIN_DI_TOKENS.InboundDeliveryEventSink` to hand translated events to the host.
  */
 
+/**
+ * A file attached to an outbound mail. `contentBase64` is the base64-encoded file content; the
+ * host never hands a plugin a raw Buffer across the contract boundary.
+ */
+export interface EmailAttachment {
+  filename: string;
+  contentBase64: string;
+  contentType: string;
+}
+
 /** Provider-agnostic outbound message. The sender address is the provider's concern (env EMAIL_FROM). */
 export interface OutboundMail {
   to: string;
   subject: string;
   text: string;
   html?: string;
+  /**
+   * Optional file attachments (e.g. the accepted document as a PDF). A provider that cannot send
+   * attachments MUST document that it silently ignores this field (see docs/PLUGINS.md).
+   */
+  attachments?: EmailAttachment[];
 }
 
 /** Result of a send: the provider's own reference used to correlate later delivery/bounce events. */

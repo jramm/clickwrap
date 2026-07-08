@@ -18,6 +18,7 @@ export interface UpdateDocumentTypeInput {
   /** string = assign, null = clear, absent = keep. */
   notificationTemplateId?: string | null;
   reminderTemplateId?: string | null;
+  acceptanceConfirmationTemplateId?: string | null;
 }
 
 /**
@@ -79,11 +80,18 @@ export class DocumentTypeAdminService {
       'REMINDER',
       existing.reminderTemplateId,
     );
+    const acceptanceConfirmationTemplateId = await this.resolveAssignment(
+      body,
+      'acceptanceConfirmationTemplateId',
+      'ACCEPTANCE_CONFIRMATION',
+      existing.acceptanceConfirmationTemplateId,
+    );
     const updated = await this.documentTypes.save({
       ...existing,
       name,
       notificationTemplateId,
       reminderTemplateId,
+      acceptanceConfirmationTemplateId,
     });
     await this.audit.append({
       id: newId('audit'),
@@ -95,6 +103,7 @@ export class DocumentTypeAdminService {
         name: updated.name,
         notificationTemplateId: updated.notificationTemplateId ?? null,
         reminderTemplateId: updated.reminderTemplateId ?? null,
+        acceptanceConfirmationTemplateId: updated.acceptanceConfirmationTemplateId ?? null,
       },
       createdAt: this.clock.now(),
     });
@@ -108,7 +117,7 @@ export class DocumentTypeAdminService {
    */
   private async resolveAssignment(
     body: Record<string, unknown>,
-    field: 'notificationTemplateId' | 'reminderTemplateId',
+    field: 'notificationTemplateId' | 'reminderTemplateId' | 'acceptanceConfirmationTemplateId',
     expectedKind: EmailTemplateKind,
     current: string | undefined,
   ): Promise<string | undefined> {

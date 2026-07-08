@@ -15,16 +15,22 @@ export interface DocumentTypeDef {
   name: string;
   /**
    * Optional per-document-type e-mail template assignments. When set, rollout notification /
-   * reminder mails for documents of this type use the referenced {@link EmailTemplate}; when
-   * unset the built-in default template of the matching kind is used (see
-   * src/domain/email-template.ts). Cleared explicitly with `null` via the admin API.
+   * reminder / acceptance-confirmation mails for documents of this type use the referenced
+   * {@link EmailTemplate}; when unset the built-in default template of the matching kind is used
+   * (see src/domain/email-template.ts). Cleared explicitly with `null` via the admin API.
    */
   notificationTemplateId?: string;
   reminderTemplateId?: string;
+  acceptanceConfirmationTemplateId?: string;
 }
 
-/** Which mail an {@link EmailTemplate} is written for. */
-export type EmailTemplateKind = 'VERSION_NOTIFICATION' | 'REMINDER';
+/**
+ * Which mail an {@link EmailTemplate} is written for.
+ *  - VERSION_NOTIFICATION: rollout notice about a newly published version.
+ *  - REMINDER: reminder before the acceptance deadline.
+ *  - ACCEPTANCE_CONFIRMATION: sent on acceptance, with the accepted document attached as a PDF.
+ */
+export type EmailTemplateKind = 'VERSION_NOTIFICATION' | 'REMINDER' | 'ACCEPTANCE_CONFIRMATION';
 
 /**
  * Admin-managed e-mail template for rollout notification / reminder mails, selectable per

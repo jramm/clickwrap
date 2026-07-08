@@ -22,4 +22,12 @@ export class InMemoryFileStorage implements FileStorage {
     }
     return `https://presigned.local/${encodeURIComponent(storageKey)}?expires=900`;
   }
+
+  async retrieve(storageKey: string): Promise<Buffer> {
+    const blob = this.blobs.get(storageKey);
+    if (!blob) {
+      throw new DomainError('VERSION_NOT_FOUND', `No PDF at ${storageKey}`);
+    }
+    return Buffer.from(blob);
+  }
 }

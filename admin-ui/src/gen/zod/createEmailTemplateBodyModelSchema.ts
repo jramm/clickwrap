@@ -9,7 +9,7 @@ import type { CreateEmailTemplateBodyModel } from "../types/CreateEmailTemplateB
 
 export const createEmailTemplateBodyModelSchema = z.object({
     "name": z.string(),
-"kind": z.enum(["VERSION_NOTIFICATION", "REMINDER"]),
+"kind": z.enum(["VERSION_NOTIFICATION", "REMINDER", "ACCEPTANCE_CONFIRMATION"]),
 "subject": z.string(),
 "design": z.string().describe("Unlayer design JSON (serialised)."),
 "html": z.string().describe("Exported e-mail HTML with {{placeholders}}.")

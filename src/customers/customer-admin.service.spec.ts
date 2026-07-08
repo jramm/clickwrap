@@ -1,4 +1,7 @@
+import { Logger } from '@nestjs/common';
 import { InMemoryAdminAuditRepo } from '../agreements/audit';
+import type { RolloutNotifier } from '../agreements/ports';
+import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory';
 import { DomainError } from '../common/errors';
 import { PendingAgreementsService } from '../compliance/pending-agreements.service';
 import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider';
@@ -25,7 +28,22 @@ describe('CustomerAdminService', () => {
   let states: InMemoryCustomerVersionStateRepo;
   let acceptances: InMemoryAcceptanceRepo;
   let audit: InMemoryAdminAuditRepo;
+  let notifier: InMemoryRolloutNotifier;
   let service: CustomerAdminService;
+
+  /** Rebuilds the service with a different notifier (failure-injection tests). */
+  const serviceWithNotifier = (rolloutNotifier: RolloutNotifier): CustomerAdminService =>
+    new CustomerAdminService(
+      customers,
+      audiences,
+      versions,
+      documents,
+      states,
+      acceptances,
+      rolloutNotifier,
+      audit,
+      new FixedClock(T0),
+    );
 
   beforeEach(async () => {
     documents = new InMemoryAgreementDocumentRepo();
@@ -35,18 +53,10 @@ describe('CustomerAdminService', () => {
     states = new InMemoryCustomerVersionStateRepo();
     acceptances = new InMemoryAcceptanceRepo();
     audit = new InMemoryAdminAuditRepo();
+    notifier = new InMemoryRolloutNotifier();
     await audiences.save(anAudience({ id: 'aud-customer', key: 'customer', name: 'Customers' }));
     await audiences.save(anAudience({ id: 'aud-partner', key: 'partner', name: 'Partners' }));
-    service = new CustomerAdminService(
-      customers,
-      audiences,
-      versions,
-      documents,
-      states,
-      acceptances,
-      audit,
-      new FixedClock(T0),
-    );
+    service = serviceWithNotifier(notifier);
   });
 
   describe('list', () => {
@@ -404,6 +414,153 @@ describe('CustomerAdminService', () => {
 
       expect((await states.findByCustomerAndVersion(created.id, 'v-tos'))?.state).toBe('PENDING_NOTIFICATION');
       expect((await states.findByCustomerAndVersion(created.id, 'v-tos-next'))?.state).toBe('PENDING_NOTIFICATION');
+    });
+  });
+
+  describe('onboarding rollout notifications (same RolloutNotifier as publish)', () => {
+    beforeEach(async () => {
+      await documents.save({ id: 'doc-dpa-c', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
+      await documents.save({ id: 'doc-tos-c', type: 'terms', audience: 'customer', name: 'ToS — Customers' });
+      await documents.save({ id: 'doc-tos-p', type: 'terms', audience: 'partner', name: 'ToS — Partners' });
+      await versions.save(aVersion({ id: 'v-dpa', documentId: 'doc-dpa-c', status: 'PUBLISHED' }));
+      await versions.save(aVersion({ id: 'v-tos-c', documentId: 'doc-tos-c', status: 'PUBLISHED' }));
+      await versions.save(aVersion({ id: 'v-tos-p', documentId: 'doc-tos-p', status: 'PUBLISHED' }));
+    });
+
+    it('create with NO acceptedVersions: one notification per current AND upcoming published version of the roles', async () => {
+      await versions.save(
+        aVersion({ id: 'v-dpa-next', documentId: 'doc-dpa-c', status: 'PUBLISHED', validFrom: new Date('2026-08-01T00:00:00Z'), publishedAt: T0 }),
+      );
+
+      const created = await service.create(
+        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+        ADMIN,
+      );
+
+      expect(notifier.published.map((n) => n.versionId).sort()).toEqual(['v-dpa', 'v-dpa-next', 'v-tos-c']);
+      expect(notifier.published.every((n) => n.customerId === created.id)).toBe(true);
+    });
+
+    it('create with acceptedVersions covering some versions: notifications only for the uncovered ones', async () => {
+      await service.create(
+        {
+          externalRef: 'ext-1',
+          name: 'Acme',
+          roles: ['customer'],
+          contactEmails: ['legal@acme.io'],
+          acceptedVersions: [{ versionId: 'v-dpa' }],
+        },
+        ADMIN,
+      );
+
+      expect(notifier.published.map((n) => n.versionId)).toEqual(['v-tos-c']);
+    });
+
+    it('create with everything covered by imports: no notification', async () => {
+      await service.create(
+        {
+          externalRef: 'ext-1',
+          name: 'Acme',
+          roles: ['customer'],
+          contactEmails: ['legal@acme.io'],
+          acceptedVersions: [{ versionId: 'v-dpa' }, { versionId: 'v-tos-c' }],
+        },
+        ADMIN,
+      );
+
+      expect(notifier.published).toEqual([]);
+    });
+
+    it('import of an OLD (retired) version does not cover the current one — the current version is notified', async () => {
+      await versions.save(
+        aVersion({ id: 'v-dpa-old', documentId: 'doc-dpa-c', status: 'RETIRED', validFrom: new Date('2026-01-01T00:00:00Z') }),
+      );
+
+      await service.create(
+        {
+          externalRef: 'ext-1',
+          name: 'Acme',
+          roles: ['customer'],
+          contactEmails: ['legal@acme.io'],
+          acceptedVersions: [{ versionId: 'v-dpa-old' }, { versionId: 'v-tos-c' }],
+        },
+        ADMIN,
+      );
+
+      expect(notifier.published.map((n) => n.versionId)).toEqual(['v-dpa']);
+    });
+
+    it('role add via PATCH: notifications only for the NEWLY rolled-out versions', async () => {
+      const created = await service.create(
+        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+        ADMIN,
+      );
+      notifier.published.length = 0; // only observe the PATCH
+
+      await service.update(created.id, { roles: ['customer', 'partner'] }, ADMIN);
+
+      expect(notifier.published).toEqual([{ customerId: created.id, versionId: 'v-tos-p' }]);
+    });
+
+    it('update without a roles change sends no notification', async () => {
+      const created = await service.create(
+        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+        ADMIN,
+      );
+      notifier.published.length = 0;
+
+      await service.update(created.id, { name: 'Acme New' }, ADMIN);
+
+      expect(notifier.published).toEqual([]);
+    });
+
+    it('empty contactEmails: no crash, no notification, ONE warn log (escalation report covers unreachable customers)', async () => {
+      const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      try {
+        const created = await service.create(
+          { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+          ADMIN,
+        );
+
+        // States are still created — the customer shows up in pending-agreements and the escalation report.
+        expect((await states.findByCustomerAndVersion(created.id, 'v-dpa'))?.state).toBe('PENDING_NOTIFICATION');
+        expect(notifier.published).toEqual([]);
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toContain(created.id);
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('a failing notifier does NOT fail the creation — states and customer are persisted, remaining notifications are attempted', async () => {
+      const error = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+      const attempted: string[] = [];
+      const failing: RolloutNotifier = {
+        async notifyVersionPublished(_customer, version) {
+          attempted.push(version.id);
+          throw new Error('SMTP down');
+        },
+        async remind() {
+          /* not used here */
+        },
+      };
+      try {
+        const created = await serviceWithNotifier(failing).create(
+          { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+          ADMIN,
+        );
+
+        expect(created.id).toBeTruthy();
+        expect((await states.findByCustomerAndVersion(created.id, 'v-dpa'))?.state).toBe('PENDING_NOTIFICATION');
+        expect((await states.findByCustomerAndVersion(created.id, 'v-tos-c'))?.state).toBe('PENDING_NOTIFICATION');
+        // Per-notification try/catch: BOTH versions were attempted despite the first failure.
+        expect(attempted.sort()).toEqual(['v-dpa', 'v-tos-c']);
+        expect(error).toHaveBeenCalledTimes(2);
+        // The audit entry is still written (creation completed normally).
+        expect((await audit.findByTarget('Customer', created.id))[0]).toMatchObject({ action: 'CUSTOMER_CREATE' });
+      } finally {
+        error.mockRestore();
+      }
     });
   });
 

@@ -10,7 +10,7 @@ import type { EmailTemplateModel } from "../types/EmailTemplateModel.ts";
 export const emailTemplateModelSchema = z.object({
     "id": z.string(),
 "name": z.string(),
-"kind": z.enum(["VERSION_NOTIFICATION", "REMINDER"]),
+"kind": z.enum(["VERSION_NOTIFICATION", "REMINDER", "ACCEPTANCE_CONFIRMATION"]),
 "subject": z.string(),
 "design": z.string().describe("Unlayer design JSON (serialised)."),
 "html": z.string().describe("Exported e-mail HTML with {{placeholders}}."),

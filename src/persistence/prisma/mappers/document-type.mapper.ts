@@ -9,14 +9,22 @@ export const toDomain = (row: PrismaDocumentTypeDef): DocumentTypeDef => ({
   name: row.name,
   notificationTemplateId: nullToUndefined(row.notificationTemplateId),
   reminderTemplateId: nullToUndefined(row.reminderTemplateId),
+  acceptanceConfirmationTemplateId: nullToUndefined(row.acceptanceConfirmationTemplateId),
 });
 
 /** Domain type → Prisma create/update data. */
 export const toUpsertData = (
   documentType: DocumentTypeDef,
-): { key: string; name: string; notificationTemplateId: string | null; reminderTemplateId: string | null } => ({
+): {
+  key: string;
+  name: string;
+  notificationTemplateId: string | null;
+  reminderTemplateId: string | null;
+  acceptanceConfirmationTemplateId: string | null;
+} => ({
   key: documentType.key,
   name: documentType.name,
   notificationTemplateId: documentType.notificationTemplateId ?? null,
   reminderTemplateId: documentType.reminderTemplateId ?? null,
+  acceptanceConfirmationTemplateId: documentType.acceptanceConfirmationTemplateId ?? null,
 });

@@ -68,6 +68,13 @@ export class LocalFileStorage implements FileStorage {
     return provided.length === expected.length && timingSafeEqual(provided, expected);
   }
 
+  async retrieve(storageKey: string): Promise<Buffer> {
+    if (!LOCAL_STORAGE_KEY_PATTERN.test(storageKey) || !existsSync(join(this.options.dir, storageKey))) {
+      throw new DomainError('VERSION_NOT_FOUND', `No PDF at ${storageKey}`);
+    }
+    return readFile(join(this.options.dir, storageKey));
+  }
+
   /** Opens a stored blob for streaming. Returns null for unknown (or non-generated) keys. */
   async open(storageKey: string): Promise<{ stream: Readable; fileName: string } | null> {
     if (!LOCAL_STORAGE_KEY_PATTERN.test(storageKey)) return null;

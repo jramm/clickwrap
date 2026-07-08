@@ -4,7 +4,7 @@
 */
 
 
-export type EmailTemplateModelKindEnum = "VERSION_NOTIFICATION" | "REMINDER";
+export type EmailTemplateModelKindEnum = "VERSION_NOTIFICATION" | "REMINDER" | "ACCEPTANCE_CONFIRMATION";
 
 export type EmailTemplateModel = {
     /**

@@ -25,4 +25,9 @@ export interface FileStorage {
    * the semantics of an S3 presigned URL). Must reject unknown storage keys.
    */
   getPresignedUrl(storageKey: string): Promise<string>;
+  /**
+   * Loads the raw file content back into memory (e.g. to attach a version PDF to an e-mail). An
+   * S3 plugin implements this as `GetObject`. Must reject unknown storage keys.
+   */
+  retrieve(storageKey: string): Promise<Buffer>;
 }

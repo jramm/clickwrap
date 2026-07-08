@@ -39,6 +39,12 @@ export class PostmarkEmailProvider implements EmailDeliveryProvider {
       Subject: mail.subject,
       HtmlBody: mail.html,
       TextBody: mail.text,
+      Attachments: mail.attachments?.map((attachment) => ({
+        Name: attachment.filename,
+        Content: attachment.contentBase64,
+        ContentType: attachment.contentType,
+        ContentID: null,
+      })),
     });
     return { providerRef: response.MessageID };
   }
