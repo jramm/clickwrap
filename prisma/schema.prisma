@@ -305,9 +305,11 @@ model Acceptance {
   channel AcceptanceChannel
 
   isEffective              Boolean     @default(true)
+  /// Audit pointer to the correcting acceptance. Deliberately NOT a foreign key: the
+  /// correction protocol writes supersede(old, new) BEFORE appending the new row (required
+  /// by the partial unique index on effective acceptances), so the successor does not exist
+  /// yet at write time. Verified by the Prisma integration suite against real Postgres.
   supersededByAcceptanceId String?     @unique
-  supersededByAcceptance   Acceptance? @relation("AcceptanceSupersession", fields: [supersededByAcceptanceId], references: [id])
-  supersedes               Acceptance? @relation("AcceptanceSupersession")
 
   acceptedAt DateTime // server-side, never from a client payload (CONVENTIONS.md)
 

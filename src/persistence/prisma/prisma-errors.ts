@@ -26,12 +26,17 @@ export const isForeignKeyConstraintError = (err: unknown): err is Prisma.PrismaC
  * into an array so callers can check uniformly with `.includes(...)`/`.some(...)`.
  */
 export const uniqueConstraintTargets = (err: Prisma.PrismaClientKnownRequestError): string[] => {
-  const target: unknown = err.meta?.target;
-  if (Array.isArray(target)) {
-    return target.filter((t): t is string => typeof t === 'string');
+  // Schema-known uniques report `meta.target`; constraints Prisma does not know from its own
+  // schema (our raw partial index from partial-indexes.sql) report `meta.constraint` instead —
+  // verified against a real Postgres in the integration suite. Read both.
+  const raw: unknown[] = [err.meta?.target, err.meta?.constraint];
+  const targets: string[] = [];
+  for (const value of raw) {
+    if (Array.isArray(value)) {
+      targets.push(...value.filter((t): t is string => typeof t === 'string'));
+    } else if (typeof value === 'string') {
+      targets.push(value);
+    }
   }
-  if (typeof target === 'string') {
-    return [target];
-  }
-  return [];
+  return targets;
 };
