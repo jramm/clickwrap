@@ -22,6 +22,10 @@ const anItem = (overrides: Partial<AcceptPageItem> = {}): AcceptPageItem => ({
 const aView = (overrides: Partial<AcceptPageView> = {}): AcceptPageView => ({
   linkId: 'al-1',
   customerName: 'Acme GmbH',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  companyName: 'Acme GmbH',
+  suggestedEmail: 'jane@customer.example',
   items: [anItem()],
   ...overrides,
 });
@@ -54,6 +58,22 @@ describe('renderAcceptPage', () => {
     expect(html).toContain('id="signer-name"');
     expect(html).toContain('id="signer-email"');
     expect(html).toContain('Acme GmbH');
+  });
+
+  it('prefills the signer name/e-mail inputs and shows the company as context (still editable)', () => {
+    const html = renderAcceptPage(
+      aView({ firstName: 'Jane', lastName: 'Doe', companyName: 'Acme GmbH', suggestedEmail: 'jane@acme.example' }),
+      'en',
+    );
+    expect(html).toContain('id="signer-name" autocomplete="name" value="Jane Doe"');
+    expect(html).toContain('id="signer-email" autocomplete="email" value="jane@acme.example"');
+    expect(html).toContain('On behalf of Acme GmbH');
+  });
+
+  it('omits the company context line when no company is known', () => {
+    const html = renderAcceptPage(aView({ companyName: '', firstName: 'Jane', lastName: 'Doe' }), 'en');
+    expect(html).not.toContain('On behalf of');
+    expect(html).toContain('value="Jane Doe"');
   });
 
   it('embeds the exact consent text in the JSON data block (evidence cross-check basis)', () => {

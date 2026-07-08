@@ -1,1 +1,11 @@
-{"type":"object","properties":{"PORTAL":{"type":"number","example":12},"LINK":{"type":"number","example":3},"ADMIN":{"type":"number","example":5},"SYSTEM":{"type":"number","example":2}},"required":["PORTAL","LINK","ADMIN","SYSTEM"],"x-readme-ref-name":"AcceptedByChannelModel"}
+{
+  "type": "object",
+  "properties": {
+    "PORTAL": { "type": "number", "example": 12 },
+    "LINK": { "type": "number", "example": 3 },
+    "ADMIN": { "type": "number", "example": 5 },
+    "SYSTEM": { "type": "number", "example": 2 }
+  },
+  "required": ["PORTAL", "LINK", "ADMIN", "SYSTEM"],
+  "x-readme-ref-name": "AcceptedByChannelModel"
+}

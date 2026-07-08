@@ -1,1 +1,22 @@
-{"type":"object","properties":{"name":{"type":"string","example":"Data Processing Agreement"},"notificationTemplateId":{"type":"string","nullable":true,"description":"VERSION_NOTIFICATION template id; null clears the assignment, omit to keep it."},"reminderTemplateId":{"type":"string","nullable":true,"description":"REMINDER template id; null clears the assignment, omit to keep it."},"acceptanceConfirmationTemplateId":{"type":"string","nullable":true,"description":"ACCEPTANCE_CONFIRMATION template id; null clears the assignment, omit to keep it."}},"x-readme-ref-name":"UpdateDocumentTypeBodyModel"}
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "example": "Data Processing Agreement" },
+    "notificationTemplateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "VERSION_NOTIFICATION template id; null clears the assignment, omit to keep it."
+    },
+    "reminderTemplateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "REMINDER template id; null clears the assignment, omit to keep it."
+    },
+    "acceptanceConfirmationTemplateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "ACCEPTANCE_CONFIRMATION template id; null clears the assignment, omit to keep it."
+    }
+  },
+  "x-readme-ref-name": "UpdateDocumentTypeBodyModel"
+}

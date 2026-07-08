@@ -1,0 +1,51 @@
+version: 2
+
+updates:
+  # Backend (root package.json)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: chore(deps)
+      prefix-development: chore(dev-deps)
+    groups:
+      # Collapse routine minor/patch bumps into one PR per week to cut noise;
+      # majors stay as individual PRs so breaking changes are reviewed on their own.
+      backend-minor-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  # Admin UI (separate package.json + lockfile)
+  - package-ecosystem: npm
+    directory: /admin-ui
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: chore(deps)
+      prefix-development: chore(dev-deps)
+    groups:
+      admin-ui-minor-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  # GitHub Actions used by the CI/release workflows (would have automated the v4 → v5 bump)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci(deps)
+    groups:
+      actions:
+        patterns: ['*']
+
+  # Docker base image in the Dockerfile (node:22-slim)
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore(docker)

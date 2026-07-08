@@ -196,8 +196,8 @@ describe('AdminController', () => {
 
   it('GET /admin/overview?search filters rows by customer name/externalRef/e-mail', async () => {
     await versions.save(anActiveVersion({ id: 'v-1', documentId: 'doc-dpa-customer', status: 'PUBLISHED', validFrom: new Date('2026-07-01T00:00:00Z') }));
-    await customers.save(aCustomer({ id: 'c-acme', name: 'Acme GmbH', externalRef: 'crm-4711', roles: ['customer'] }));
-    await customers.save(aCustomer({ id: 'c-globex', name: 'Globex Corp', externalRef: 'crm-8000', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-acme', companyName: 'Acme GmbH', externalRef: 'crm-4711', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-globex', companyName: 'Globex Corp', externalRef: 'crm-8000', roles: ['customer'] }));
 
     const res = await request(app.getHttpServer()).get('/admin/overview?search=globex').expect(200);
     expect(res.body.items.map((r: { customerId: string }) => r.customerId)).toEqual(['c-globex']);
@@ -238,7 +238,7 @@ describe('AdminController', () => {
     // Customer accepted the CURRENT version but is only pending on the UPCOMING one.
     await versions.save(aVersion({ id: 'v-current', documentId: 'doc-dpa-customer', versionLabel: 'June 2026 edition', status: 'PUBLISHED', validFrom: new Date('2026-06-01T00:00:00Z') }));
     await versions.save(aVersion({ id: 'v-upcoming', documentId: 'doc-dpa-customer', versionLabel: 'August 2026 edition', status: 'PUBLISHED', validFrom: new Date('2026-08-01T00:00:00Z') }));
-    await customers.save(aCustomer({ id: 'c-1', name: 'Acme GmbH', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-1', companyName: 'Acme GmbH', roles: ['customer'] }));
     await states.save(aState({ id: 'cvs-cur', customerId: 'c-1', versionId: 'v-current', state: 'ACCEPTED' }));
     await acceptances.append({ id: 'a-cur', customerId: 'c-1', versionId: 'v-current', method: 'ACTIVE_CONSENT', channel: 'PORTAL', acceptedAt: T0, actor: { userId: 'u-1', name: 'Jane Doe' }, isEffective: true });
     await states.save(aState({ id: 'cvs-up', customerId: 'c-1', versionId: 'v-upcoming', state: 'PENDING_NOTIFICATION' }));
@@ -255,8 +255,8 @@ describe('AdminController', () => {
 
   it('GET /admin/versions/:id/customers?state=accepted filters and unknown id → 404', async () => {
     await versions.save(aVersion({ id: 'v-1', documentId: 'doc-dpa-customer', status: 'PUBLISHED', validFrom: new Date('2026-06-01T00:00:00Z') }));
-    await customers.save(aCustomer({ id: 'c-acc', name: 'Accepted Co', roles: ['customer'] }));
-    await customers.save(aCustomer({ id: 'c-pend', name: 'Pending Co', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-acc', companyName: 'Accepted Co', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-pend', companyName: 'Pending Co', roles: ['customer'] }));
     await states.save(aState({ id: 's-acc', customerId: 'c-acc', versionId: 'v-1', state: 'ACCEPTED' }));
     await states.save(aState({ id: 's-pend', customerId: 'c-pend', versionId: 'v-1', state: 'NOTIFIED' }));
 
@@ -361,22 +361,22 @@ describe('AdminController', () => {
     });
 
     it('GET returns rows { id, externalRef, name, roles, contactEmails } sorted by name with total', async () => {
-      await customers.save(aCustomer({ id: 'c-2', externalRef: 'ext-2', name: 'Beta', roles: ['customer'], contactEmails: [] }));
-      await customers.save(aCustomer({ id: 'c-1', externalRef: 'ext-1', name: 'Alpha', roles: ['customer'], contactEmails: ['a@x.io'] }));
+      await customers.save(aCustomer({ id: 'c-2', externalRef: 'ext-2', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [] }));
+      await customers.save(aCustomer({ id: 'c-1', externalRef: 'ext-1', firstName: '', lastName: '', companyName: 'Alpha', roles: ['customer'], contactEmails: ['a@x.io'] }));
 
       const res = await request(app.getHttpServer()).get('/admin/customers').expect(200);
       expect(res.body).toEqual({
         items: [
-          { id: 'c-1', externalRef: 'ext-1', name: 'Alpha', roles: ['customer'], contactEmails: ['a@x.io'] },
-          { id: 'c-2', externalRef: 'ext-2', name: 'Beta', roles: ['customer'], contactEmails: [] },
+          { id: 'c-1', externalRef: 'ext-1', firstName: '', lastName: '', companyName: 'Alpha', roles: ['customer'], contactEmails: ['a@x.io'] },
+          { id: 'c-2', externalRef: 'ext-2', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [] },
         ],
         total: 2,
       });
     });
 
     it('GET ?search filters by a case-insensitive substring and reflects the filtered total', async () => {
-      await customers.save(aCustomer({ id: 'c-1', externalRef: 'crm-4711', name: 'Acme GmbH', roles: ['customer'], contactEmails: ['legal@acme.example'] }));
-      await customers.save(aCustomer({ id: 'c-2', externalRef: 'crm-8000', name: 'Globex Corp', roles: ['customer'], contactEmails: ['ops@globex.test'] }));
+      await customers.save(aCustomer({ id: 'c-1', externalRef: 'crm-4711', companyName: 'Acme GmbH', roles: ['customer'], contactEmails: ['legal@acme.example'] }));
+      await customers.save(aCustomer({ id: 'c-2', externalRef: 'crm-8000', companyName: 'Globex Corp', roles: ['customer'], contactEmails: ['ops@globex.test'] }));
 
       const res = await request(app.getHttpServer()).get('/admin/customers?search=acme').expect(200);
       expect(res.body.items.map((r: { id: string }) => r.id)).toEqual(['c-1']);
@@ -386,9 +386,9 @@ describe('AdminController', () => {
     it('POST creates a customer (201) and writes a CUSTOMER_CREATE audit entry', async () => {
       const res = await request(app.getHttpServer())
         .post('/admin/customers')
-        .send({ externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] })
+        .send({ externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] })
         .expect(201);
-      expect(res.body).toMatchObject({ externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] });
+      expect(res.body).toMatchObject({ externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] });
       expect((await audit.findByTarget('Customer', res.body.id))[0]).toMatchObject({
         action: 'CUSTOMER_CREATE',
         actor: 'admin-1',
@@ -398,7 +398,7 @@ describe('AdminController', () => {
     it('POST with an unknown role → 422 UNKNOWN_AUDIENCE', async () => {
       const res = await request(app.getHttpServer())
         .post('/admin/customers')
-        .send({ externalRef: 'ext-1', name: 'x', roles: ['ghost'], contactEmails: [] })
+        .send({ externalRef: 'ext-1', companyName: 'x', roles: ['ghost'], contactEmails: [] })
         .expect(422);
       expect(res.body).toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
     });
@@ -407,7 +407,7 @@ describe('AdminController', () => {
       await customers.save(aCustomer({ id: 'c-1', externalRef: 'ext-dup', roles: ['customer'] }));
       const res = await request(app.getHttpServer())
         .post('/admin/customers')
-        .send({ externalRef: 'ext-dup', name: 'x', roles: ['customer'], contactEmails: [] })
+        .send({ externalRef: 'ext-dup', companyName: 'x', roles: ['customer'], contactEmails: [] })
         .expect(422);
       expect(res.body).toMatchObject({ code: 'INVALID_STATE' });
     });
@@ -416,7 +416,7 @@ describe('AdminController', () => {
       await customers.save(aCustomer({ id: 'c-1', externalRef: 'ext-dup', roles: ['customer'] }));
       const res = await request(app.getHttpServer())
         .post('/admin/customers')
-        .send({ externalRef: 'ext-dup', name: 'partner', roles: ['partner'], contactEmails: [] })
+        .send({ externalRef: 'ext-dup', companyName: 'partner', roles: ['partner'], contactEmails: [] })
         .expect(201);
       expect(res.body).toMatchObject({ externalRef: 'ext-dup', roles: ['partner'] });
     });
@@ -424,7 +424,7 @@ describe('AdminController', () => {
     it('POST with an invalid contactEmail → 422 INVALID_STATE', async () => {
       const res = await request(app.getHttpServer())
         .post('/admin/customers')
-        .send({ externalRef: 'ext-1', name: 'x', roles: [], contactEmails: ['nope'] })
+        .send({ externalRef: 'ext-1', companyName: 'x', roles: [], contactEmails: ['nope'] })
         .expect(422);
       expect(res.body).toMatchObject({ code: 'INVALID_STATE' });
     });
@@ -435,7 +435,7 @@ describe('AdminController', () => {
         .post('/admin/customers')
         .send({
           externalRef: 'ext-1',
-          name: 'Acme',
+          companyName: 'Acme',
           roles: ['customer'],
           contactEmails: [],
           acceptedVersions: [{ versionId: 'v-signed', acceptedAt: '2026-07-01T00:00:00Z', reference: 'signed offer 42' }],
@@ -447,17 +447,17 @@ describe('AdminController', () => {
     });
 
     it('PATCH updates a subset (200) and writes a CUSTOMER_UPDATE audit entry', async () => {
-      await customers.save(aCustomer({ id: 'c-1', externalRef: 'ext-1', name: 'Old', roles: ['customer'], contactEmails: [] }));
+      await customers.save(aCustomer({ id: 'c-1', externalRef: 'ext-1', companyName: 'Old', roles: ['customer'], contactEmails: [] }));
       const res = await request(app.getHttpServer())
         .patch('/admin/customers/c-1')
-        .send({ name: 'New' })
+        .send({ companyName: 'New' })
         .expect(200);
-      expect(res.body).toMatchObject({ id: 'c-1', name: 'New', roles: ['customer'] });
+      expect(res.body).toMatchObject({ id: 'c-1', companyName: 'New', roles: ['customer'] });
       expect((await audit.findByTarget('Customer', 'c-1')).some((l) => l.action === 'CUSTOMER_UPDATE')).toBe(true);
     });
 
     it('PATCH an unknown id → 404 CUSTOMER_NOT_FOUND', async () => {
-      const res = await request(app.getHttpServer()).patch('/admin/customers/c-ghost').send({ name: 'x' }).expect(404);
+      const res = await request(app.getHttpServer()).patch('/admin/customers/c-ghost').send({ companyName: 'x' }).expect(404);
       expect(res.body).toMatchObject({ code: 'CUSTOMER_NOT_FOUND' });
     });
 

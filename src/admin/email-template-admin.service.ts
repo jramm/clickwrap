@@ -38,6 +38,9 @@ export type EmailTemplateView = EmailTemplate & { isDefault: boolean };
 const sampleVars = (documentTypeName: string) => ({
   ...emptyTemplateVars(),
   customerName: 'Acme GmbH',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  companyName: 'Acme GmbH',
   documentName: `${documentTypeName} — Customers`,
   documentType: documentTypeName,
   audience: 'Customers',

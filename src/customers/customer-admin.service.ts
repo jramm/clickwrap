@@ -5,6 +5,7 @@ import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
 import type { Actor } from '../common/auth/actor';
 import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
+import { customerDisplayName } from '../domain/customer';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
@@ -28,7 +29,12 @@ export interface AcceptedVersionImport {
 
 export interface CreateCustomerInput {
   externalRef: string;
-  name?: string;
+  /** Contact person's given name — defaults to '' when omitted. */
+  firstName?: string;
+  /** Contact person's family name — defaults to '' when omitted. */
+  lastName?: string;
+  /** Optional company/organisation name (preferred display label when set). */
+  companyName?: string;
   roles: string[];
   contactEmails: string[];
   /** Optional: versions already accepted out-of-band, recorded as IMPORT acceptances. */
@@ -41,7 +47,9 @@ export interface CreateCustomerInput {
  * on the next publish (open states of removed roles are left untouched).
  */
 export interface UpdateCustomerInput {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
   roles?: string[];
   contactEmails?: string[];
 }
@@ -49,7 +57,9 @@ export interface UpdateCustomerInput {
 export interface CustomerRow {
   id: string;
   externalRef: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  companyName?: string;
   roles: string[];
   contactEmails: string[];
 }
@@ -120,7 +130,7 @@ export class CustomerAdminService {
     const all = await this.customers.findAll();
     const filtered = search ? all.filter((c) => matchesCustomerSearch(c, search)) : all;
     filtered.sort((a, b) => {
-      const byName = (a.name ?? '').localeCompare(b.name ?? '');
+      const byName = customerDisplayName(a).localeCompare(customerDisplayName(b));
       return byName !== 0 ? byName : a.externalRef.localeCompare(b.externalRef);
     });
     const total = filtered.length;
@@ -142,7 +152,9 @@ export class CustomerAdminService {
     const saved = await this.customers.save({
       id: newId('c'),
       externalRef: input.externalRef,
-      name: input.name ?? '',
+      firstName: input.firstName ?? '',
+      lastName: input.lastName ?? '',
+      companyName: input.companyName?.trim() ? input.companyName : undefined,
       roles: input.roles,
       contactEmails: input.contactEmails,
     });
@@ -193,7 +205,11 @@ export class CustomerAdminService {
     }
     const updated = await this.customers.save({
       ...existing,
-      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
+      ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+      ...(input.companyName !== undefined
+        ? { companyName: input.companyName.trim() ? input.companyName : undefined }
+        : {}),
       ...(input.roles !== undefined ? { roles: input.roles } : {}),
       ...(input.contactEmails !== undefined ? { contactEmails: input.contactEmails } : {}),
     });
@@ -211,7 +227,14 @@ export class CustomerAdminService {
       actor: actor.userId,
       targetType: 'Customer',
       targetId: id,
-      metadata: { name: updated.name, roles: updated.roles, contactEmails: updated.contactEmails, rolloutStates },
+      metadata: {
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+        companyName: updated.companyName ?? '',
+        roles: updated.roles,
+        contactEmails: updated.contactEmails,
+        rolloutStates,
+      },
       createdAt: this.clock.now(),
     });
     return toRow(updated);
@@ -387,7 +410,9 @@ export class CustomerAdminService {
 const toRow = (customer: Customer): CustomerRow => ({
   id: customer.id,
   externalRef: customer.externalRef,
-  name: customer.name ?? '',
+  firstName: customer.firstName ?? '',
+  lastName: customer.lastName ?? '',
+  companyName: customer.companyName?.trim() ? customer.companyName : undefined,
   roles: [...customer.roles],
   contactEmails: [...customer.contactEmails],
 });

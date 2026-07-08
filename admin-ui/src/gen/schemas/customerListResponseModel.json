@@ -1,1 +1,50 @@
-{"type":"object","properties":{"items":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string","example":"c-8a71…"},"externalRef":{"type":"string","example":"crm-4711","description":"Unique external reference (CRM id)."},"name":{"type":"string","example":"Acme GmbH","description":"Company display name ('' when unknown)."},"roles":{"example":["customer"],"description":"Audience keys.","type":"array","items":{"type":"string"}},"contactEmails":{"example":["legal@acme.example"],"type":"array","items":{"type":"string"}}},"required":["id","externalRef","name","roles","contactEmails"],"x-readme-ref-name":"CustomerRowModel"}},"total":{"type":"number","example":173}},"required":["items","total"],"x-readme-ref-name":"CustomerListResponseModel"}
+{
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "c-8a71…" },
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711",
+            "description": "Unique external reference (CRM id)."
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Jane",
+            "description": "Contact person's given name ('' when unknown)."
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe",
+            "description": "Contact person's family name ('' when unknown)."
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Optional company/organisation name — preferred display label when set."
+          },
+          "roles": {
+            "example": ["customer"],
+            "description": "Audience keys.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "contactEmails": {
+            "example": ["legal@acme.example"],
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["id", "externalRef", "firstName", "lastName", "roles", "contactEmails"],
+        "x-readme-ref-name": "CustomerRowModel"
+      }
+    },
+    "total": { "type": "number", "example": 173 }
+  },
+  "required": ["items", "total"],
+  "x-readme-ref-name": "CustomerListResponseModel"
+}

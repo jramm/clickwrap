@@ -57,6 +57,9 @@ export const seedCustomer = async (
   return customers.save({
     id: 'c-boot-1',
     externalRef: 'company-boot-1',
+    firstName: 'Jane',
+    lastName: 'Doe',
+    companyName: 'Boot Company',
     roles: ['customer'],
     contactEmails: ['legal@customer.example'],
     ...overrides,

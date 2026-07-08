@@ -1,1 +1,14 @@
-{"type":"object","properties":{"name":{"type":"string","example":"Welcome mail"},"kind":{"type":"string","enum":["VERSION_NOTIFICATION","REMINDER","ACCEPTANCE_CONFIRMATION"]},"subject":{"type":"string","example":"Hi {{customerName}}"},"design":{"type":"string","description":"Unlayer design JSON (serialised)."},"html":{"type":"string","description":"Exported e-mail HTML with {{placeholders}}."}},"x-readme-ref-name":"UpdateEmailTemplateBodyModel"}
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "example": "Welcome mail" },
+    "kind": {
+      "type": "string",
+      "enum": ["VERSION_NOTIFICATION", "REMINDER", "ACCEPTANCE_CONFIRMATION"]
+    },
+    "subject": { "type": "string", "example": "Hi {{customerName}}" },
+    "design": { "type": "string", "description": "Unlayer design JSON (serialised)." },
+    "html": { "type": "string", "description": "Exported e-mail HTML with {{placeholders}}." }
+  },
+  "x-readme-ref-name": "UpdateEmailTemplateBodyModel"
+}

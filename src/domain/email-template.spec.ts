@@ -4,6 +4,7 @@ import {
   DEFAULT_NOTIFICATION_TEMPLATE_ID,
   DEFAULT_REMINDER_TEMPLATE_ID,
   EMAIL_TEMPLATE_VARIABLES,
+  countDesignContentBlocks,
   defaultEmailTemplates,
   defaultTemplateIdForKind,
   deriveTextFromHtml,
@@ -92,6 +93,25 @@ describe('default templates', () => {
       expect(t.html).toContain('{{documentPdfUrl}}');
       expect(() => JSON.parse(t.design)).not.toThrow();
     }
+  });
+
+  it('each default design is block-structured (more than one content block, not a single HTML blob)', () => {
+    const templates = defaultEmailTemplates(new FixedClock(new Date('2026-07-08T00:00:00Z')));
+    for (const t of templates) {
+      expect(countDesignContentBlocks(t.design)).toBeGreaterThan(1);
+    }
+  });
+
+  it('the new name placeholders are supported and render (firstName/lastName/companyName)', () => {
+    for (const name of ['firstName', 'lastName', 'companyName'] as const) {
+      expect(EMAIL_TEMPLATE_VARIABLES).toContain(name);
+    }
+    const out = renderTemplate(
+      { subject: '{{firstName}} {{lastName}}', html: '<p>{{companyName}}</p>' },
+      vars({ firstName: 'Jane', lastName: 'Doe', companyName: 'Acme GmbH' }),
+    );
+    expect(out.subject).toBe('Jane Doe');
+    expect(out.html).toBe('<p>Acme GmbH</p>');
   });
 
   it('the acceptance-confirmation default uses the {{acceptedAt}} placeholder', () => {

@@ -1,1 +1,19 @@
-{"type":"object","properties":{"acceptanceId":{"type":"string","example":"a-991…"},"state":{"type":"string","enum":["PENDING_NOTIFICATION","NOTIFIED","ACCEPTED","OBJECTED","EXPIRED_BLOCKING","SUPERSEDED"]}},"required":["acceptanceId","state"],"x-readme-ref-name":"ManualAcceptanceResponseModel"}
+{
+  "type": "object",
+  "properties": {
+    "acceptanceId": { "type": "string", "example": "a-991…" },
+    "state": {
+      "type": "string",
+      "enum": [
+        "PENDING_NOTIFICATION",
+        "NOTIFIED",
+        "ACCEPTED",
+        "OBJECTED",
+        "EXPIRED_BLOCKING",
+        "SUPERSEDED"
+      ]
+    }
+  },
+  "required": ["acceptanceId", "state"],
+  "x-readme-ref-name": "ManualAcceptanceResponseModel"
+}

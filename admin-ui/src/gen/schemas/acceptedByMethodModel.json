@@ -1,1 +1,10 @@
-{"type":"object","properties":{"ACTIVE_CONSENT":{"type":"number","example":14},"TACIT":{"type":"number","example":6},"IMPORT":{"type":"number","example":2}},"required":["ACTIVE_CONSENT","TACIT","IMPORT"],"x-readme-ref-name":"AcceptedByMethodModel"}
+{
+  "type": "object",
+  "properties": {
+    "ACTIVE_CONSENT": { "type": "number", "example": 14 },
+    "TACIT": { "type": "number", "example": 6 },
+    "IMPORT": { "type": "number", "example": 2 }
+  },
+  "required": ["ACTIVE_CONSENT", "TACIT", "IMPORT"],
+  "x-readme-ref-name": "AcceptedByMethodModel"
+}

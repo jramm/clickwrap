@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { computeCompliance, type CurrentVersionEntry } from '../domain/compliance';
+import { customerDisplayName } from '../domain/customer';
 import { TOKENS } from '../persistence/tokens';
 import type { Clock } from '../domain/clock';
 import type {
@@ -151,7 +152,7 @@ export class OverviewService {
       const narrowed = query.filter || query.audience || query.documentType;
       return narrowed
         ? undefined
-        : { customerId: customer.id, customerName: customer.name ?? '', roles: [...customer.roles], cells: {} };
+        : { customerId: customer.id, customerName: customerDisplayName(customer), roles: [...customer.roles], cells: {} };
     }
 
     const compliance = computeCompliance(customer, currentEntries, customerStates, query.audience);
@@ -163,7 +164,7 @@ export class OverviewService {
     for (const record of relevant) {
       cells[record.key] = this.toCell(record);
     }
-    return { customerId: customer.id, customerName: customer.name ?? '', roles: [...customer.roles], cells };
+    return { customerId: customer.id, customerName: customerDisplayName(customer), roles: [...customer.roles], cells };
   }
 
   private toCell(record: RelevantRecord): OverviewCell {

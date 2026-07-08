@@ -16,11 +16,12 @@ import { Button, Dialog, TextField, useToast } from '../ui';
 
 /**
  * Create/edit dialog for a customer.
- *  - create: externalRef, name, roles (from audiences), contactEmails (chips)
- *    plus the signed-offer onboarding section — the current published versions
- *    matching the chosen roles can be marked as already accepted (IMPORT) with
- *    an optional signature date + reference, mapped to `acceptedVersions`.
- *  - edit: name, roles, contactEmails (externalRef is immutable).
+ *  - create: externalRef, firstName/lastName (contact person), companyName,
+ *    roles (from audiences), contactEmails (chips) plus the signed-offer
+ *    onboarding section — the current published versions matching the chosen
+ *    roles can be marked as already accepted (IMPORT) with an optional
+ *    signature date + reference, mapped to `acceptedVersions`.
+ *  - edit: firstName/lastName, companyName, roles, contactEmails (externalRef is immutable).
  */
 interface Props {
   mode: 'create' | 'edit';
@@ -44,7 +45,9 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
   const updateCustomer = useUpdateCustomer();
 
   const [externalRef, setExternalRef] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
   const [contactEmails, setContactEmails] = useState<string[]>([]);
   const [emailInput, setEmailInput] = useState('');
@@ -55,7 +58,9 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
   useEffect(() => {
     if (!open) return;
     setExternalRef(customer?.externalRef ?? '');
-    setName(customer?.name ?? '');
+    setFirstName(customer?.firstName ?? '');
+    setLastName(customer?.lastName ?? '');
+    setCompanyName(customer?.companyName ?? '');
     setRoles(customer?.roles ?? []);
     setContactEmails(customer?.contactEmails ?? []);
     setEmailInput('');
@@ -135,7 +140,9 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
       createCustomer.mutate(
         {
           externalRef: externalRef.trim(),
-          name: name.trim() || undefined,
+          firstName: firstName.trim() || undefined,
+          lastName: lastName.trim() || undefined,
+          companyName: companyName.trim() || undefined,
           roles,
           contactEmails: emails,
           acceptedVersions: acceptedVersions.length > 0 ? acceptedVersions : undefined,
@@ -154,7 +161,10 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
 
     if (!customer) return;
     updateCustomer.mutate(
-      { id: customer.id, data: { name: name.trim(), roles, contactEmails: emails } },
+      {
+        id: customer.id,
+        data: { firstName: firstName.trim(), lastName: lastName.trim(), companyName: companyName.trim(), roles, contactEmails: emails },
+      },
       {
         onSuccess: () => {
           toast.success(t('customers.updated'));
@@ -191,10 +201,24 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
           disabled={mode === 'edit'}
           required={mode === 'create'}
         />
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <TextField
+            label={t('customers.firstName')}
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+            fullWidth
+          />
+          <TextField
+            label={t('customers.lastName')}
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
+            fullWidth
+          />
+        </Stack>
         <TextField
-          label={t('customers.name')}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
+          label={t('customers.companyName')}
+          value={companyName}
+          onChange={(event) => setCompanyName(event.target.value)}
         />
 
         <Box>

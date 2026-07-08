@@ -23,6 +23,7 @@ import {
   isAcceptanceLinkUsable,
 } from '../domain/acceptance-links';
 import type { Clock } from '../domain/clock';
+import { customerDisplayName } from '../domain/customer';
 import type { AcceptanceLinkRepo, AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo } from '../domain/ports';
 import type { AcceptanceLink, AcceptanceMode } from '../domain/types';
 import { TOKENS } from '../persistence/tokens';
@@ -52,7 +53,18 @@ export interface AcceptPageItem {
 
 export interface AcceptPageView {
   linkId: string;
+  /** Derived display name (companyName if set, else the contact person's name) — page heading. */
   customerName: string;
+  /**
+   * Prefill values for the self-declared signer block (all remain editable — the recorded
+   * identity is still self-declared, these only pre-fill the inputs for convenience).
+   */
+  firstName: string;
+  lastName: string;
+  /** Company/organisation shown as context when present ('' otherwise). */
+  companyName: string;
+  /** Suggested signer e-mail — the customer's first known contact e-mail ('' when none). */
+  suggestedEmail: string;
   items: AcceptPageItem[];
 }
 
@@ -128,7 +140,15 @@ export class AcceptPageService {
     }
 
     await this.links.touch(link.id, this.clock.now());
-    return { linkId: link.id, customerName: customer.name ?? '', items };
+    return {
+      linkId: link.id,
+      customerName: customerDisplayName(customer),
+      firstName: customer.firstName ?? '',
+      lastName: customer.lastName ?? '',
+      companyName: customer.companyName ?? '',
+      suggestedEmail: customer.contactEmails[0] ?? '',
+      items,
+    };
   }
 
   /** Acceptance through the link — the link token is the auth, the signer is self-declared. */

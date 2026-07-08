@@ -11,6 +11,7 @@
  */
 import { Inject, Injectable } from '@nestjs/common';
 import type { Clock } from '../../../domain/clock';
+import { customerDisplayName } from '../../../domain/customer';
 import {
   defaultEmailTemplates,
   defaultTemplateIdForKind,
@@ -118,7 +119,10 @@ export class EmailContentService {
 
     return {
       ...emptyTemplateVars(),
-      customerName: customer.name ?? '',
+      customerName: customerDisplayName(customer),
+      firstName: customer.firstName ?? '',
+      lastName: customer.lastName ?? '',
+      companyName: customer.companyName ?? '',
       documentName: document?.name ?? '',
       documentType: documentType?.name ?? document?.type ?? '',
       audience: audience?.name ?? document?.audience ?? '',

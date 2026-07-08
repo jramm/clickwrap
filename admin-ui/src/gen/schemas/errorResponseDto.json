@@ -1,1 +1,16 @@
-{"type":"object","properties":{"code":{"type":"string","example":"INVALID_STATE","description":"Stable DomainErrorCode (see docs/API.md §7)."},"message":{"type":"string","example":"A customer with externalRef \"ext-1\" and an overlapping role already exists"}},"required":["code","message"],"x-readme-ref-name":"ErrorResponseDto"}
+{
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "example": "INVALID_STATE",
+      "description": "Stable DomainErrorCode (see docs/API.md §7)."
+    },
+    "message": {
+      "type": "string",
+      "example": "A customer with externalRef \"ext-1\" and an overlapping role already exists"
+    }
+  },
+  "required": ["code", "message"],
+  "x-readme-ref-name": "ErrorResponseDto"
+}

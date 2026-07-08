@@ -140,8 +140,8 @@ describe('OverviewService', () => {
   describe('search', () => {
     beforeEach(async () => {
       await versions.save(aVersion({ id: 'v-dpa-c', documentId: 'doc-dpa-c', status: 'PUBLISHED', validFrom: new Date('2026-07-01T00:00:00Z') }));
-      await customers.save(aCustomer({ id: 'c-acme', name: 'Acme GmbH', externalRef: 'crm-4711', roles: ['customer'], contactEmails: ['legal@acme.example'] }));
-      await customers.save(aCustomer({ id: 'c-globex', name: 'Globex Corp', externalRef: 'crm-8000', roles: ['customer'], contactEmails: ['ops@globex.test'] }));
+      await customers.save(aCustomer({ id: 'c-acme', companyName: 'Acme GmbH', externalRef: 'crm-4711', roles: ['customer'], contactEmails: ['legal@acme.example'] }));
+      await customers.save(aCustomer({ id: 'c-globex', companyName: 'Globex Corp', externalRef: 'crm-8000', roles: ['customer'], contactEmails: ['ops@globex.test'] }));
     });
 
     it('filters rows by a case-insensitive substring on name/externalRef/contactEmails', async () => {

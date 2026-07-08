@@ -86,11 +86,11 @@ describe('CustomerOnboardingController (integration surface)', () => {
     const res = await request(app.getHttpServer())
       .post('/customers')
       .set('x-service-token', SERVICE_TOKEN)
-      .send({ externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] })
+      .send({ externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] })
       .expect(201);
     expect(res.body).toMatchObject({
       externalRef: 'ext-1',
-      name: 'Acme',
+      companyName: 'Acme',
       roles: ['customer'],
       contactEmails: ['legal@acme.io'],
       importedAcceptances: [],

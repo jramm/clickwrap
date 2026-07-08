@@ -10,6 +10,8 @@ export interface AcceptPageStrings {
   heading: string;
   intro: string;
   identityNote: string;
+  /** Shown above the signer block when a company/organisation is known ("On behalf of {company}"). */
+  companyContext: string;
   signerName: string;
   signerEmail: string;
   versionLabel: string;
@@ -43,6 +45,7 @@ export const ACCEPT_PAGE_STRINGS: Record<AcceptPageLang, AcceptPageStrings> = {
     intro: 'Please review the following document(s) for {customerName} and confirm your acceptance.',
     identityNote:
       'Your name and e-mail address are recorded together with your consent, along with the time and your device details.',
+    companyContext: 'On behalf of {company}',
     signerName: 'Your full name',
     signerEmail: 'Your e-mail address',
     versionLabel: 'Version',
@@ -75,6 +78,7 @@ export const ACCEPT_PAGE_STRINGS: Record<AcceptPageLang, AcceptPageStrings> = {
     intro: 'Bitte prüfen Sie die folgenden Dokumente für {customerName} und bestätigen Sie Ihre Zustimmung.',
     identityNote:
       'Ihr Name und Ihre E-Mail-Adresse werden zusammen mit Ihrer Zustimmung erfasst, ebenso Zeitpunkt und Geräteinformationen.',
+    companyContext: 'Im Namen von {company}',
     signerName: 'Ihr vollständiger Name',
     signerEmail: 'Ihre E-Mail-Adresse',
     versionLabel: 'Version',

@@ -1,1 +1,9 @@
-{"type":"object","properties":{"versionId":{"type":"string","example":"v-4f9f6a…"},"acceptanceId":{"type":"string","example":"a-991…"}},"required":["versionId","acceptanceId"],"x-readme-ref-name":"ImportedAcceptanceModel"}
+{
+  "type": "object",
+  "properties": {
+    "versionId": { "type": "string", "example": "v-4f9f6a…" },
+    "acceptanceId": { "type": "string", "example": "a-991…" }
+  },
+  "required": ["versionId", "acceptanceId"],
+  "x-readme-ref-name": "ImportedAcceptanceModel"
+}

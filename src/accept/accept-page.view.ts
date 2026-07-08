@@ -198,12 +198,19 @@ export const renderAcceptPage = (view: AcceptPageView, lang: AcceptPageLang): st
   }
 
   const hasActiveItems = view.items.some((item) => item.mode === 'ACTIVE' && item.consentText !== undefined);
+  // Prefill (convenience only — the recorded identity stays self-declared and editable).
+  const prefillName = `${view.firstName} ${view.lastName}`.trim();
+  const companyContext =
+    view.companyName.trim() !== ''
+      ? `<p class="muted">${escapeHtml(s.companyContext.replace('{company}', view.companyName))}</p>`
+      : '';
   const signerBlock = hasActiveItems
     ? `<section class="card">
+        ${companyContext}
         <label class="field"><span>${escapeHtml(s.signerName)}</span>
-          <input type="text" id="signer-name" autocomplete="name" required></label>
+          <input type="text" id="signer-name" autocomplete="name" value="${escapeHtml(prefillName)}" required></label>
         <label class="field"><span>${escapeHtml(s.signerEmail)}</span>
-          <input type="email" id="signer-email" autocomplete="email" required></label>
+          <input type="email" id="signer-email" autocomplete="email" value="${escapeHtml(view.suggestedEmail)}" required></label>
         <p class="muted">${escapeHtml(s.identityNote)}</p>
       </section>`
     : '';

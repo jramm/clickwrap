@@ -17,7 +17,9 @@ const acceptedVersionSchema = z
 export const createCustomerBodySchema = z
   .object({
     externalRef: z.string().min(1),
-    name: z.string().optional(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    companyName: z.string().optional(),
     roles: z.array(z.string()),
     contactEmails: z.array(z.string()),
     acceptedVersions: z.array(acceptedVersionSchema).optional(),
@@ -27,7 +29,9 @@ export type CreateCustomerBody = z.infer<typeof createCustomerBodySchema>;
 
 export const updateCustomerBodySchema = z
   .object({
-    name: z.string().optional(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    companyName: z.string().optional(),
     roles: z.array(z.string()).optional(),
     contactEmails: z.array(z.string()).optional(),
   })

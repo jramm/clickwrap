@@ -240,7 +240,9 @@ model Customer {
   // enforced app-side, only among customers sharing at least one role (see PERSISTENCE.md /
   // CustomerAdminService). Plain index for the lookup by ref.
   externalRef   String
-  name          String   @default("") // human-readable company name (display label in the admin UI)
+  firstName     String   @default("") // contact person's given name ('' when unknown)
+  lastName      String   @default("") // contact person's family name ('' when unknown)
+  companyName   String? // optional company/organisation name — preferred display label when set
   roles         String[] // audience keys; [] = no role (sync gap / role revoked)
   // All known contact e-mail addresses (active portal users + contract/legal contact) —
   // rollout/reminder mails go to ALL of them; [] = no e-mail channel (the customer shows up

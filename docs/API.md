@@ -135,7 +135,10 @@ authors notice typos. The plain-text part of a mail is derived from the substitu
 
 | Variable | Meaning |
 |---|---|
-| `customerName` | Customer display name |
+| `customerName` | Customer display name (derived: `companyName` if set, else `firstName lastName`) |
+| `firstName` | Contact person's given name (empty when unknown) |
+| `lastName` | Contact person's family name (empty when unknown) |
+| `companyName` | Company / organisation name (empty when absent) |
 | `documentName` | Document name (e.g. "DPA — Customers") |
 | `documentType` | Document type display name |
 | `audience` | Audience display name |

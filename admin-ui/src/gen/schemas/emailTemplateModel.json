@@ -1,1 +1,32 @@
-{"type":"object","properties":{"id":{"type":"string","example":"tpl-default-notification"},"name":{"type":"string","example":"Default — version notification"},"kind":{"type":"string","enum":["VERSION_NOTIFICATION","REMINDER","ACCEPTANCE_CONFIRMATION"]},"subject":{"type":"string","example":"{{appName}}: new version of {{documentName}}"},"design":{"type":"string","description":"Unlayer design JSON (serialised)."},"html":{"type":"string","description":"Exported e-mail HTML with {{placeholders}}."},"isDefault":{"type":"boolean","description":"Built-in default row (editable but not deletable)."},"createdAt":{"type":"string","format":"date-time"},"updatedAt":{"type":"string","format":"date-time"}},"required":["id","name","kind","subject","design","html","isDefault","createdAt","updatedAt"],"x-readme-ref-name":"EmailTemplateModel"}
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "tpl-default-notification" },
+    "name": { "type": "string", "example": "Default — version notification" },
+    "kind": {
+      "type": "string",
+      "enum": ["VERSION_NOTIFICATION", "REMINDER", "ACCEPTANCE_CONFIRMATION"]
+    },
+    "subject": { "type": "string", "example": "{{appName}}: new version of {{documentName}}" },
+    "design": { "type": "string", "description": "Unlayer design JSON (serialised)." },
+    "html": { "type": "string", "description": "Exported e-mail HTML with {{placeholders}}." },
+    "isDefault": {
+      "type": "boolean",
+      "description": "Built-in default row (editable but not deletable)."
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "subject",
+    "design",
+    "html",
+    "isDefault",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "EmailTemplateModel"
+}

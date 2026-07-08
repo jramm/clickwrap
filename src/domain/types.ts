@@ -117,10 +117,17 @@ export interface Customer {
   id: string;
   externalRef: string;
   /**
-   * Human-readable company name (display label in the admin UI). Optional — synced from the CRM
-   * and historically absent; defaults to '' in persistence/fixtures when unknown.
+   * Contact person's given name. Synced from the CRM and historically absent; defaults to '' in
+   * persistence/fixtures when unknown. See {@link customerDisplayName} for the derived label.
    */
-  name?: string;
+  firstName: string;
+  /** Contact person's family name; defaults to '' when unknown (see {@link firstName}). */
+  lastName: string;
+  /**
+   * Optional company / organisation name. When set it is the preferred display label (see
+   * {@link customerDisplayName}); absent for individuals or when the CRM sync has not provided one.
+   */
+  companyName?: string;
   /** Audience keys the customer belongs to. */
   roles: string[];
   /**

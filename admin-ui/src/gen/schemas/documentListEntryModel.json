@@ -1,1 +1,137 @@
-{"type":"object","properties":{"id":{"type":"string","example":"doc-1c2d…"},"type":{"type":"string","example":"dpa","description":"Document type key."},"audience":{"type":"string","example":"customer","description":"Audience key."},"name":{"type":"string","example":"DPA — Customers"},"currentVersion":{"nullable":true,"description":"Current PUBLISHED version or null.","type":"object","allOf":[{"type":"object","properties":{"id":{"type":"string","example":"v-4f9f6a…"},"documentId":{"type":"string","example":"doc-1c2d…"},"versionLabel":{"type":"string","example":"June 2026 edition"},"status":{"type":"string","enum":["DRAFT","PUBLISHED","RETIRED"]},"acceptanceMode":{"type":"string","enum":["ACTIVE","PASSIVE"]},"changeSummary":{"type":"string","example":"New sub-processor for e-mail delivery."},"consentText":{"type":"string","description":"Exact checkbox consent text (ACTIVE only)."},"objectionPeriodDays":{"type":"number","example":14,"description":"PASSIVE only: objection period in days."},"gracePeriodDays":{"type":"number","example":14,"description":"ACTIVE only: grace period until hard block."},"validFrom":{"type":"string","format":"date-time"},"publishedAt":{"type":"string","format":"date-time"},"contentHash":{"type":"string","example":"sha256:9c1e…","description":"SHA-256 of the PDF content."},"fileName":{"type":"string","example":"dpa-2026-06.pdf"},"pdfUrl":{"type":"string","description":"Presigned, time-limited PDF download/preview URL (15-minute TTL)."}},"required":["id","documentId","versionLabel","status","acceptanceMode","changeSummary","validFrom","contentHash","fileName","pdfUrl"],"x-readme-ref-name":"VersionModel"}]},"upcomingVersion":{"nullable":true,"description":"Next UPCOMING published version (validFrom in the future, scheduled publish) or null. The current version stays the compliance baseline until the flip at its validFrom.","type":"object","allOf":[{"type":"object","properties":{"id":{"type":"string","example":"v-4f9f6a…"},"documentId":{"type":"string","example":"doc-1c2d…"},"versionLabel":{"type":"string","example":"June 2026 edition"},"status":{"type":"string","enum":["DRAFT","PUBLISHED","RETIRED"]},"acceptanceMode":{"type":"string","enum":["ACTIVE","PASSIVE"]},"changeSummary":{"type":"string","example":"New sub-processor for e-mail delivery."},"consentText":{"type":"string","description":"Exact checkbox consent text (ACTIVE only)."},"objectionPeriodDays":{"type":"number","example":14,"description":"PASSIVE only: objection period in days."},"gracePeriodDays":{"type":"number","example":14,"description":"ACTIVE only: grace period until hard block."},"validFrom":{"type":"string","format":"date-time"},"publishedAt":{"type":"string","format":"date-time"},"contentHash":{"type":"string","example":"sha256:9c1e…","description":"SHA-256 of the PDF content."},"fileName":{"type":"string","example":"dpa-2026-06.pdf"},"pdfUrl":{"type":"string","description":"Presigned, time-limited PDF download/preview URL (15-minute TTL)."}},"required":["id","documentId","versionLabel","status","acceptanceMode","changeSummary","validFrom","contentHash","fileName","pdfUrl"],"x-readme-ref-name":"VersionModel"}]},"latestPdfUrl":{"type":"string","nullable":true,"description":"Stable public URL (`${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf`) that always 302-redirects to the currently effective published PDF — deterministic from the document keys, valid across future publishes (for rendering into offers). Null when no published version is in effect or PUBLIC_BASE_URL is unset.","example":"https://clickwrap.example.org/documents/dpa/customer/latest.pdf"}},"required":["id","type","audience","name"],"x-readme-ref-name":"DocumentListEntryModel"}
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "doc-1c2d…" },
+    "type": { "type": "string", "example": "dpa", "description": "Document type key." },
+    "audience": { "type": "string", "example": "customer", "description": "Audience key." },
+    "name": { "type": "string", "example": "DPA — Customers" },
+    "currentVersion": {
+      "nullable": true,
+      "description": "Current PUBLISHED version or null.",
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "example": "v-4f9f6a…" },
+            "documentId": { "type": "string", "example": "doc-1c2d…" },
+            "versionLabel": { "type": "string", "example": "June 2026 edition" },
+            "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "RETIRED"] },
+            "acceptanceMode": { "type": "string", "enum": ["ACTIVE", "PASSIVE"] },
+            "changeSummary": {
+              "type": "string",
+              "example": "New sub-processor for e-mail delivery."
+            },
+            "consentText": {
+              "type": "string",
+              "description": "Exact checkbox consent text (ACTIVE only)."
+            },
+            "objectionPeriodDays": {
+              "type": "number",
+              "example": 14,
+              "description": "PASSIVE only: objection period in days."
+            },
+            "gracePeriodDays": {
+              "type": "number",
+              "example": 14,
+              "description": "ACTIVE only: grace period until hard block."
+            },
+            "validFrom": { "type": "string", "format": "date-time" },
+            "publishedAt": { "type": "string", "format": "date-time" },
+            "contentHash": {
+              "type": "string",
+              "example": "sha256:9c1e…",
+              "description": "SHA-256 of the PDF content."
+            },
+            "fileName": { "type": "string", "example": "dpa-2026-06.pdf" },
+            "pdfUrl": {
+              "type": "string",
+              "description": "Presigned, time-limited PDF download/preview URL (15-minute TTL)."
+            }
+          },
+          "required": [
+            "id",
+            "documentId",
+            "versionLabel",
+            "status",
+            "acceptanceMode",
+            "changeSummary",
+            "validFrom",
+            "contentHash",
+            "fileName",
+            "pdfUrl"
+          ],
+          "x-readme-ref-name": "VersionModel"
+        }
+      ]
+    },
+    "upcomingVersion": {
+      "nullable": true,
+      "description": "Next UPCOMING published version (validFrom in the future, scheduled publish) or null. The current version stays the compliance baseline until the flip at its validFrom.",
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "example": "v-4f9f6a…" },
+            "documentId": { "type": "string", "example": "doc-1c2d…" },
+            "versionLabel": { "type": "string", "example": "June 2026 edition" },
+            "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "RETIRED"] },
+            "acceptanceMode": { "type": "string", "enum": ["ACTIVE", "PASSIVE"] },
+            "changeSummary": {
+              "type": "string",
+              "example": "New sub-processor for e-mail delivery."
+            },
+            "consentText": {
+              "type": "string",
+              "description": "Exact checkbox consent text (ACTIVE only)."
+            },
+            "objectionPeriodDays": {
+              "type": "number",
+              "example": 14,
+              "description": "PASSIVE only: objection period in days."
+            },
+            "gracePeriodDays": {
+              "type": "number",
+              "example": 14,
+              "description": "ACTIVE only: grace period until hard block."
+            },
+            "validFrom": { "type": "string", "format": "date-time" },
+            "publishedAt": { "type": "string", "format": "date-time" },
+            "contentHash": {
+              "type": "string",
+              "example": "sha256:9c1e…",
+              "description": "SHA-256 of the PDF content."
+            },
+            "fileName": { "type": "string", "example": "dpa-2026-06.pdf" },
+            "pdfUrl": {
+              "type": "string",
+              "description": "Presigned, time-limited PDF download/preview URL (15-minute TTL)."
+            }
+          },
+          "required": [
+            "id",
+            "documentId",
+            "versionLabel",
+            "status",
+            "acceptanceMode",
+            "changeSummary",
+            "validFrom",
+            "contentHash",
+            "fileName",
+            "pdfUrl"
+          ],
+          "x-readme-ref-name": "VersionModel"
+        }
+      ]
+    },
+    "latestPdfUrl": {
+      "type": "string",
+      "nullable": true,
+      "description": "Stable public URL (`${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf`) that always 302-redirects to the currently effective published PDF — deterministic from the document keys, valid across future publishes (for rendering into offers). Null when no published version is in effect or PUBLIC_BASE_URL is unset.",
+      "example": "https://clickwrap.example.org/documents/dpa/customer/latest.pdf"
+    }
+  },
+  "required": ["id", "type", "audience", "name"],
+  "x-readme-ref-name": "DocumentListEntryModel"
+}

@@ -1,1 +1,149 @@
-{"type":"object","properties":{"items":{"type":"array","items":{"type":"object","properties":{"customerId":{"type":"string","example":"c-8a71…"},"customerName":{"type":"string","example":"Acme GmbH","description":"Company display name ('' when unknown)."},"externalRef":{"type":"string","example":"crm-4711"},"state":{"type":"string","enum":["PENDING_NOTIFICATION","NOTIFIED","ACCEPTED","OBJECTED","EXPIRED_BLOCKING","SUPERSEDED"],"description":"The CustomerVersionState value for THIS version."},"notifiedAt":{"type":"string","format":"date-time"},"deadlineAt":{"type":"string","format":"date-time"},"carryOverBlocking":{"type":"boolean"},"acceptance":{"description":"The effective acceptance OF THIS VERSION only.","allOf":[{"type":"object","properties":{"acceptedAt":{"type":"string","format":"date-time"},"method":{"type":"string","enum":["ACTIVE_CONSENT","TACIT","IMPORT"]},"channel":{"type":"string","enum":["PORTAL","ADMIN","SYSTEM","LINK"]},"actorName":{"type":"string","example":"Jane Doe","description":"Display name of the accepting actor."}},"required":["acceptedAt","method","channel"],"x-readme-ref-name":"VersionCustomerAcceptanceModel"}]}},"required":["customerId","customerName","externalRef","state"],"x-readme-ref-name":"VersionCustomerRowModel"}},"total":{"type":"number","example":42},"stats":{"description":"Reused per-version dashboard stats (header numbers match the card).","allOf":[{"type":"object","properties":{"versionId":{"type":"string","example":"v-4f9f6a…"},"documentName":{"type":"string","example":"DPA — Customers"},"documentType":{"type":"string","example":"dpa"},"audience":{"type":"string","example":"customer"},"versionLabel":{"type":"string","example":"June 2026 edition"},"status":{"type":"string","enum":["DRAFT","PUBLISHED","RETIRED"]},"validFrom":{"type":"string","format":"date-time"},"upcoming":{"type":"boolean","example":false,"description":"Scheduled for the future (validFrom > now)."},"stats":{"type":"object","properties":{"totalCustomers":{"type":"number","example":42,"description":"Relevant (non-SUPERSEDED) states of the version."},"accepted":{"type":"number","example":22},"acceptedByChannel":{"type":"object","properties":{"PORTAL":{"type":"number","example":12},"LINK":{"type":"number","example":3},"ADMIN":{"type":"number","example":5},"SYSTEM":{"type":"number","example":2}},"required":["PORTAL","LINK","ADMIN","SYSTEM"],"x-readme-ref-name":"AcceptedByChannelModel"},"acceptedByMethod":{"type":"object","properties":{"ACTIVE_CONSENT":{"type":"number","example":14},"TACIT":{"type":"number","example":6},"IMPORT":{"type":"number","example":2}},"required":["ACTIVE_CONSENT","TACIT","IMPORT"],"x-readme-ref-name":"AcceptedByMethodModel"},"pending":{"type":"number","example":12,"description":"PENDING_NOTIFICATION + NOTIFIED."},"blocked":{"type":"number","example":5,"description":"EXPIRED_BLOCKING."},"objected":{"type":"number","example":3,"description":"OBJECTED."},"acceptanceRate":{"type":"number","example":0.5238,"description":"accepted / totalCustomers (0 when totalCustomers is 0)."}},"required":["totalCustomers","accepted","acceptedByChannel","acceptedByMethod","pending","blocked","objected","acceptanceRate"],"x-readme-ref-name":"VersionAcceptanceStatsModel"}},"required":["versionId","documentName","documentType","audience","versionLabel","status","validFrom","upcoming","stats"],"x-readme-ref-name":"VersionStatsModel"}]}},"required":["items","total","stats"],"x-readme-ref-name":"VersionCustomersResponseModel"}
+{
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string", "example": "c-8a71…" },
+          "customerName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Derived display name: companyName if set, else the contact person's name ('' when unknown)."
+          },
+          "externalRef": { "type": "string", "example": "crm-4711" },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ],
+            "description": "The CustomerVersionState value for THIS version."
+          },
+          "notifiedAt": { "type": "string", "format": "date-time" },
+          "deadlineAt": { "type": "string", "format": "date-time" },
+          "carryOverBlocking": { "type": "boolean" },
+          "acceptance": {
+            "description": "The effective acceptance OF THIS VERSION only.",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "acceptedAt": { "type": "string", "format": "date-time" },
+                  "method": { "type": "string", "enum": ["ACTIVE_CONSENT", "TACIT", "IMPORT"] },
+                  "channel": { "type": "string", "enum": ["PORTAL", "ADMIN", "SYSTEM", "LINK"] },
+                  "actorName": {
+                    "type": "string",
+                    "example": "Jane Doe",
+                    "description": "Display name of the accepting actor."
+                  }
+                },
+                "required": ["acceptedAt", "method", "channel"],
+                "x-readme-ref-name": "VersionCustomerAcceptanceModel"
+              }
+            ]
+          }
+        },
+        "required": ["customerId", "customerName", "externalRef", "state"],
+        "x-readme-ref-name": "VersionCustomerRowModel"
+      }
+    },
+    "total": { "type": "number", "example": 42 },
+    "stats": {
+      "description": "Reused per-version dashboard stats (header numbers match the card).",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "versionId": { "type": "string", "example": "v-4f9f6a…" },
+            "documentName": { "type": "string", "example": "DPA — Customers" },
+            "documentType": { "type": "string", "example": "dpa" },
+            "audience": { "type": "string", "example": "customer" },
+            "versionLabel": { "type": "string", "example": "June 2026 edition" },
+            "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "RETIRED"] },
+            "validFrom": { "type": "string", "format": "date-time" },
+            "upcoming": {
+              "type": "boolean",
+              "example": false,
+              "description": "Scheduled for the future (validFrom > now)."
+            },
+            "stats": {
+              "type": "object",
+              "properties": {
+                "totalCustomers": {
+                  "type": "number",
+                  "example": 42,
+                  "description": "Relevant (non-SUPERSEDED) states of the version."
+                },
+                "accepted": { "type": "number", "example": 22 },
+                "acceptedByChannel": {
+                  "type": "object",
+                  "properties": {
+                    "PORTAL": { "type": "number", "example": 12 },
+                    "LINK": { "type": "number", "example": 3 },
+                    "ADMIN": { "type": "number", "example": 5 },
+                    "SYSTEM": { "type": "number", "example": 2 }
+                  },
+                  "required": ["PORTAL", "LINK", "ADMIN", "SYSTEM"],
+                  "x-readme-ref-name": "AcceptedByChannelModel"
+                },
+                "acceptedByMethod": {
+                  "type": "object",
+                  "properties": {
+                    "ACTIVE_CONSENT": { "type": "number", "example": 14 },
+                    "TACIT": { "type": "number", "example": 6 },
+                    "IMPORT": { "type": "number", "example": 2 }
+                  },
+                  "required": ["ACTIVE_CONSENT", "TACIT", "IMPORT"],
+                  "x-readme-ref-name": "AcceptedByMethodModel"
+                },
+                "pending": {
+                  "type": "number",
+                  "example": 12,
+                  "description": "PENDING_NOTIFICATION + NOTIFIED."
+                },
+                "blocked": { "type": "number", "example": 5, "description": "EXPIRED_BLOCKING." },
+                "objected": { "type": "number", "example": 3, "description": "OBJECTED." },
+                "acceptanceRate": {
+                  "type": "number",
+                  "example": 0.5238,
+                  "description": "accepted / totalCustomers (0 when totalCustomers is 0)."
+                }
+              },
+              "required": [
+                "totalCustomers",
+                "accepted",
+                "acceptedByChannel",
+                "acceptedByMethod",
+                "pending",
+                "blocked",
+                "objected",
+                "acceptanceRate"
+              ],
+              "x-readme-ref-name": "VersionAcceptanceStatsModel"
+            }
+          },
+          "required": [
+            "versionId",
+            "documentName",
+            "documentType",
+            "audience",
+            "versionLabel",
+            "status",
+            "validFrom",
+            "upcoming",
+            "stats"
+          ],
+          "x-readme-ref-name": "VersionStatsModel"
+        }
+      ]
+    }
+  },
+  "required": ["items", "total", "stats"],
+  "x-readme-ref-name": "VersionCustomersResponseModel"
+}

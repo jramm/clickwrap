@@ -1,1 +1,15 @@
-{"type":"object","properties":{"versionId":{"type":"string","example":"v-4f9f6a…"},"status":{"type":"string","enum":["PUBLISHED"]},"rolloutCustomers":{"type":"number","example":921,"description":"Number of customers the rollout targeted."},"publishedAt":{"type":"string","format":"date-time"}},"required":["versionId","status","rolloutCustomers","publishedAt"],"x-readme-ref-name":"PublishResponseModel"}
+{
+  "type": "object",
+  "properties": {
+    "versionId": { "type": "string", "example": "v-4f9f6a…" },
+    "status": { "type": "string", "enum": ["PUBLISHED"] },
+    "rolloutCustomers": {
+      "type": "number",
+      "example": 921,
+      "description": "Number of customers the rollout targeted."
+    },
+    "publishedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["versionId", "status", "rolloutCustomers", "publishedAt"],
+  "x-readme-ref-name": "PublishResponseModel"
+}

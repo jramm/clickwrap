@@ -165,7 +165,7 @@ export class AdminController {
 
   @Patch('customers/:id')
   @ApiOperation({
-    summary: 'Update a customer (subset of name/roles/contactEmails)',
+    summary: 'Update a customer (subset of firstName/lastName/companyName/roles/contactEmails)',
     description:
       'A `roles` change takes effect on the next publish/rollout only (no auto-rollout on role ' +
       'add). Adding a role is rejected with 422 INVALID_STATE if it would overlap another customer ' +

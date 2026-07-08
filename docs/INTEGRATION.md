@@ -32,7 +32,9 @@ Versions the customer already accepted on paper are recorded in the same call:
 ```json
 {
   "externalRef": "crm-4711",
-  "name": "Acme GmbH",
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "companyName": "Acme GmbH",
   "roles": ["customer"],
   "contactEmails": ["legal@acme.example"],
   "acceptedVersions": [
@@ -42,6 +44,8 @@ Versions the customer already accepted on paper are recorded in the same call:
 }
 ```
 
+- `firstName`/`lastName` (contact person) and `companyName` (optional) are all optional; the
+  derived display name (`{{customerName}}`) is `companyName` when set, else `firstName lastName`.
 - `roles` are audience keys and are validated (`422 UNKNOWN_AUDIENCE`).
 - **Creation triggers an onboarding rollout**: for every current published version — and every
   **upcoming** one (published with a future `validFrom`, see §4a) — covered by `roles` and not
@@ -120,6 +124,11 @@ the service itself can collect the consent: an admin mints an **acceptance link*
 `POST /admin/customers/:id/acceptance-links`) and sends the URL directly to the person who has to
 accept. The recipient opens `${PUBLIC_BASE_URL}/accept/<token>` on any device and accepts there —
 zero code on your side. Details: [API.md §5a](API.md#5a-hosted-acceptance-page-accept--no-integration-required).
+
+The signer's **name** field is pre-filled from the customer's `firstName`/`lastName` and the
+**e-mail** field from the customer's first contact e-mail; when a `companyName` is known it is shown
+as context ("On behalf of …"). Both fields stay **editable** — the recorded signer identity is still
+self-declared, the prefill is a convenience only and does not change the evidence semantics.
 
 Security model, in short:
 

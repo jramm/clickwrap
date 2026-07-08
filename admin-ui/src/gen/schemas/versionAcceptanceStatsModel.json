@@ -1,1 +1,55 @@
-{"type":"object","properties":{"totalCustomers":{"type":"number","example":42,"description":"Relevant (non-SUPERSEDED) states of the version."},"accepted":{"type":"number","example":22},"acceptedByChannel":{"type":"object","properties":{"PORTAL":{"type":"number","example":12},"LINK":{"type":"number","example":3},"ADMIN":{"type":"number","example":5},"SYSTEM":{"type":"number","example":2}},"required":["PORTAL","LINK","ADMIN","SYSTEM"],"x-readme-ref-name":"AcceptedByChannelModel"},"acceptedByMethod":{"type":"object","properties":{"ACTIVE_CONSENT":{"type":"number","example":14},"TACIT":{"type":"number","example":6},"IMPORT":{"type":"number","example":2}},"required":["ACTIVE_CONSENT","TACIT","IMPORT"],"x-readme-ref-name":"AcceptedByMethodModel"},"pending":{"type":"number","example":12,"description":"PENDING_NOTIFICATION + NOTIFIED."},"blocked":{"type":"number","example":5,"description":"EXPIRED_BLOCKING."},"objected":{"type":"number","example":3,"description":"OBJECTED."},"acceptanceRate":{"type":"number","example":0.5238,"description":"accepted / totalCustomers (0 when totalCustomers is 0)."}},"required":["totalCustomers","accepted","acceptedByChannel","acceptedByMethod","pending","blocked","objected","acceptanceRate"],"x-readme-ref-name":"VersionAcceptanceStatsModel"}
+{
+  "type": "object",
+  "properties": {
+    "totalCustomers": {
+      "type": "number",
+      "example": 42,
+      "description": "Relevant (non-SUPERSEDED) states of the version."
+    },
+    "accepted": { "type": "number", "example": 22 },
+    "acceptedByChannel": {
+      "type": "object",
+      "properties": {
+        "PORTAL": { "type": "number", "example": 12 },
+        "LINK": { "type": "number", "example": 3 },
+        "ADMIN": { "type": "number", "example": 5 },
+        "SYSTEM": { "type": "number", "example": 2 }
+      },
+      "required": ["PORTAL", "LINK", "ADMIN", "SYSTEM"],
+      "x-readme-ref-name": "AcceptedByChannelModel"
+    },
+    "acceptedByMethod": {
+      "type": "object",
+      "properties": {
+        "ACTIVE_CONSENT": { "type": "number", "example": 14 },
+        "TACIT": { "type": "number", "example": 6 },
+        "IMPORT": { "type": "number", "example": 2 }
+      },
+      "required": ["ACTIVE_CONSENT", "TACIT", "IMPORT"],
+      "x-readme-ref-name": "AcceptedByMethodModel"
+    },
+    "pending": {
+      "type": "number",
+      "example": 12,
+      "description": "PENDING_NOTIFICATION + NOTIFIED."
+    },
+    "blocked": { "type": "number", "example": 5, "description": "EXPIRED_BLOCKING." },
+    "objected": { "type": "number", "example": 3, "description": "OBJECTED." },
+    "acceptanceRate": {
+      "type": "number",
+      "example": 0.5238,
+      "description": "accepted / totalCustomers (0 when totalCustomers is 0)."
+    }
+  },
+  "required": [
+    "totalCustomers",
+    "accepted",
+    "acceptedByChannel",
+    "acceptedByMethod",
+    "pending",
+    "blocked",
+    "objected",
+    "acceptanceRate"
+  ],
+  "x-readme-ref-name": "VersionAcceptanceStatsModel"
+}

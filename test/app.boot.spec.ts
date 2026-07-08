@@ -212,13 +212,13 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
       .set({ 'x-service-token': SERVICE_TOKEN, 'x-actor-user-id': 'sales-7' })
       .send({
         externalRef: 'company-boot-2',
-        name: 'Boot Two GmbH',
+        companyName: 'Boot Two GmbH',
         roles: ['customer'],
         contactEmails: ['legal@boot2.example'],
         acceptedVersions: [{ versionId, acceptedAt: '2026-01-02T00:00:00Z', reference: 'signed offer 4711' }],
       })
       .expect(201);
-    expect(onboardRes.body).toMatchObject({ externalRef: 'company-boot-2', name: 'Boot Two GmbH' });
+    expect(onboardRes.body).toMatchObject({ externalRef: 'company-boot-2', companyName: 'Boot Two GmbH' });
     expect(onboardRes.body.importedAcceptances).toEqual([{ versionId, acceptanceId: expect.any(String) }]);
 
     const onboardedId: string = onboardRes.body.id;

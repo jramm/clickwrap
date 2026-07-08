@@ -60,22 +60,30 @@ describe('CustomerAdminService', () => {
   });
 
   describe('list', () => {
-    it('returns rows { id, externalRef, name, roles, contactEmails } sorted by name/externalRef with total', async () => {
-      await customers.save({ id: 'c-b', externalRef: 'ext-b', name: 'Beta', roles: ['customer'], contactEmails: [] });
-      await customers.save({ id: 'c-a', externalRef: 'ext-a', name: 'Alpha', roles: ['partner'], contactEmails: ['a@x.io'] });
+    it('returns rows { id, externalRef, firstName, lastName, companyName, roles, contactEmails } sorted by display name/externalRef with total', async () => {
+      await customers.save({ id: 'c-b', externalRef: 'ext-b', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [] });
+      await customers.save({ id: 'c-a', externalRef: 'ext-a', firstName: '', lastName: '', companyName: 'Alpha', roles: ['partner'], contactEmails: ['a@x.io'] });
 
       const result = await service.list();
       expect(result.total).toBe(2);
       expect(result.items).toEqual([
-        { id: 'c-a', externalRef: 'ext-a', name: 'Alpha', roles: ['partner'], contactEmails: ['a@x.io'] },
-        { id: 'c-b', externalRef: 'ext-b', name: 'Beta', roles: ['customer'], contactEmails: [] },
+        { id: 'c-a', externalRef: 'ext-a', firstName: '', lastName: '', companyName: 'Alpha', roles: ['partner'], contactEmails: ['a@x.io'] },
+        { id: 'c-b', externalRef: 'ext-b', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [] },
       ]);
+    });
+
+    it('sorts by the derived display name — contact person (firstName lastName) when no company', async () => {
+      await customers.save({ id: 'c-z', externalRef: 'ext-z', firstName: 'Zoe', lastName: 'Adams', roles: ['customer'], contactEmails: [] });
+      await customers.save({ id: 'c-m', externalRef: 'ext-m', firstName: 'Max', lastName: 'Braun', roles: ['customer'], contactEmails: [] });
+
+      const items = (await service.list()).items;
+      expect(items.map((c) => c.id)).toEqual(['c-m', 'c-z']);
     });
 
     it('paginates with a page size of 50', async () => {
       for (let i = 0; i < 55; i++) {
         const n = String(i).padStart(3, '0');
-        await customers.save({ id: `c-${n}`, externalRef: `ext-${n}`, name: `Cust ${n}`, roles: [], contactEmails: [] });
+        await customers.save({ id: `c-${n}`, externalRef: `ext-${n}`, firstName: '', lastName: '', companyName: `Cust ${n}`, roles: [], contactEmails: [] });
       }
       expect((await service.list(1)).items).toHaveLength(50);
       const page2 = await service.list(2);
@@ -85,9 +93,9 @@ describe('CustomerAdminService', () => {
 
     describe('search', () => {
       beforeEach(async () => {
-        await customers.save({ id: 'c-acme', externalRef: 'crm-4711', name: 'Acme GmbH', roles: ['customer'], contactEmails: ['legal@acme.example'] });
-        await customers.save({ id: 'c-globex', externalRef: 'crm-8000', name: 'Globex Corp', roles: ['partner'], contactEmails: ['ops@globex.test'] });
-        await customers.save({ id: 'c-initech', externalRef: 'crm-9999', name: 'Initech', roles: [], contactEmails: [] });
+        await customers.save({ id: 'c-acme', externalRef: 'crm-4711', firstName: '', lastName: '', companyName: 'Acme GmbH', roles: ['customer'], contactEmails: ['legal@acme.example'] });
+        await customers.save({ id: 'c-globex', externalRef: 'crm-8000', firstName: '', lastName: '', companyName: 'Globex Corp', roles: ['partner'], contactEmails: ['ops@globex.test'] });
+        await customers.save({ id: 'c-initech', externalRef: 'crm-9999', firstName: '', lastName: '', companyName: 'Initech', roles: [], contactEmails: [] });
       });
 
       it('filters by a case-insensitive substring of the name', async () => {
@@ -119,12 +127,12 @@ describe('CustomerAdminService', () => {
   describe('create', () => {
     it('creates a customer (201 object) and writes a CUSTOMER_CREATE audit entry', async () => {
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
         ADMIN,
       );
       expect(created).toMatchObject({
         externalRef: 'ext-1',
-        name: 'Acme',
+        companyName: 'Acme',
         roles: ['customer'],
         contactEmails: ['legal@acme.io'],
         importedAcceptances: [],
@@ -138,56 +146,56 @@ describe('CustomerAdminService', () => {
 
     it('rejects an unknown role with UNKNOWN_AUDIENCE', async () => {
       await expect(
-        service.create({ externalRef: 'ext-1', name: 'x', roles: ['ghost'], contactEmails: [] }, ADMIN),
+        service.create({ externalRef: 'ext-1', companyName: 'x', roles: ['ghost'], contactEmails: [] }, ADMIN),
       ).rejects.toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
     });
 
     it('rejects a duplicate externalRef with an OVERLAPPING role (INVALID_STATE)', async () => {
-      await service.create({ externalRef: 'ext-1', name: 'x', roles: ['customer'], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'ext-1', companyName: 'x', roles: ['customer'], contactEmails: [] }, ADMIN);
       await expect(
-        service.create({ externalRef: 'ext-1', name: 'y', roles: ['customer'], contactEmails: [] }, ADMIN),
+        service.create({ externalRef: 'ext-1', companyName: 'y', roles: ['customer'], contactEmails: [] }, ADMIN),
       ).rejects.toMatchObject({ code: 'INVALID_STATE' });
     });
 
     it('allows a duplicate externalRef across NON-overlapping roles (partner vs customer ID space)', async () => {
-      await service.create({ externalRef: 'X', name: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
-      const partner = await service.create({ externalRef: 'X', name: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'X', companyName: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
+      const partner = await service.create({ externalRef: 'X', companyName: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
       expect(partner).toMatchObject({ externalRef: 'X', roles: ['partner'] });
     });
 
     it('rejects a third externalRef=X once it overlaps an existing role', async () => {
-      await service.create({ externalRef: 'X', name: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
-      await service.create({ externalRef: 'X', name: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'X', companyName: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'X', companyName: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
       await expect(
-        service.create({ externalRef: 'X', name: 'dup', roles: ['customer'], contactEmails: [] }, ADMIN),
+        service.create({ externalRef: 'X', companyName: 'dup', roles: ['customer'], contactEmails: [] }, ADMIN),
       ).rejects.toMatchObject({ code: 'INVALID_STATE' });
     });
 
     it('a multi-role customer blocks both single-role duplicates of the same externalRef', async () => {
-      await service.create({ externalRef: 'X', name: 'both', roles: ['customer', 'partner'], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'X', companyName: 'both', roles: ['customer', 'partner'], contactEmails: [] }, ADMIN);
       await expect(
-        service.create({ externalRef: 'X', name: 'c', roles: ['customer'], contactEmails: [] }, ADMIN),
+        service.create({ externalRef: 'X', companyName: 'c', roles: ['customer'], contactEmails: [] }, ADMIN),
       ).rejects.toMatchObject({ code: 'INVALID_STATE' });
       await expect(
-        service.create({ externalRef: 'X', name: 'p', roles: ['partner'], contactEmails: [] }, ADMIN),
+        service.create({ externalRef: 'X', companyName: 'p', roles: ['partner'], contactEmails: [] }, ADMIN),
       ).rejects.toMatchObject({ code: 'INVALID_STATE' });
     });
 
     it('allows a duplicate externalRef when both records are role-less (no overlap)', async () => {
-      await service.create({ externalRef: 'ext-1', name: 'x', roles: [], contactEmails: [] }, ADMIN);
-      const second = await service.create({ externalRef: 'ext-1', name: 'y', roles: [], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'ext-1', companyName: 'x', roles: [], contactEmails: [] }, ADMIN);
+      const second = await service.create({ externalRef: 'ext-1', companyName: 'y', roles: [], contactEmails: [] }, ADMIN);
       expect(second).toMatchObject({ externalRef: 'ext-1', roles: [] });
     });
 
     it('rejects an invalid contactEmail with INVALID_STATE', async () => {
       await expect(
-        service.create({ externalRef: 'ext-1', name: 'x', roles: [], contactEmails: ['not-an-email'] }, ADMIN),
+        service.create({ externalRef: 'ext-1', companyName: 'x', roles: [], contactEmails: ['not-an-email'] }, ADMIN),
       ).rejects.toMatchObject({ code: 'INVALID_STATE' });
     });
 
     it('rejects a blank externalRef with INVALID_STATE', async () => {
       await expect(
-        service.create({ externalRef: '  ', name: 'x', roles: [], contactEmails: [] }, ADMIN),
+        service.create({ externalRef: '  ', companyName: 'x', roles: [], contactEmails: [] }, ADMIN),
       ).rejects.toBeInstanceOf(DomainError);
     });
 
@@ -203,7 +211,7 @@ describe('CustomerAdminService', () => {
         const created = await service.create(
           {
             externalRef: 'ext-1',
-            name: 'Acme',
+            companyName: 'Acme',
             roles: ['customer'],
             contactEmails: [],
             acceptedVersions: [
@@ -236,7 +244,7 @@ describe('CustomerAdminService', () => {
       it('accepts a RETIRED version (superseded between signing and creation)', async () => {
         await versions.save(aVersion({ id: 'v-retired', documentId: 'doc-dpa-c', status: 'RETIRED' }));
         const created = await service.create(
-          { externalRef: 'ext-r', name: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-retired' }] },
+          { externalRef: 'ext-r', companyName: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-retired' }] },
           ADMIN,
         );
         expect(created.importedAcceptances).toHaveLength(1);
@@ -245,7 +253,7 @@ describe('CustomerAdminService', () => {
       it('rejects an unknown versionId with VERSION_NOT_FOUND and creates no customer', async () => {
         await expect(
           service.create(
-            { externalRef: 'ext-1', name: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'ghost' }] },
+            { externalRef: 'ext-1', companyName: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'ghost' }] },
             ADMIN,
           ),
         ).rejects.toMatchObject({ code: 'VERSION_NOT_FOUND' });
@@ -256,7 +264,7 @@ describe('CustomerAdminService', () => {
         await versions.save(aVersion({ id: 'v-draft', documentId: 'doc-dpa-c', status: 'DRAFT' }));
         await expect(
           service.create(
-            { externalRef: 'ext-1', name: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-draft' }] },
+            { externalRef: 'ext-1', companyName: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-draft' }] },
             ADMIN,
           ),
         ).rejects.toMatchObject({ code: 'INVALID_STATE' });
@@ -265,7 +273,7 @@ describe('CustomerAdminService', () => {
       it('rejects when the version audience is not covered by the roles with ROLE_MISMATCH', async () => {
         await expect(
           service.create(
-            { externalRef: 'ext-1', name: 'x', roles: ['partner'], contactEmails: [], acceptedVersions: [{ versionId: 'v-pub' }] },
+            { externalRef: 'ext-1', companyName: 'x', roles: ['partner'], contactEmails: [], acceptedVersions: [{ versionId: 'v-pub' }] },
             ADMIN,
           ),
         ).rejects.toMatchObject({ code: 'ROLE_MISMATCH' });
@@ -278,7 +286,7 @@ describe('CustomerAdminService', () => {
           aVersion({ id: 'v-old', documentId: 'doc-dpa-c', status: 'RETIRED', validFrom: new Date('2026-01-01T00:00:00Z') }),
         );
         const created = await service.create(
-          { externalRef: 'ext-1', name: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-old' }] },
+          { externalRef: 'ext-1', companyName: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-old' }] },
           ADMIN,
         );
 
@@ -288,7 +296,7 @@ describe('CustomerAdminService', () => {
 
       it('import of the CURRENT version: state stays ACCEPTED, no duplicate/pending state', async () => {
         const created = await service.create(
-          { externalRef: 'ext-1', name: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-pub' }] },
+          { externalRef: 'ext-1', companyName: 'x', roles: ['customer'], contactEmails: [], acceptedVersions: [{ versionId: 'v-pub' }] },
           ADMIN,
         );
         expect((await states.findByCustomerAndVersion(created.id, 'v-pub'))?.state).toBe('ACCEPTED');
@@ -300,7 +308,7 @@ describe('CustomerAdminService', () => {
           service.create(
             {
               externalRef: 'ext-1',
-              name: 'x',
+              companyName: 'x',
               roles: ['customer'],
               contactEmails: [],
               acceptedVersions: [{ versionId: 'v-pub' }, { versionId: 'v-pub' }],
@@ -322,7 +330,7 @@ describe('CustomerAdminService', () => {
 
     it('create: PENDING_NOTIFICATION states for the current published versions of the roles — the version shows up in pending-agreements', async () => {
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
         ADMIN,
       );
 
@@ -348,13 +356,13 @@ describe('CustomerAdminService', () => {
     });
 
     it('create without any matching published version creates no states', async () => {
-      const created = await service.create({ externalRef: 'ext-1', name: 'x', roles: [], contactEmails: [] }, ADMIN);
+      const created = await service.create({ externalRef: 'ext-1', companyName: 'x', roles: [], contactEmails: [] }, ADMIN);
       expect(await states.findByCustomer(created.id)).toHaveLength(0);
     });
 
     it('role add via update: rollout only for the ADDED role, existing states untouched', async () => {
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
         ADMIN,
       );
       expect(await states.findByCustomer(created.id)).toHaveLength(1);
@@ -368,7 +376,7 @@ describe('CustomerAdminService', () => {
 
     it('no duplicate states: repeating the same role update is a no-op', async () => {
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
         ADMIN,
       );
       await service.update(created.id, { roles: ['customer', 'partner'] }, ADMIN);
@@ -378,11 +386,11 @@ describe('CustomerAdminService', () => {
 
     it('update without a roles change does not touch states', async () => {
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
         ADMIN,
       );
       const before = await states.findByCustomer(created.id);
-      await service.update(created.id, { name: 'Acme New' }, ADMIN);
+      await service.update(created.id, { companyName: 'Acme New' }, ADMIN);
       expect(await states.findByCustomer(created.id)).toEqual(before);
     });
 
@@ -392,7 +400,7 @@ describe('CustomerAdminService', () => {
       );
 
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
         ADMIN,
       );
 
@@ -406,7 +414,7 @@ describe('CustomerAdminService', () => {
         aVersion({ id: 'v-tos-next', documentId: 'doc-tos-p', status: 'PUBLISHED', validFrom: new Date('2026-08-01T00:00:00Z'), publishedAt: T0 }),
       );
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
         ADMIN,
       );
 
@@ -433,7 +441,7 @@ describe('CustomerAdminService', () => {
       );
 
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
         ADMIN,
       );
 
@@ -445,7 +453,7 @@ describe('CustomerAdminService', () => {
       await service.create(
         {
           externalRef: 'ext-1',
-          name: 'Acme',
+          companyName: 'Acme',
           roles: ['customer'],
           contactEmails: ['legal@acme.io'],
           acceptedVersions: [{ versionId: 'v-dpa' }],
@@ -460,7 +468,7 @@ describe('CustomerAdminService', () => {
       await service.create(
         {
           externalRef: 'ext-1',
-          name: 'Acme',
+          companyName: 'Acme',
           roles: ['customer'],
           contactEmails: ['legal@acme.io'],
           acceptedVersions: [{ versionId: 'v-dpa' }, { versionId: 'v-tos-c' }],
@@ -479,7 +487,7 @@ describe('CustomerAdminService', () => {
       await service.create(
         {
           externalRef: 'ext-1',
-          name: 'Acme',
+          companyName: 'Acme',
           roles: ['customer'],
           contactEmails: ['legal@acme.io'],
           acceptedVersions: [{ versionId: 'v-dpa-old' }, { versionId: 'v-tos-c' }],
@@ -492,7 +500,7 @@ describe('CustomerAdminService', () => {
 
     it('role add via PATCH: notifications only for the NEWLY rolled-out versions', async () => {
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
         ADMIN,
       );
       notifier.published.length = 0; // only observe the PATCH
@@ -504,12 +512,12 @@ describe('CustomerAdminService', () => {
 
     it('update without a roles change sends no notification', async () => {
       const created = await service.create(
-        { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
         ADMIN,
       );
       notifier.published.length = 0;
 
-      await service.update(created.id, { name: 'Acme New' }, ADMIN);
+      await service.update(created.id, { companyName: 'Acme New' }, ADMIN);
 
       expect(notifier.published).toEqual([]);
     });
@@ -518,7 +526,7 @@ describe('CustomerAdminService', () => {
       const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       try {
         const created = await service.create(
-          { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: [] },
+          { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
           ADMIN,
         );
 
@@ -546,7 +554,7 @@ describe('CustomerAdminService', () => {
       };
       try {
         const created = await serviceWithNotifier(failing).create(
-          { externalRef: 'ext-1', name: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
+          { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] },
           ADMIN,
         );
 
@@ -566,27 +574,27 @@ describe('CustomerAdminService', () => {
 
   describe('update', () => {
     it('updates a subset (200) and writes a CUSTOMER_UPDATE audit entry', async () => {
-      const created = await service.create({ externalRef: 'ext-1', name: 'Old', roles: ['customer'], contactEmails: [] }, ADMIN);
-      const updated = await service.update(created.id, { name: 'New', roles: ['customer', 'partner'] }, ADMIN);
-      expect(updated).toMatchObject({ id: created.id, name: 'New', roles: ['customer', 'partner'] });
+      const created = await service.create({ externalRef: 'ext-1', companyName: 'Old', roles: ['customer'], contactEmails: [] }, ADMIN);
+      const updated = await service.update(created.id, { companyName: 'New', roles: ['customer', 'partner'] }, ADMIN);
+      expect(updated).toMatchObject({ id: created.id, companyName: 'New', roles: ['customer', 'partner'] });
       expect((await audit.findByTarget('Customer', created.id)).some((l) => l.action === 'CUSTOMER_UPDATE')).toBe(true);
     });
 
     it('rejects an unknown id with CUSTOMER_NOT_FOUND (404)', async () => {
-      await expect(service.update('c-ghost', { name: 'x' }, ADMIN)).rejects.toMatchObject({
+      await expect(service.update('c-ghost', { companyName: 'x' }, ADMIN)).rejects.toMatchObject({
         code: 'CUSTOMER_NOT_FOUND',
       });
     });
 
     it('rejects unknown roles with UNKNOWN_AUDIENCE', async () => {
-      const created = await service.create({ externalRef: 'ext-1', name: 'x', roles: [], contactEmails: [] }, ADMIN);
+      const created = await service.create({ externalRef: 'ext-1', companyName: 'x', roles: [], contactEmails: [] }, ADMIN);
       await expect(service.update(created.id, { roles: ['ghost'] }, ADMIN)).rejects.toMatchObject({
         code: 'UNKNOWN_AUDIENCE',
       });
     });
 
     it('rejects an invalid contactEmail with INVALID_STATE', async () => {
-      const created = await service.create({ externalRef: 'ext-1', name: 'x', roles: [], contactEmails: [] }, ADMIN);
+      const created = await service.create({ externalRef: 'ext-1', companyName: 'x', roles: [], contactEmails: [] }, ADMIN);
       await expect(service.update(created.id, { contactEmails: ['bad'] }, ADMIN)).rejects.toMatchObject({
         code: 'INVALID_STATE',
       });
@@ -594,8 +602,8 @@ describe('CustomerAdminService', () => {
 
     it('rejects adding a role that would create an overlapping externalRef duplicate (INVALID_STATE)', async () => {
       // A customer record and a partner record share externalRef X (allowed: disjoint roles).
-      await service.create({ externalRef: 'X', name: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
-      const partner = await service.create({ externalRef: 'X', name: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'X', companyName: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
+      const partner = await service.create({ externalRef: 'X', companyName: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
       // Adding role "customer" to the partner record would overlap the existing customer record.
       await expect(service.update(partner.id, { roles: ['partner', 'customer'] }, ADMIN)).rejects.toMatchObject({
         code: 'INVALID_STATE',
@@ -603,11 +611,11 @@ describe('CustomerAdminService', () => {
     });
 
     it('allows re-saving the same roles on a customer whose externalRef is shared with a disjoint record', async () => {
-      await service.create({ externalRef: 'X', name: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
-      const partner = await service.create({ externalRef: 'X', name: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
+      await service.create({ externalRef: 'X', companyName: 'customer', roles: ['customer'], contactEmails: [] }, ADMIN);
+      const partner = await service.create({ externalRef: 'X', companyName: 'partner', roles: ['partner'], contactEmails: [] }, ADMIN);
       // The self-record must not count as its own overlapping duplicate.
-      const updated = await service.update(partner.id, { roles: ['partner'], name: 'Partner Co' }, ADMIN);
-      expect(updated).toMatchObject({ id: partner.id, roles: ['partner'], name: 'Partner Co' });
+      const updated = await service.update(partner.id, { roles: ['partner'], companyName: 'Partner Co' }, ADMIN);
+      expect(updated).toMatchObject({ id: partner.id, roles: ['partner'], companyName: 'Partner Co' });
     });
   });
 });

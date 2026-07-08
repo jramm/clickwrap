@@ -1,1 +1,16 @@
-{"type":"object","properties":{"versionId":{"type":"string"},"method":{"type":"string","enum":["ACTIVE_CONSENT","IMPORT"],"description":"TACIT is excluded (sweeper only)."},"reason":{"type":"string","example":"Consent received by letter on 2026-07-01"},"evidenceDocument":{"type":"string","description":"Evidence document as base64."},"evidenceFileName":{"type":"string","example":"letter.pdf"}},"required":["versionId","method","reason","evidenceDocument","evidenceFileName"],"x-readme-ref-name":"ManualAcceptanceBodyModel"}
+{
+  "type": "object",
+  "properties": {
+    "versionId": { "type": "string" },
+    "method": {
+      "type": "string",
+      "enum": ["ACTIVE_CONSENT", "IMPORT"],
+      "description": "TACIT is excluded (sweeper only)."
+    },
+    "reason": { "type": "string", "example": "Consent received by letter on 2026-07-01" },
+    "evidenceDocument": { "type": "string", "description": "Evidence document as base64." },
+    "evidenceFileName": { "type": "string", "example": "letter.pdf" }
+  },
+  "required": ["versionId", "method", "reason", "evidenceDocument", "evidenceFileName"],
+  "x-readme-ref-name": "ManualAcceptanceBodyModel"
+}

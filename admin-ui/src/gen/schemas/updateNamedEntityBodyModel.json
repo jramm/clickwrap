@@ -1,1 +1,6 @@
-{"type":"object","properties":{"name":{"type":"string","example":"End customers"}},"required":["name"],"x-readme-ref-name":"UpdateNamedEntityBodyModel"}
+{
+  "type": "object",
+  "properties": { "name": { "type": "string", "example": "End customers" } },
+  "required": ["name"],
+  "x-readme-ref-name": "UpdateNamedEntityBodyModel"
+}

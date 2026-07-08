@@ -41,7 +41,7 @@ describe('VersionCustomersService', () => {
       // Current (June) version and an UPCOMING (August) version of the same document.
       await versions.save(aVersion({ id: 'v-current', documentId: 'doc-dpa-c', versionLabel: 'June 2026 edition', status: 'PUBLISHED', validFrom: PAST }));
       await versions.save(aVersion({ id: 'v-upcoming', documentId: 'doc-dpa-c', versionLabel: 'August 2026 edition', status: 'PUBLISHED', validFrom: FUTURE }));
-      await customers.save(aCustomer({ id: 'c-1', name: 'Acme GmbH', externalRef: 'crm-4711', roles: ['customer'] }));
+      await customers.save(aCustomer({ id: 'c-1', companyName: 'Acme GmbH', externalRef: 'crm-4711', roles: ['customer'] }));
 
       // The customer ACCEPTED the current version …
       await states.save(aState({ id: 'cvs-current', customerId: 'c-1', versionId: 'v-current', state: 'ACCEPTED' }));
@@ -75,10 +75,10 @@ describe('VersionCustomersService', () => {
   describe('rows, filters, search, pagination', () => {
     beforeEach(async () => {
       await versions.save(aVersion({ id: 'v-1', documentId: 'doc-dpa-c', versionLabel: 'June 2026 edition', status: 'PUBLISHED', validFrom: PAST }));
-      await customers.save(aCustomer({ id: 'c-acc', name: 'Accepted Co', externalRef: 'crm-1', roles: ['customer'], contactEmails: ['a@acc.test'] }));
-      await customers.save(aCustomer({ id: 'c-pend', name: 'Pending Co', externalRef: 'crm-2', roles: ['customer'], contactEmails: ['b@pend.test'] }));
-      await customers.save(aCustomer({ id: 'c-block', name: 'Blocked Co', externalRef: 'crm-3', roles: ['customer'], contactEmails: ['c@block.test'] }));
-      await customers.save(aCustomer({ id: 'c-obj', name: 'Objected Co', externalRef: 'crm-4', roles: ['customer'], contactEmails: ['d@obj.test'] }));
+      await customers.save(aCustomer({ id: 'c-acc', companyName: 'Accepted Co', externalRef: 'crm-1', roles: ['customer'], contactEmails: ['a@acc.test'] }));
+      await customers.save(aCustomer({ id: 'c-pend', companyName: 'Pending Co', externalRef: 'crm-2', roles: ['customer'], contactEmails: ['b@pend.test'] }));
+      await customers.save(aCustomer({ id: 'c-block', companyName: 'Blocked Co', externalRef: 'crm-3', roles: ['customer'], contactEmails: ['c@block.test'] }));
+      await customers.save(aCustomer({ id: 'c-obj', companyName: 'Objected Co', externalRef: 'crm-4', roles: ['customer'], contactEmails: ['d@obj.test'] }));
 
       await states.save(aState({ id: 's-acc', customerId: 'c-acc', versionId: 'v-1', state: 'ACCEPTED' }));
       await acceptances.append(anAcceptance({ id: 'a-acc', customerId: 'c-acc', versionId: 'v-1', method: 'IMPORT', channel: 'ADMIN' }));
@@ -86,7 +86,7 @@ describe('VersionCustomersService', () => {
       await states.save(aState({ id: 's-block', customerId: 'c-block', versionId: 'v-1', state: 'EXPIRED_BLOCKING', deadlineAt: new Date('2026-06-30T00:00:00Z') }));
       await states.save(aState({ id: 's-obj', customerId: 'c-obj', versionId: 'v-1', state: 'OBJECTED' }));
       // A SUPERSEDED state must never appear in this view.
-      await customers.save(aCustomer({ id: 'c-super', name: 'Superseded Co', externalRef: 'crm-5', roles: ['customer'] }));
+      await customers.save(aCustomer({ id: 'c-super', companyName: 'Superseded Co', externalRef: 'crm-5', roles: ['customer'] }));
       await states.save(aState({ id: 's-super', customerId: 'c-super', versionId: 'v-1', state: 'SUPERSEDED' }));
     });
 
@@ -122,7 +122,7 @@ describe('VersionCustomersService', () => {
 
     it('paginates in blocks of 50', async () => {
       for (let i = 0; i < 60; i++) {
-        await customers.save(aCustomer({ id: `c-bulk-${String(i).padStart(3, '0')}`, name: `Bulk ${String(i).padStart(3, '0')}`, externalRef: `bulk-${i}`, roles: ['customer'] }));
+        await customers.save(aCustomer({ id: `c-bulk-${String(i).padStart(3, '0')}`, companyName: `Bulk ${String(i).padStart(3, '0')}`, externalRef: `bulk-${i}`, roles: ['customer'] }));
         await states.save(aState({ id: `s-bulk-${i}`, customerId: `c-bulk-${String(i).padStart(3, '0')}`, versionId: 'v-1', state: 'PENDING_NOTIFICATION' }));
       }
       const page1 = await service.list('v-1', { page: 1 });

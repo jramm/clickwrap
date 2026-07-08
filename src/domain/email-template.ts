@@ -12,10 +12,15 @@ import type { EmailTemplate, EmailTemplateKind } from './types';
 /**
  * Supported template variables (documented in docs/API.md and surfaced as Unlayer merge tags in
  * the admin editor). Every value is a plain string; `acceptanceLink` and `documentPdfUrl` are ''
- * when not applicable/available.
+ * when not applicable/available. `customerName` is the DERIVED display name (see
+ * customerDisplayName: `companyName` if set, else `${firstName} ${lastName}`); `firstName`,
+ * `lastName` and `companyName` are the raw customer fields (`companyName` is '' when absent).
  */
 export const EMAIL_TEMPLATE_VARIABLES = [
   'customerName',
+  'firstName',
+  'lastName',
+  'companyName',
   'documentName',
   'documentType',
   'audience',
@@ -136,103 +141,185 @@ export const isDefaultEmailTemplateId = (id: string): boolean => DEFAULT_TEMPLAT
 export const defaultTemplateIdForKind = (kind: EmailTemplateKind): string =>
   DEFAULT_TEMPLATE_ID_BY_KIND[kind];
 
-/** A clean, self-contained default e-mail HTML shared by both default templates. */
-const defaultHtml = (intro: string, ctaLabel: string): string =>
-  [
-    '<!DOCTYPE html>',
-    '<html><body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">',
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 0;">',
-    '<tr><td align="center">',
-    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;">',
-    '<tr><td style="background:#1f2937;padding:20px 32px;color:#ffffff;font-size:18px;font-weight:bold;">{{appName}}</td></tr>',
-    '<tr><td style="padding:32px;">',
-    '<p style="margin:0 0 16px;font-size:15px;">Hello {{customerName}},</p>',
-    `<p style="margin:0 0 16px;font-size:15px;line-height:1.5;">${intro}</p>`,
-    '<p style="margin:0 0 24px;font-size:15px;line-height:1.5;">{{changeSummary}}</p>',
-    '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr><td style="border-radius:6px;background:#2563eb;">',
-    `<a href="{{acceptanceLink}}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;">${ctaLabel}</a>`,
-    '</td></tr></table>',
-    '<p style="margin:0 0 8px;font-size:14px;color:#4b5563;">You can read the full document here:</p>',
-    '<p style="margin:0 0 24px;font-size:14px;"><a href="{{documentPdfUrl}}" style="color:#2563eb;">{{documentPdfUrl}}</a></p>',
-    '</td></tr>',
-    '<tr><td style="padding:20px 32px;background:#f9fafb;font-size:12px;color:#6b7280;">You receive this e-mail because your organisation has an agreement managed via {{appName}}.</td></tr>',
-    '</table></td></tr></table></body></html>',
-  ].join('\n');
+// --- Block-structured default designs ---------------------------------------------------------
+//
+// The default templates are authored as PROPER Unlayer BLOCK designs: each `DefaultBlock` maps to
+// exactly ONE editor content block (heading / text / button / divider) inside its own row, so a
+// legal admin can edit them block-by-block in the drag-and-drop editor. Both the stored `design`
+// JSON and the exported `html` are derived from the SAME block list (buildDefaultTemplate) so they
+// stay consistent, and the render pipeline substitutes placeholders in the exported `html`.
 
-/**
- * The acceptance-confirmation default html: confirms the acceptance (with `{{acceptedAt}}`), links
- * to the document PDF (`{{documentPdfUrl}}`, also attached to the mail) and to the customer's
- * permanent acceptance page (`{{acceptanceLink}}`) for their other agreements.
- */
-const confirmationHtml = (): string =>
-  [
-    '<!DOCTYPE html>',
-    '<html><body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">',
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 0;">',
-    '<tr><td align="center">',
-    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;">',
-    '<tr><td style="background:#1f2937;padding:20px 32px;color:#ffffff;font-size:18px;font-weight:bold;">{{appName}}</td></tr>',
-    '<tr><td style="padding:32px;">',
-    '<p style="margin:0 0 16px;font-size:15px;">Hello {{customerName}},</p>',
-    '<p style="margin:0 0 16px;font-size:15px;line-height:1.5;">Thank you — we have recorded your acceptance of {{documentName}} ({{documentType}}), version {{versionLabel}}, on {{acceptedAt}}.</p>',
-    '<p style="margin:0 0 24px;font-size:15px;line-height:1.5;">A copy of the accepted document is attached to this e-mail for your records.</p>',
-    '<p style="margin:0 0 8px;font-size:14px;color:#4b5563;">You can also download it here:</p>',
-    '<p style="margin:0 0 24px;font-size:14px;"><a href="{{documentPdfUrl}}" style="color:#2563eb;">{{documentPdfUrl}}</a></p>',
-    '<p style="margin:0 0 8px;font-size:14px;color:#4b5563;">Manage your agreements at any time:</p>',
-    '<p style="margin:0 0 24px;font-size:14px;"><a href="{{acceptanceLink}}" style="color:#2563eb;">{{acceptanceLink}}</a></p>',
-    '</td></tr>',
-    '<tr><td style="padding:20px 32px;background:#f9fafb;font-size:12px;color:#6b7280;">You receive this e-mail because your organisation has an agreement managed via {{appName}}.</td></tr>',
-    '</table></td></tr></table></body></html>',
-  ].join('\n');
+/** One content block of a default template. */
+type DefaultBlock =
+  | { type: 'heading'; text: string }
+  | { type: 'text'; html: string }
+  | { type: 'button'; href: string; label: string }
+  | { type: 'divider' }
+  | { type: 'footer'; html: string };
 
-/**
- * A minimal but valid Unlayer design that wraps the exported html as a single HTML content block,
- * so the default templates open (and stay editable) in the react-email-editor like any other row.
- */
-const designForHtml = (html: string): string =>
-  JSON.stringify({
-    counters: { u_column: 1, u_row: 1, u_content_html: 1 },
-    body: {
-      id: 'default-body',
-      rows: [
-        {
-          id: 'default-row',
-          cells: [1],
-          columns: [
-            {
-              id: 'default-col',
-              contents: [{ id: 'default-html', type: 'html', values: { html } }],
-              values: {},
-            },
-          ],
-          values: {},
+/** The matching HTML row for a block — the exported html is the concatenation of these. */
+const blockToHtmlRow = (block: DefaultBlock): string => {
+  switch (block.type) {
+    case 'heading':
+      return `<tr><td style="background:#1f2937;padding:20px 32px;color:#ffffff;font-size:18px;font-weight:bold;">${block.text}</td></tr>`;
+    case 'text':
+      return `<tr><td style="padding:8px 32px;font-size:15px;line-height:1.5;">${block.html}</td></tr>`;
+    case 'button':
+      return (
+        '<tr><td style="padding:8px 32px 24px;">' +
+        '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:6px;background:#2563eb;">' +
+        `<a href="${block.href}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;">${block.label}</a>` +
+        '</td></tr></table></td></tr>'
+      );
+    case 'divider':
+      return '<tr><td style="padding:8px 32px;"><hr style="border:0;border-top:1px solid #e5e7eb;margin:0;"></td></tr>';
+    case 'footer':
+      return `<tr><td style="padding:20px 32px;background:#f9fafb;font-size:12px;color:#6b7280;">${block.html}</td></tr>`;
+  }
+};
+
+/** The matching Unlayer content object for a block (one content per row/column). */
+const blockToContent = (block: DefaultBlock, index: number): Record<string, unknown> => {
+  const id = `content-${index}`;
+  switch (block.type) {
+    case 'heading':
+      return {
+        id,
+        type: 'heading',
+        values: { headingType: 'h1', text: block.text, fontSize: '20px', color: '#ffffff' },
+      };
+    case 'text':
+    case 'footer':
+      return { id, type: 'text', values: { text: block.html } };
+    case 'button':
+      return {
+        id,
+        type: 'button',
+        values: {
+          text: block.label,
+          href: { name: 'web', values: { href: block.href, target: '_blank' } },
+          buttonColors: { color: '#ffffff', backgroundColor: '#2563eb' },
         },
-      ],
-      values: { contentWidth: '600px' },
+      };
+    case 'divider':
+      return {
+        id,
+        type: 'divider',
+        values: { border: { borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: '#e5e7eb' } },
+      };
+  }
+};
+
+/** Wraps the block HTML rows into a self-contained, mobile-friendly e-mail document. */
+const shellHtml = (rows: string[]): string =>
+  [
+    '<!DOCTYPE html>',
+    '<html><body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 0;">',
+    '<tr><td align="center">',
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;">',
+    ...rows,
+    '</table></td></tr></table></body></html>',
+  ].join('\n');
+
+/** Builds the block-structured `design` (multiple content blocks) + the matching exported `html`. */
+const buildDefaultTemplate = (blocks: DefaultBlock[]): { design: string; html: string } => {
+  const rows = blocks.map((block, index) => ({
+    id: `row-${index}`,
+    cells: [1],
+    columns: [{ id: `col-${index}`, contents: [blockToContent(block, index)], values: {} }],
+    values: {},
+  }));
+  const design = JSON.stringify({
+    counters: {
+      u_row: blocks.length,
+      u_column: blocks.length,
+      u_content_heading: 1,
+      u_content_text: 1,
+      u_content_button: 1,
+      u_content_divider: 1,
     },
+    body: { id: 'default-body', rows, values: { contentWidth: '600px' } },
     schemaVersion: 16,
   });
+  return { design, html: shellHtml(blocks.map(blockToHtmlRow)) };
+};
+
+const greetingBlock: DefaultBlock = {
+  type: 'text',
+  html: '<p style="margin:0;">Hello {{customerName}},</p>',
+};
+
+/** Footer referencing the company, the app and the document copy. */
+const footerBlock: DefaultBlock = {
+  type: 'footer',
+  html:
+    'This message was sent to {{companyName}} on behalf of {{appName}}. ' +
+    'A copy of the document is available at {{documentPdfUrl}}.',
+};
+
+const notificationBlocks = (intro: string): DefaultBlock[] => [
+  { type: 'heading', text: '{{appName}}' },
+  greetingBlock,
+  { type: 'text', html: `<p style="margin:0;">${intro}</p>` },
+  { type: 'text', html: '<p style="margin:0;">{{changeSummary}}</p>' },
+  { type: 'button', href: '{{acceptanceLink}}', label: 'Review & accept' },
+  {
+    type: 'text',
+    html:
+      '<p style="margin:0 0 8px;color:#4b5563;">You can read the full document here:</p>' +
+      '<p style="margin:0;"><a href="{{documentPdfUrl}}" style="color:#2563eb;">{{documentPdfUrl}}</a></p>',
+  },
+  { type: 'divider' },
+  footerBlock,
+];
+
+const confirmationBlocks = (): DefaultBlock[] => [
+  { type: 'heading', text: '{{appName}}' },
+  greetingBlock,
+  {
+    type: 'text',
+    html:
+      '<p style="margin:0;">Thank you — we have recorded your acceptance of {{documentName}} ' +
+      '({{documentType}}), version {{versionLabel}}, on {{acceptedAt}}.</p>',
+  },
+  {
+    type: 'text',
+    html: '<p style="margin:0;">A copy of the accepted document is attached to this e-mail for your records.</p>',
+  },
+  {
+    type: 'text',
+    html:
+      '<p style="margin:0 0 8px;color:#4b5563;">You can also download it here:</p>' +
+      '<p style="margin:0;"><a href="{{documentPdfUrl}}" style="color:#2563eb;">{{documentPdfUrl}}</a></p>',
+  },
+  { type: 'button', href: '{{acceptanceLink}}', label: 'Manage your agreements' },
+  { type: 'divider' },
+  footerBlock,
+];
 
 /** The three built-in templates, timestamped via the clock (idempotent seeding uses the fixed ids). */
 export const defaultEmailTemplates = (clock: Clock): EmailTemplate[] => {
   const now = clock.now();
-  const notificationHtml = defaultHtml(
-    'A new version of {{documentName}} ({{documentType}}) is now available: {{versionLabel}}, effective {{validFrom}}.',
-    'Review & accept',
+  const notification = buildDefaultTemplate(
+    notificationBlocks(
+      'A new version of {{documentName}} ({{documentType}}) is now available: {{versionLabel}}, effective {{validFrom}}.',
+    ),
   );
-  const reminderHtml = defaultHtml(
-    '{{documentName}} ({{versionLabel}}) is still awaiting your acceptance. The deadline is {{deadlineAt}}.',
-    'Review & accept',
+  const reminder = buildDefaultTemplate(
+    notificationBlocks(
+      '{{documentName}} ({{versionLabel}}) is still awaiting your acceptance. The deadline is {{deadlineAt}}.',
+    ),
   );
-  const acceptanceConfirmationHtml = confirmationHtml();
+  const confirmation = buildDefaultTemplate(confirmationBlocks());
   return [
     {
       id: DEFAULT_NOTIFICATION_TEMPLATE_ID,
       name: 'Default — version notification',
       kind: 'VERSION_NOTIFICATION',
       subject: '{{appName}}: new version of {{documentName}} — {{versionLabel}}',
-      design: designForHtml(notificationHtml),
-      html: notificationHtml,
+      design: notification.design,
+      html: notification.html,
       createdAt: now,
       updatedAt: now,
     },
@@ -241,8 +328,8 @@ export const defaultEmailTemplates = (clock: Clock): EmailTemplate[] => {
       name: 'Default — reminder',
       kind: 'REMINDER',
       subject: 'Reminder: please accept {{documentName}} — {{versionLabel}}',
-      design: designForHtml(reminderHtml),
-      html: reminderHtml,
+      design: reminder.design,
+      html: reminder.html,
       createdAt: now,
       updatedAt: now,
     },
@@ -251,10 +338,24 @@ export const defaultEmailTemplates = (clock: Clock): EmailTemplate[] => {
       name: 'Default — acceptance confirmation',
       kind: 'ACCEPTANCE_CONFIRMATION',
       subject: '{{appName}}: your acceptance of {{documentName}} — {{versionLabel}}',
-      design: designForHtml(acceptanceConfirmationHtml),
-      html: acceptanceConfirmationHtml,
+      design: confirmation.design,
+      html: confirmation.html,
       createdAt: now,
       updatedAt: now,
     },
   ];
+};
+
+/** Number of content blocks in a serialised default design (for tests / block-structure checks). */
+export const countDesignContentBlocks = (design: string): number => {
+  const parsed = JSON.parse(design) as {
+    body?: { rows?: { columns?: { contents?: unknown[] }[] }[] };
+  };
+  let count = 0;
+  for (const row of parsed.body?.rows ?? []) {
+    for (const column of row.columns ?? []) {
+      count += column.contents?.length ?? 0;
+    }
+  }
+  return count;
 };

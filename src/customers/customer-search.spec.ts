@@ -3,14 +3,21 @@ import { matchesCustomerSearch } from './customer-search';
 
 describe('matchesCustomerSearch', () => {
   const customer = aCustomer({
-    name: 'Acme GmbH',
+    firstName: 'Jane',
+    lastName: 'Doe',
+    companyName: 'Acme GmbH',
     externalRef: 'crm-4711',
     contactEmails: ['legal@acme.example', 'ops@acme.example'],
   });
 
-  it('matches a case-insensitive substring of the name', () => {
+  it('matches a case-insensitive substring of the company name', () => {
     expect(matchesCustomerSearch(customer, 'acme')).toBe(true);
     expect(matchesCustomerSearch(customer, 'ME GMB')).toBe(true);
+  });
+
+  it('matches a substring of the contact person first/last name', () => {
+    expect(matchesCustomerSearch(customer, 'jane')).toBe(true);
+    expect(matchesCustomerSearch(customer, 'DOE')).toBe(true);
   });
 
   it('matches a substring of the externalRef', () => {
@@ -33,7 +40,7 @@ describe('matchesCustomerSearch', () => {
   });
 
   it('tolerates a missing name', () => {
-    const noName = aCustomer({ name: undefined, externalRef: 'ref-1', contactEmails: [] });
+    const noName = aCustomer({ firstName: '', lastName: '', companyName: undefined, externalRef: 'ref-1', contactEmails: [] });
     expect(matchesCustomerSearch(noName, 'ref')).toBe(true);
     expect(matchesCustomerSearch(noName, 'acme')).toBe(false);
   });

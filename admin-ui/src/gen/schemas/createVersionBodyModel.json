@@ -1,1 +1,24 @@
-{"type":"object","properties":{"file":{"type":"string","format":"binary","description":"PDF (multipart field) or base64 string (JSON fallback)."},"fileName":{"type":"string","description":"Required with the base64 JSON fallback."},"versionLabel":{"type":"string","example":"June 2026 edition"},"changeSummary":{"type":"string","example":"New sub-processor for e-mail delivery."},"acceptanceMode":{"type":"string","enum":["ACTIVE","PASSIVE"]},"consentText":{"type":"string"},"objectionPeriodDays":{"type":"number","example":14},"gracePeriodDays":{"type":"number","example":14},"validFrom":{"type":"string","example":"2026-07-01","description":"ISO date from which the revision applies. May lie in the FUTURE (scheduled effectiveness): publishing rolls out immediately for advance acceptance, while the previous version stays the compliance baseline until this date."}},"required":["file","versionLabel","changeSummary","acceptanceMode","validFrom"],"x-readme-ref-name":"CreateVersionBodyModel"}
+{
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string",
+      "format": "binary",
+      "description": "PDF (multipart field) or base64 string (JSON fallback)."
+    },
+    "fileName": { "type": "string", "description": "Required with the base64 JSON fallback." },
+    "versionLabel": { "type": "string", "example": "June 2026 edition" },
+    "changeSummary": { "type": "string", "example": "New sub-processor for e-mail delivery." },
+    "acceptanceMode": { "type": "string", "enum": ["ACTIVE", "PASSIVE"] },
+    "consentText": { "type": "string" },
+    "objectionPeriodDays": { "type": "number", "example": 14 },
+    "gracePeriodDays": { "type": "number", "example": 14 },
+    "validFrom": {
+      "type": "string",
+      "example": "2026-07-01",
+      "description": "ISO date from which the revision applies. May lie in the FUTURE (scheduled effectiveness): publishing rolls out immediately for advance acceptance, while the previous version stays the compliance baseline until this date."
+    }
+  },
+  "required": ["file", "versionLabel", "changeSummary", "acceptanceMode", "validFrom"],
+  "x-readme-ref-name": "CreateVersionBodyModel"
+}

@@ -11,8 +11,17 @@ export class CustomerRowModel {
   @ApiProperty({ example: 'crm-4711', description: 'Unique external reference (CRM id).' })
   externalRef!: string;
 
-  @ApiProperty({ example: 'Acme GmbH', description: "Company display name ('' when unknown)." })
-  name!: string;
+  @ApiProperty({ example: 'Jane', description: "Contact person's given name ('' when unknown)." })
+  firstName!: string;
+
+  @ApiProperty({ example: 'Doe', description: "Contact person's family name ('' when unknown)." })
+  lastName!: string;
+
+  @ApiPropertyOptional({
+    example: 'Acme GmbH',
+    description: 'Optional company/organisation name — preferred display label when set.',
+  })
+  companyName?: string;
 
   @ApiProperty({ type: [String], example: ['customer'], description: 'Audience keys.' })
   roles!: string[];
@@ -48,8 +57,14 @@ export class CreateCustomerBodyModel {
   @ApiProperty({ example: 'crm-4711' })
   externalRef!: string;
 
-  @ApiPropertyOptional({ example: 'Acme GmbH' })
-  name?: string;
+  @ApiPropertyOptional({ example: 'Jane', description: "Contact person's given name." })
+  firstName?: string;
+
+  @ApiPropertyOptional({ example: 'Doe', description: "Contact person's family name." })
+  lastName?: string;
+
+  @ApiPropertyOptional({ example: 'Acme GmbH', description: 'Optional company/organisation name.' })
+  companyName?: string;
 
   @ApiProperty({ type: [String], example: ['customer'], description: 'Audience keys (validated).' })
   roles!: string[];
@@ -65,8 +80,14 @@ export class CreateCustomerBodyModel {
 }
 
 export class UpdateCustomerBodyModel {
-  @ApiPropertyOptional({ example: 'Acme GmbH' })
-  name?: string;
+  @ApiPropertyOptional({ example: 'Jane', description: "Contact person's given name." })
+  firstName?: string;
+
+  @ApiPropertyOptional({ example: 'Doe', description: "Contact person's family name." })
+  lastName?: string;
+
+  @ApiPropertyOptional({ example: 'Acme GmbH', description: 'Optional company/organisation name.' })
+  companyName?: string;
 
   @ApiPropertyOptional({ type: [String], description: 'Takes effect on the next publish/rollout.' })
   roles?: string[];

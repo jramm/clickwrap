@@ -43,7 +43,10 @@ export class OverviewRowModel {
   @ApiProperty({ example: 'c-8a71…' })
   customerId!: string;
 
-  @ApiProperty({ example: 'Acme GmbH', description: "Company display name ('' when unknown)." })
+  @ApiProperty({
+    example: 'Acme GmbH',
+    description: "Derived display name: companyName if set, else the contact person's name ('' when unknown).",
+  })
   customerName!: string;
 
   @ApiProperty({ type: [String], example: ['customer'] })
@@ -535,7 +538,10 @@ export class VersionCustomerRowModel {
   @ApiProperty({ example: 'c-8a71…' })
   customerId!: string;
 
-  @ApiProperty({ example: 'Acme GmbH', description: "Company display name ('' when unknown)." })
+  @ApiProperty({
+    example: 'Acme GmbH',
+    description: "Derived display name: companyName if set, else the contact person's name ('' when unknown).",
+  })
   customerName!: string;
 
   @ApiProperty({ example: 'crm-4711' })

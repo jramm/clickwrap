@@ -7,6 +7,7 @@ import { ApiError, errorMessageKey } from '../api/errors';
 import { useAudiences, useCustomers } from '../api/hooks';
 import type { CustomerRow } from '../api/hooks';
 import { CustomerFormDialog } from '../components/CustomerFormDialog';
+import { customerDisplayName } from '../lib/customerDisplayName';
 import { useTranslation } from '../i18n';
 import { Button, Card, DataTable, PageHeader, SearchField, useDebouncedValue, useIsMobile } from '../ui';
 import type { GridColDef } from '../ui';
@@ -45,7 +46,13 @@ export function CustomersPage() {
 
   const columns: GridColDef[] = useMemo(
     () => [
-      { field: 'name', headerName: t('customers.name'), flex: 1.2, minWidth: 180 },
+      {
+        field: 'name',
+        headerName: t('customers.name'),
+        flex: 1.2,
+        minWidth: 180,
+        valueGetter: (_value, row: CustomerRow) => customerDisplayName(row),
+      },
       { field: 'externalRef', headerName: t('customers.externalRef'), flex: 1, minWidth: 140 },
       {
         field: 'roles',
@@ -201,7 +208,7 @@ function CustomerCardList({ rows, audienceName, loading, onOpen }: CustomerCardL
         >
           <Card>
             <Typography variant="h5" component="h2">
-              {customer.name || customer.externalRef}
+              {customerDisplayName(customer) || customer.externalRef}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {customer.externalRef}

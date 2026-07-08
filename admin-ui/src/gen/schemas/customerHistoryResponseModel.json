@@ -1,1 +1,134 @@
-{"type":"object","properties":{"acceptances":{"type":"array","items":{"type":"object","properties":{"versionId":{"type":"string"},"documentType":{"type":"string","example":"dpa"},"versionLabel":{"type":"string","example":"June 2026 edition"},"method":{"type":"string","enum":["ACTIVE_CONSENT","TACIT","IMPORT"]},"channel":{"type":"string","enum":["PORTAL","ADMIN","SYSTEM","LINK"]},"acceptedAt":{"type":"string","format":"date-time"},"actor":{"type":"object","properties":{"userId":{"type":"string","example":"u-42"},"name":{"type":"string","example":"Jane Doe"},"email":{"type":"string","example":"jane@customer.example"},"portalRole":{"type":"string","example":"admin"}},"required":["userId"],"x-readme-ref-name":"ActorModel"},"isEffective":{"type":"boolean"},"evidence":{"type":"object","properties":{"ipAddress":{"type":"string"},"userAgent":{"type":"string"},"consentText":{"type":"string"},"consentTextHash":{"type":"string","example":"sha256:…"},"contentHash":{"type":"string","example":"sha256:…"},"evidenceNote":{"type":"string","example":"HubSpot deal 12345 / signed offer","description":"IMPORT only."}},"x-readme-ref-name":"HistoryEvidenceModel"}},"required":["versionId","method","channel","acceptedAt","actor","isEffective","evidence"],"x-readme-ref-name":"HistoryAcceptanceModel"}},"objections":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"customerId":{"type":"string"},"versionId":{"type":"string"},"objectedAt":{"type":"string","format":"date-time"},"actor":{"type":"object","properties":{"userId":{"type":"string","example":"u-42"},"name":{"type":"string","example":"Jane Doe"},"email":{"type":"string","example":"jane@customer.example"},"portalRole":{"type":"string","example":"admin"}},"required":["userId"],"x-readme-ref-name":"ActorModel"},"reason":{"type":"string"},"channel":{"type":"string","enum":["PORTAL","ADMIN","SYSTEM","LINK"]},"resolution":{"type":"string","enum":["WITHDRAWN","RESOLVED_ACCEPTED","RESOLVED_TERMINATED"]},"resolvedBy":{"type":"string"},"resolvedAt":{"type":"string","format":"date-time"}},"required":["id","customerId","versionId","objectedAt","actor","channel"],"x-readme-ref-name":"HistoryObjectionModel"}},"notifications":{"type":"array","items":{"type":"object","properties":{"versionId":{"type":"string"},"channel":{"type":"string","enum":["EMAIL","PORTAL","LINK"]},"deliveredAt":{"type":"string","format":"date-time"}},"required":["versionId","channel","deliveredAt"],"x-readme-ref-name":"HistoryNotificationModel"}},"states":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string","example":"cvs-1"},"versionId":{"type":"string"},"documentType":{"type":"string","example":"dpa"},"versionLabel":{"type":"string","example":"June 2026 edition"},"state":{"type":"string","enum":["PENDING_NOTIFICATION","NOTIFIED","ACCEPTED","OBJECTED","EXPIRED_BLOCKING","SUPERSEDED"]},"notifiedAt":{"type":"string","format":"date-time"},"deadlineAt":{"type":"string","format":"date-time"},"remindersSent":{"type":"number","example":1},"carryOverBlocking":{"type":"boolean"}},"required":["id","versionId","state","remindersSent"],"x-readme-ref-name":"HistoryStateModel"}}},"required":["acceptances","objections","notifications","states"],"x-readme-ref-name":"CustomerHistoryResponseModel"}
+{
+  "type": "object",
+  "properties": {
+    "acceptances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "versionId": { "type": "string" },
+          "documentType": { "type": "string", "example": "dpa" },
+          "versionLabel": { "type": "string", "example": "June 2026 edition" },
+          "method": { "type": "string", "enum": ["ACTIVE_CONSENT", "TACIT", "IMPORT"] },
+          "channel": { "type": "string", "enum": ["PORTAL", "ADMIN", "SYSTEM", "LINK"] },
+          "acceptedAt": { "type": "string", "format": "date-time" },
+          "actor": {
+            "type": "object",
+            "properties": {
+              "userId": { "type": "string", "example": "u-42" },
+              "name": { "type": "string", "example": "Jane Doe" },
+              "email": { "type": "string", "example": "jane@customer.example" },
+              "portalRole": { "type": "string", "example": "admin" }
+            },
+            "required": ["userId"],
+            "x-readme-ref-name": "ActorModel"
+          },
+          "isEffective": { "type": "boolean" },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "ipAddress": { "type": "string" },
+              "userAgent": { "type": "string" },
+              "consentText": { "type": "string" },
+              "consentTextHash": { "type": "string", "example": "sha256:…" },
+              "contentHash": { "type": "string", "example": "sha256:…" },
+              "evidenceNote": {
+                "type": "string",
+                "example": "HubSpot deal 12345 / signed offer",
+                "description": "IMPORT only."
+              }
+            },
+            "x-readme-ref-name": "HistoryEvidenceModel"
+          }
+        },
+        "required": [
+          "versionId",
+          "method",
+          "channel",
+          "acceptedAt",
+          "actor",
+          "isEffective",
+          "evidence"
+        ],
+        "x-readme-ref-name": "HistoryAcceptanceModel"
+      }
+    },
+    "objections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "customerId": { "type": "string" },
+          "versionId": { "type": "string" },
+          "objectedAt": { "type": "string", "format": "date-time" },
+          "actor": {
+            "type": "object",
+            "properties": {
+              "userId": { "type": "string", "example": "u-42" },
+              "name": { "type": "string", "example": "Jane Doe" },
+              "email": { "type": "string", "example": "jane@customer.example" },
+              "portalRole": { "type": "string", "example": "admin" }
+            },
+            "required": ["userId"],
+            "x-readme-ref-name": "ActorModel"
+          },
+          "reason": { "type": "string" },
+          "channel": { "type": "string", "enum": ["PORTAL", "ADMIN", "SYSTEM", "LINK"] },
+          "resolution": {
+            "type": "string",
+            "enum": ["WITHDRAWN", "RESOLVED_ACCEPTED", "RESOLVED_TERMINATED"]
+          },
+          "resolvedBy": { "type": "string" },
+          "resolvedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "customerId", "versionId", "objectedAt", "actor", "channel"],
+        "x-readme-ref-name": "HistoryObjectionModel"
+      }
+    },
+    "notifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "versionId": { "type": "string" },
+          "channel": { "type": "string", "enum": ["EMAIL", "PORTAL", "LINK"] },
+          "deliveredAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["versionId", "channel", "deliveredAt"],
+        "x-readme-ref-name": "HistoryNotificationModel"
+      }
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "cvs-1" },
+          "versionId": { "type": "string" },
+          "documentType": { "type": "string", "example": "dpa" },
+          "versionLabel": { "type": "string", "example": "June 2026 edition" },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING_NOTIFICATION",
+              "NOTIFIED",
+              "ACCEPTED",
+              "OBJECTED",
+              "EXPIRED_BLOCKING",
+              "SUPERSEDED"
+            ]
+          },
+          "notifiedAt": { "type": "string", "format": "date-time" },
+          "deadlineAt": { "type": "string", "format": "date-time" },
+          "remindersSent": { "type": "number", "example": 1 },
+          "carryOverBlocking": { "type": "boolean" }
+        },
+        "required": ["id", "versionId", "state", "remindersSent"],
+        "x-readme-ref-name": "HistoryStateModel"
+      }
+    }
+  },
+  "required": ["acceptances", "objections", "notifications", "states"],
+  "x-readme-ref-name": "CustomerHistoryResponseModel"
+}

@@ -73,7 +73,9 @@ export const anActiveVersion = (overrides: Partial<AgreementVersion> = {}): Agre
 export const aCustomer = (overrides: Partial<Customer> = {}): Customer => ({
   id: 'c-123',
   externalRef: 'company-123',
-  name: 'Acme GmbH',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  companyName: 'Acme GmbH',
   roles: ['customer'],
   contactEmails: ['jane@customer.example'],
   ...overrides,

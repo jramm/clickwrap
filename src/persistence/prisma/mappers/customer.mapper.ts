@@ -5,7 +5,9 @@ import type { Customer } from '../../../domain/types';
 export const toDomain = (row: PrismaCustomer): Customer => ({
   id: row.id,
   externalRef: row.externalRef,
-  name: row.name,
+  firstName: row.firstName,
+  lastName: row.lastName,
+  companyName: row.companyName ?? undefined,
   roles: row.roles,
   contactEmails: row.contactEmails,
 });
@@ -13,9 +15,18 @@ export const toDomain = (row: PrismaCustomer): Customer => ({
 /** Domain type → Prisma create/update data. */
 export const toUpsertData = (
   customer: Customer,
-): { externalRef: string; name: string; roles: string[]; contactEmails: string[] } => ({
+): {
+  externalRef: string;
+  firstName: string;
+  lastName: string;
+  companyName: string | null;
+  roles: string[];
+  contactEmails: string[];
+} => ({
   externalRef: customer.externalRef,
-  name: customer.name ?? '',
+  firstName: customer.firstName ?? '',
+  lastName: customer.lastName ?? '',
+  companyName: customer.companyName ?? null,
   roles: customer.roles,
   contactEmails: customer.contactEmails,
 });

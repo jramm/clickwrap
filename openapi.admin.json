@@ -669,7 +669,7 @@
             "admin-token": []
           }
         ],
-        "summary": "Update a customer (subset of name/roles/contactEmails)",
+        "summary": "Update a customer (subset of firstName/lastName/companyName/roles/contactEmails)",
         "tags": [
           "admin"
         ]
@@ -2657,10 +2657,20 @@
             "example": "crm-4711",
             "description": "Unique external reference (CRM id)."
           },
-          "name": {
+          "firstName": {
+            "type": "string",
+            "example": "Jane",
+            "description": "Contact person's given name ('' when unknown)."
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe",
+            "description": "Contact person's family name ('' when unknown)."
+          },
+          "companyName": {
             "type": "string",
             "example": "Acme GmbH",
-            "description": "Company display name ('' when unknown)."
+            "description": "Optional company/organisation name — preferred display label when set."
           },
           "roles": {
             "example": [
@@ -2685,7 +2695,8 @@
         "required": [
           "id",
           "externalRef",
-          "name",
+          "firstName",
+          "lastName",
           "roles",
           "contactEmails"
         ]
@@ -2738,9 +2749,20 @@
             "type": "string",
             "example": "crm-4711"
           },
-          "name": {
+          "firstName": {
             "type": "string",
-            "example": "Acme GmbH"
+            "example": "Jane",
+            "description": "Contact person's given name."
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe",
+            "description": "Contact person's family name."
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Optional company/organisation name."
           },
           "roles": {
             "example": [
@@ -2804,10 +2826,20 @@
             "example": "crm-4711",
             "description": "Unique external reference (CRM id)."
           },
-          "name": {
+          "firstName": {
+            "type": "string",
+            "example": "Jane",
+            "description": "Contact person's given name ('' when unknown)."
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe",
+            "description": "Contact person's family name ('' when unknown)."
+          },
+          "companyName": {
             "type": "string",
             "example": "Acme GmbH",
-            "description": "Company display name ('' when unknown)."
+            "description": "Optional company/organisation name — preferred display label when set."
           },
           "roles": {
             "example": [
@@ -2838,7 +2870,8 @@
         "required": [
           "id",
           "externalRef",
-          "name",
+          "firstName",
+          "lastName",
           "roles",
           "contactEmails",
           "importedAcceptances"
@@ -2847,9 +2880,20 @@
       "UpdateCustomerBodyModel": {
         "type": "object",
         "properties": {
-          "name": {
+          "firstName": {
             "type": "string",
-            "example": "Acme GmbH"
+            "example": "Jane",
+            "description": "Contact person's given name."
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe",
+            "description": "Contact person's family name."
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Optional company/organisation name."
           },
           "roles": {
             "description": "Takes effect on the next publish/rollout.",
@@ -2987,7 +3031,7 @@
           "customerName": {
             "type": "string",
             "example": "Acme GmbH",
-            "description": "Company display name ('' when unknown)."
+            "description": "Derived display name: companyName if set, else the contact person's name ('' when unknown)."
           },
           "roles": {
             "example": [
@@ -3248,7 +3292,7 @@
           "customerName": {
             "type": "string",
             "example": "Acme GmbH",
-            "description": "Company display name ('' when unknown)."
+            "description": "Derived display name: companyName if set, else the contact person's name ('' when unknown)."
           },
           "externalRef": {
             "type": "string",

@@ -1,1 +1,27 @@
-{"type":"object","properties":{"name":{"type":"string","example":"Acme GmbH"},"roles":{"description":"Takes effect on the next publish/rollout.","type":"array","items":{"type":"string"}},"contactEmails":{"type":"array","items":{"type":"string"}}},"x-readme-ref-name":"UpdateCustomerBodyModel"}
+{
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "example": "Jane",
+      "description": "Contact person's given name."
+    },
+    "lastName": {
+      "type": "string",
+      "example": "Doe",
+      "description": "Contact person's family name."
+    },
+    "companyName": {
+      "type": "string",
+      "example": "Acme GmbH",
+      "description": "Optional company/organisation name."
+    },
+    "roles": {
+      "description": "Takes effect on the next publish/rollout.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "contactEmails": { "type": "array", "items": { "type": "string" } }
+  },
+  "x-readme-ref-name": "UpdateCustomerBodyModel"
+}

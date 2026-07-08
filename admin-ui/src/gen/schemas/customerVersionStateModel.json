@@ -1,1 +1,25 @@
-{"type":"object","properties":{"id":{"type":"string","example":"cvs-1"},"customerId":{"type":"string"},"versionId":{"type":"string"},"state":{"type":"string","enum":["PENDING_NOTIFICATION","NOTIFIED","ACCEPTED","OBJECTED","EXPIRED_BLOCKING","SUPERSEDED"]},"notifiedAt":{"type":"string","format":"date-time"},"deadlineAt":{"type":"string","format":"date-time"},"remindersSent":{"type":"number"},"carryOverBlocking":{"type":"boolean"}},"required":["id","customerId","versionId","state","remindersSent"],"x-readme-ref-name":"CustomerVersionStateModel"}
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "cvs-1" },
+    "customerId": { "type": "string" },
+    "versionId": { "type": "string" },
+    "state": {
+      "type": "string",
+      "enum": [
+        "PENDING_NOTIFICATION",
+        "NOTIFIED",
+        "ACCEPTED",
+        "OBJECTED",
+        "EXPIRED_BLOCKING",
+        "SUPERSEDED"
+      ]
+    },
+    "notifiedAt": { "type": "string", "format": "date-time" },
+    "deadlineAt": { "type": "string", "format": "date-time" },
+    "remindersSent": { "type": "number" },
+    "carryOverBlocking": { "type": "boolean" }
+  },
+  "required": ["id", "customerId", "versionId", "state", "remindersSent"],
+  "x-readme-ref-name": "CustomerVersionStateModel"
+}

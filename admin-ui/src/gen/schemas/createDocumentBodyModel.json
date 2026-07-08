@@ -1,1 +1,18 @@
-{"type":"object","properties":{"type":{"type":"string","example":"dpa","description":"Document type key (must exist)."},"audience":{"type":"string","example":"customer","description":"Audience key (must exist)."},"name":{"type":"string","example":"DPA — Customers"}},"required":["type","audience","name"],"x-readme-ref-name":"CreateDocumentBodyModel"}
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "example": "dpa",
+      "description": "Document type key (must exist)."
+    },
+    "audience": {
+      "type": "string",
+      "example": "customer",
+      "description": "Audience key (must exist)."
+    },
+    "name": { "type": "string", "example": "DPA — Customers" }
+  },
+  "required": ["type", "audience", "name"],
+  "x-readme-ref-name": "CreateDocumentBodyModel"
+}

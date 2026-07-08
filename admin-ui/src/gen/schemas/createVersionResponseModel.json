@@ -1,1 +1,11 @@
-{"type":"object","properties":{"versionId":{"type":"string","example":"v-4f9f6a…"},"status":{"type":"string","enum":["DRAFT"]},"contentHash":{"type":"string","example":"sha256:9c1e…"},"fileName":{"type":"string","example":"dpa-2026-06.pdf"}},"required":["versionId","status","contentHash","fileName"],"x-readme-ref-name":"CreateVersionResponseModel"}
+{
+  "type": "object",
+  "properties": {
+    "versionId": { "type": "string", "example": "v-4f9f6a…" },
+    "status": { "type": "string", "enum": ["DRAFT"] },
+    "contentHash": { "type": "string", "example": "sha256:9c1e…" },
+    "fileName": { "type": "string", "example": "dpa-2026-06.pdf" }
+  },
+  "required": ["versionId", "status", "contentHash", "fileName"],
+  "x-readme-ref-name": "CreateVersionResponseModel"
+}

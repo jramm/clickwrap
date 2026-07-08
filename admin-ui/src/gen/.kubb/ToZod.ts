@@ -3,12 +3,12 @@
  * Adapted based on https://github.com/colinhacks/zod/issues/372
  */
 
-import type * as z from 'zod'
+import type * as z from 'zod';
 
-type IsAny<T> = [any extends T ? 'true' : 'false'] extends ['true'] ? true : false
-type NonOptional<T> = T extends undefined ? never : T
-type NonNullable<T> = T extends null ? never : T
-type Equals<X, Y> = [X] extends [Y] ? ([Y] extends [X] ? true : false) : false
+type IsAny<T> = [any extends T ? 'true' : 'false'] extends ['true'] ? true : false;
+type NonOptional<T> = T extends undefined ? never : T;
+type NonNullable<T> = T extends null ? never : T;
+type Equals<X, Y> = [X] extends [Y] ? ([Y] extends [X] ? true : false) : false;
 
 type ZodKey<T> =
   IsAny<T> extends true
@@ -31,31 +31,31 @@ type ZodKey<T> =
                     ? 'date'
                     : T extends { [k: string]: any } //[T] extends [structUtil.Type]
                       ? 'object'
-                      : 'rest'
+                      : 'rest';
 
 export type ToZod<T> = {
-  any: z.ZodAny
-  optional: z.ZodOptional<ToZod<NonOptional<T>>>
-  nullable: z.ZodNullable<ToZod<NonNullable<T>>>
-  array: T extends Array<infer U> ? z.ZodArray<ToZod<U>> : never
-  string: z.ZodString
-  bigint: z.ZodBigInt
-  number: z.ZodNumber
-  boolean: z.ZodBoolean
-  date: z.ZodDate
+  any: z.ZodAny;
+  optional: z.ZodOptional<ToZod<NonOptional<T>>>;
+  nullable: z.ZodNullable<ToZod<NonNullable<T>>>;
+  array: T extends Array<infer U> ? z.ZodArray<ToZod<U>> : never;
+  string: z.ZodString;
+  bigint: z.ZodBigInt;
+  number: z.ZodNumber;
+  boolean: z.ZodBoolean;
+  date: z.ZodDate;
   object: z.ZodObject<
     // @ts-expect-error cannot convert without Extract but Extract removes the type
     {
-      [K in keyof T]: T[K]
+      [K in keyof T]: T[K];
     },
     'passthrough',
     unknown,
     T
-  >
-  rest: z.ZodType<T>
-}[ZodKey<T>]
+  >;
+  rest: z.ZodType<T>;
+}[ZodKey<T>];
 
 export type ZodShape<T> = {
   // Require all the keys from T
-  [key in keyof T]-?: ToZod<T[key]>
-}
+  [key in keyof T]-?: ToZod<T[key]>;
+};

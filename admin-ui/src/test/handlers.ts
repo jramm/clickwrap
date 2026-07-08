@@ -275,7 +275,9 @@ export const customersFixture = customerListResponseModelSchema.parse({
     {
       id: 'c-123',
       externalRef: 'crm-4711',
-      name: 'Example Utility Ltd',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      companyName: 'Example Utility Ltd',
       roles: ['operator'],
       contactEmails: ['legal@example.test'],
     },
@@ -388,7 +390,9 @@ export const publishFixture = publishResponseModelSchema.parse({
 export const createdCustomerFixture = createCustomerResponseModelSchema.parse({
   id: 'c-new',
   externalRef: 'crm-9000',
-  name: 'New Co',
+  firstName: '',
+  lastName: '',
+  companyName: 'New Co',
   roles: ['operator'],
   contactEmails: ['ops@new.test'],
   importedAcceptances: [],

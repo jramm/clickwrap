@@ -1,1 +1,10 @@
-{"type":"object","properties":{"versionId":{"type":"string"},"channel":{"type":"string","enum":["EMAIL","PORTAL","LINK"]},"deliveredAt":{"type":"string","format":"date-time"}},"required":["versionId","channel","deliveredAt"],"x-readme-ref-name":"HistoryNotificationModel"}
+{
+  "type": "object",
+  "properties": {
+    "versionId": { "type": "string" },
+    "channel": { "type": "string", "enum": ["EMAIL", "PORTAL", "LINK"] },
+    "deliveredAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["versionId", "channel", "deliveredAt"],
+  "x-readme-ref-name": "HistoryNotificationModel"
+}

@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { matchesCustomerSearch } from '../customers/customer-search';
+import { customerDisplayName } from '../domain/customer';
 import { TOKENS } from '../persistence/tokens';
 import type { AcceptanceRepo, CustomerRepo, CustomerVersionStateRepo } from '../domain/ports';
 import type {
@@ -99,7 +100,7 @@ export class VersionCustomersService {
       const acceptance = effectiveByCustomer.get(state.customerId);
       rows.push({
         customerId: customer.id,
-        customerName: customer.name ?? '',
+        customerName: customerDisplayName(customer),
         externalRef: customer.externalRef,
         state: state.state,
         notifiedAt: state.notifiedAt,

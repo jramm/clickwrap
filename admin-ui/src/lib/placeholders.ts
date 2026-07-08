@@ -5,6 +5,9 @@
  */
 export const PLACEHOLDER_VARIABLES = [
   'customerName',
+  'firstName',
+  'lastName',
+  'companyName',
   'documentName',
   'documentType',
   'audience',
