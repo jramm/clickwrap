@@ -5,9 +5,9 @@
  *   programming error (P2002 on the PK) → DomainError('INVALID_STATE', …), analogous to
  *   the Map.has check in the fake. The business rule "exactly one effective acceptance per
  *   (customerId, versionId)" is NOT checked here in code, but enforced by the DB
- *   itself via the partial unique index from prisma/partial-indexes.sql (this could not be
- *   verified against a real Postgres instance in this environment) — a violation also
- *   comes back as P2002 and is translated into DomainError('ALREADY_ACCEPTED', …).
+ *   itself via the partial unique index from prisma/partial-indexes.sql (verified by the Prisma
+ *   integration suite against real Postgres) — a violation also comes back as P2002 and is
+ *   translated into DomainError('ALREADY_ACCEPTED', …).
  * - `supersede` is the only permitted correction operation (UPDATE isEffective=false +
  *   supersededByAcceptanceId) — see the note in prisma/partial-indexes.sql about the
  *   column-scoped GRANT exception from the otherwise append-only REVOKE.
@@ -16,8 +16,10 @@
  * know the index from partial-indexes.sql from its own schema (it cannot be mapped declaratively,
  * see the schema.prisma header comment) and therefore does not return `meta.target` for it as a
  * field array, but as the raw DB constraint name (string). The detection below therefore also
- * checks for a name fragment ("effective") instead of only a field array — this is a best effort
- * that could not yet be verified against a real Postgres instance (see docs/PERSISTENCE.md).
+ * checks for a name fragment ("effective") instead of only a field array. Against real Postgres the
+ * integration suite showed the engine actually maps the partial index back to its column list
+ * (["customerId","versionId"]); that pair is the primary detection, with the name fragment kept as a
+ * fallback (see docs/PERSISTENCE.md and the note in `append` below).
  */
 import { Injectable } from '@nestjs/common';
 import { DomainError } from '../../common/errors';

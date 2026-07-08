@@ -54,15 +54,22 @@ License: **Apache-2.0**.
   (enforced by DB privileges in the Prisma driver), with corrections modelled as new rows.
 - **Dynamic audiences & document types** — created/renamed/deleted at runtime via the admin API;
   no code change or enum migration to add a new agreement kind.
-- **Managed e-mail templates, per document type** — rollout notification and reminder mails are
-  rendered from admin-managed templates, selectable **per document type** (so `terms` and `dpa` can
-  use different wording). Templates are authored in the admin UI with the Unlayer drag-and-drop
-  editor (design JSON + exported HTML stored) and support `{{placeholders}}` (customer/document
-  details, a permanent acceptance link, the public PDF link, app name). Two built-in default
-  templates ship as real, editable rows and are used whenever a document type has no assignment.
-  See [`docs/API.md §2a`](docs/API.md). *Trade-off: the template **editor** iframe loads from
+- **Managed e-mail templates, per document type** — rollout notification, reminder and
+  acceptance-confirmation mails are rendered from admin-managed templates, selectable **per document
+  type** (so `terms` and `dpa` can use different wording). Templates are authored in the admin UI
+  with the Unlayer drag-and-drop editor (design JSON + exported HTML stored) and support
+  `{{placeholders}}` (`{{firstName}}`/`{{lastName}}`/`{{companyName}}`/`{{customerName}}`, document
+  details, `{{acceptedAt}}`, a permanent acceptance link, the public PDF link `{{documentPdfUrl}}`,
+  app name). The three built-in default templates (one per kind) ship as real, editable rows and are
+  used whenever a document type has no assignment. See [`docs/API.md §2a`](docs/API.md).
+  *Trade-off: the template **editor** iframe loads from
   Unlayer's CDN, so authoring needs internet access and a third-party (free-tier) service; sending
   and rendering do not — the stored HTML is self-contained.*
+- **Acceptance-confirmation e-mails with the signed PDF attached** — every real acceptance
+  (`ACTIVE_CONSENT` via portal/link/admin, and `TACIT` booked by the sweeper — never bulk `IMPORT`)
+  triggers a confirmation mail rendered from the per-document-type `ACCEPTANCE_CONFIRMATION` template,
+  carrying the accepted document as a PDF attachment. Delivery is best-effort and never fails the
+  acceptance itself. See [`docs/INTEGRATION.md §6b`](docs/INTEGRATION.md).
 - **Permanent acceptance links in mails** — the `{{acceptanceLink}}` placeholder resolves to a
   per-customer, non-expiring (but revocable) hosted-acceptance link so notification/reminder mails
   never go stale; only the token's hash is stored at rest. See
@@ -71,11 +78,13 @@ License: **Apache-2.0**.
   auto-discovered from installed npm packages (built-ins: `postmark`/`smtp`/`noop`,
   `memory`/`local`, `google-sso`/`static-token`/`supertokens`) and activated explicitly via env.
   Third parties ship their own provider as an npm package — see [`docs/PLUGINS.md`](docs/PLUGINS.md).
-- **Scheduled effectiveness ("publish now, effective later")** — a version may be published with
-  a future `validFrom`: the rollout happens immediately, so acceptance can be collected in
-  advance (popup and hosted page mark such items as `upcoming`), while the previous version stays
-  the compliance baseline until the flip at `validFrom`. The hourly activation sweep then retires
-  the predecessor and supersedes its open states. Deadlines of a not-yet-effective version are
+- **Scheduled effectiveness ("publish now, effective later")** — one or more versions may be
+  published with a future `validFrom` (several future revisions can be scheduled simultaneously —
+  they surface as the `upcomingVersions[]` array): the rollout happens immediately, so acceptance
+  can be collected in advance (popup and hosted page mark such items as `upcoming`), while the
+  current version stays the compliance baseline until the flip at the nearest `validFrom`. The
+  hourly activation sweep then retires the predecessor and supersedes its open states. Deadlines of
+  a not-yet-effective version are
   anchored at `max(notifiedAt + period, validFrom)` — recipients always get the full
   objection/grace window and nothing blocks or is tacitly booked before the version is in force.
 - **Stable public document URLs** — `GET /documents/<type>/<audience>/latest.pdf` (no auth)
@@ -303,10 +312,6 @@ a real Postgres instance; see [`docs/PERSISTENCE.md`](docs/PERSISTENCE.md) for h
 
 ## Known limitations
 
-- **Prisma driver not yet verified against a live database.** Schema, mappers and repos compile
-  and the `*.prisma.spec.ts` suites exist, but no migration has been applied against real
-  Postgres in this repository. See the "Validation status" section of
-  [`docs/PERSISTENCE.md`](docs/PERSISTENCE.md), in particular the P2002 partial-index detection.
 - **No cross-repo transaction.** Recording an acceptance writes the evidence row and the state
   transition as two separate repo calls; the invariants are protected independently (conditional
   state update, partial unique index, idempotency store) but there is no single unit of work yet.

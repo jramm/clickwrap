@@ -88,36 +88,57 @@ tappable **card lists** instead of the desktop DataGrid; and all dialogs go
 
 - **Login** `/login` — dynamic methods from `GET /admin/auth/methods` (Google
   SSO / dev token / OIDC redirect), with a legacy Google fallback.
-- **Customers** `/customers` — list (name, external ref, role chips, contact
-  e-mails) with pagination (`GET /admin/customers`); **New customer**
-  (`POST /admin/customers`) with roles (from `GET /admin/audiences`), contact
-  e-mail chips and a signed-offer **"already accepted documents"** section
-  (`acceptedVersions` IMPORT); **Edit** (`PATCH /admin/customers/:id`,
-  name/roles/contactEmails).
-- **Overview** `/` — acceptance matrix (DataGrid: customer × dynamic
+- **Dashboard** `/` — per-version acceptance dashboard (`GET /admin/dashboard`):
+  one card per current and **upcoming** (scheduled) version of every document,
+  with accept/pending/blocked/objected counters and acceptance rate. Clicking a
+  card drills into the per-version customer list.
+- **Version customers** `/versions/:id` — the drill-down target
+  (`GET /admin/versions/:id/customers` + `/stats`): who has (not) accepted **that**
+  version, filterable by state, with the matching stats header.
+- **Overview** `/overview` — acceptance matrix (DataGrid: customer × dynamic
   {document type} × {audience}) from `GET /admin/overview`. Columns are derived
   from the audiences (`GET /admin/audiences`) × document types
   (`GET /admin/document-types`) that actually exist as documents
   (`GET /admin/documents`) — no hardcoded keys. Filter bar, colored status
   chips, row click → customer detail.
-- **Customer detail** `/customers/:id` — history from
-  `GET /admin/customers/:id/history` (acceptances incl. expandable evidence,
-  objections, notifications); actions: extend deadline / suspend block
-  (`PATCH /admin/customer-version-states/:id`, mandatory reason), send reminder
-  (`POST …/remind`), manual acceptance (`POST /admin/customers/:id/acceptances`,
-  evidence PDF → base64).
+- **Customers** `/customers` — list (display name, external ref, role chips,
+  contact e-mails) with pagination (`GET /admin/customers`); **New customer**
+  (`POST /admin/customers`) with `firstName`/`lastName` + optional `companyName`,
+  roles (from `GET /admin/audiences`), contact e-mail chips and a signed-offer
+  **"already accepted documents"** section (`acceptedVersions` IMPORT); **Edit**
+  (`PATCH /admin/customers/:id`, firstName/lastName/companyName/roles/contactEmails;
+  `externalRef` is immutable).
+- **Customer detail** `/customers/:id` — header from `GET /admin/customers/:id`;
+  history from `GET /admin/customers/:id/history` (acceptances incl. expandable
+  evidence, objections, notifications); the **signed-documents** archive
+  (`GET /admin/customers/:id/signed-documents`) with an upload dialog
+  (`POST …/signed-documents`, external document types only); actions: extend
+  deadline / suspend block (`PATCH /admin/customer-version-states/:id`, mandatory
+  reason), send reminder (`POST …/remind`), manual acceptance
+  (`POST /admin/customers/:id/acceptances`, evidence PDF → base64), and **copy
+  acceptance link** (`POST /admin/customers/:id/acceptance-links`).
 - **Documents & versions** `/documents` — `GET /admin/documents` +
   `GET /admin/documents/:id/versions`; **New document**
   (`POST /admin/documents`, type + audience selected from the dynamic
   endpoints); **New version** (multipart field `file` + metadata) → DRAFT;
   delete DRAFT; **Publish** (`POST /admin/versions/:id/publish`) with a
   confirmation dialog showing the `rolloutCustomers` count from the response.
+- **E-mail templates** `/email-templates` — manage the admin-managed templates
+  (`GET/POST/PATCH/DELETE /admin/email-templates`) per kind
+  (`VERSION_NOTIFICATION` / `REMINDER` / `ACCEPTANCE_CONFIRMATION`), authored with
+  the embedded Unlayer editor (design JSON + exported HTML), with a sandboxed
+  preview (`POST …/:id/preview`). The three built-in default rows are editable but
+  not deletable.
 - **Settings** `/settings` — manage the dynamic **audiences** and **document
-  types**: list, create (key + name, with slug validation), rename (name only;
+  types**: list, create (key + name, with slug validation — and, for document
+  types, the **`external`** flag, settable at creation only), rename (name only;
   the key is immutable), delete (surfacing the `422 INVALID_STATE` "still in use"
-  error cleanly). Endpoints: `GET/POST /admin/audiences`,
+  error cleanly). Document-type rows also carry the per-type **e-mail template
+  assignments** (notification / reminder selects; `POST …/document-types/:id`
+  template fields). Endpoints: `GET/POST /admin/audiences`,
   `PATCH/DELETE /admin/audiences/:id` and the identical `/admin/document-types`
-  family. Category shape: `{ id, key, name }`.
+  family. Audience shape `{ id, key, name }`; document-type shape
+  `{ id, key, name, external, notificationTemplateId?, reminderTemplateId?, acceptanceConfirmationTemplateId? }`.
 
 ## Internationalization (i18n)
 
@@ -168,13 +189,10 @@ by hand** — all types and zod come from there.
   there; types come from `src/gen`.
 - `src/api/client.ts` remains the shared fetcher (used by `kubbClient` and for the
   multipart PDF upload).
-- One endpoint is hand-written: `GET /admin/auth/methods` (`src/auth/authMethods.ts`,
-  local zod) because it is not yet in the committed OpenAPI document — see the TODO
-  there.
-
-> **Note (backend gap):** the committed `openapi.admin.json` references
-> `OverviewCellModel` but does not define it. `scripts/patch-openapi.mjs`
-> reconstructs it before generation (a no-op once the backend exports the schema).
+- The pre-login **login-method discovery** (`GET /admin/auth/methods`) uses a small
+  standalone fetcher with a local zod schema (`src/auth/authMethods.ts`) rather than a
+  generated hook — it runs before any auth/client bootstrap exists. The endpoint itself
+  is part of the committed `openapi.admin.json`.
 
 ## What the backend needs (not part of this UI)
 

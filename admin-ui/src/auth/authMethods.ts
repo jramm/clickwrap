@@ -4,9 +4,9 @@ import { API_URL } from '../api/client';
 /**
  * Unauthenticated discovery of the available admin login methods.
  *
- * TODO(kubb): this endpoint (`GET /admin/auth/methods`) is not yet part of the
- * committed openapi.admin.json. Once the backend adds it, delete this local
- * schema/fetcher and consume the generated hook from src/gen instead.
+ * Deliberately a standalone fetcher with a local zod schema: it runs on the login
+ * screen before any auth token or generated-client bootstrap exists. The endpoint
+ * (`GET /admin/auth/methods`) is part of the committed openapi.admin.json.
  */
 export const authMethodSchema = z.object({
   key: z.string(),

@@ -258,20 +258,24 @@ booked before `validFrom`.
 
 Customer administration (also see the integration variant `POST /customers`, §5).
 
-- `GET /admin/customers?page=&search=` — pages of 50, sorted by `name` then `externalRef`:
-  `{ "items": [{ "id", "externalRef", "name", "roles", "contactEmails" }], "total": 173 }`.
-  The optional `search` is a case-insensitive substring match on `name`, `externalRef` and
-  `contactEmails`; it is applied **before** pagination, so `total` reflects the filtered count.
+- `GET /admin/customers?page=&search=` — pages of 50, sorted by the derived display name then
+  `externalRef`:
+  `{ "items": [{ "id", "externalRef", "firstName", "lastName", "companyName?", "roles", "contactEmails" }], "total": 173 }`.
+  The optional `search` is a case-insensitive substring match on `firstName`, `lastName`,
+  `companyName`, `externalRef` and `contactEmails`; it is applied **before** pagination, so `total`
+  reflects the filtered count.
 - `GET /admin/customers/:id` — a single customer record
   `{ "id", "externalRef", "firstName", "lastName", "companyName", "roles", "contactEmails" }`
   (e.g. for the detail-page header); unknown id → `404 CUSTOMER_NOT_FOUND`.
 - `POST /admin/customers` → 201 with the full object plus `importedAcceptances`:
   ```json
-  { "externalRef": "crm-4711", "name": "Acme GmbH", "roles": ["customer"],
-    "contactEmails": ["legal@acme.example"],
+  { "externalRef": "crm-4711", "firstName": "Jane", "lastName": "Doe", "companyName": "Acme GmbH",
+    "roles": ["customer"], "contactEmails": ["legal@acme.example"],
     "acceptedVersions": [{ "versionId": "v-…", "acceptedAt": "2026-07-01T00:00:00Z",
                            "reference": "HubSpot deal 12345 / signed offer" }] }
   ```
+  `firstName`/`lastName` (contact person) and `companyName` are all optional; the derived display
+  name (`customerName`) is `companyName` when set, else `firstName lastName`.
   `roles` are validated against the audiences (`422 UNKNOWN_AUDIENCE`); `externalRef` is unique
   **only among customers with overlapping roles** — the partner and customer external ID spaces are
   separate, so the same `externalRef` may coexist on records with disjoint roles; a duplicate that
@@ -281,7 +285,7 @@ Customer administration (also see the integration variant `POST /customers`, §5
   `evidenceNote`) with an immediate `ACCEPTED` state — the version must be PUBLISHED/RETIRED and
   covered by the roles (`422 ROLE_MISMATCH`). All imports are validated before anything is
   persisted. Writes a `CUSTOMER_CREATE` audit entry.
-- `PATCH /admin/customers/:id` — any subset of `{ name, roles, contactEmails }` → 200; unknown id
+- `PATCH /admin/customers/:id` — any subset of `{ firstName, lastName, companyName, roles, contactEmails }` → 200; unknown id
   → `404 CUSTOMER_NOT_FOUND`. Adding a role that would overlap another customer sharing this
   `externalRef` → `422 INVALID_STATE`. Writes a `CUSTOMER_UPDATE` audit entry.
 
@@ -504,8 +508,8 @@ optional `x-actor-*` headers name the acting user for the audit/evidence trail. 
 semantics are identical to `POST /admin/customers` (§4) including `acceptedVersions` — the
 typical call right after a signed offer:
 ```json
-{ "externalRef": "crm-4711", "name": "Acme GmbH", "roles": ["customer"],
-  "contactEmails": ["legal@acme.example"],
+{ "externalRef": "crm-4711", "firstName": "Jane", "lastName": "Doe", "companyName": "Acme GmbH",
+  "roles": ["customer"], "contactEmails": ["legal@acme.example"],
   "acceptedVersions": [{ "versionId": "v-9", "acceptedAt": "2026-07-01T00:00:00Z",
                          "reference": "HubSpot deal 12345 / signed offer" }] }
 ```

@@ -51,7 +51,9 @@ Versions the customer already accepted on paper are recorded in the same call:
   **upcoming** one (published with a future `validFrom`, see §4a) — covered by `roles` and not
   covered by an `acceptedVersions` import, a `PENDING_NOTIFICATION` state is created — the
   customer immediately appears in pending-agreements (your popup and the hosted acceptance page)
-  instead of waiting for the next publish. No e-mails are sent by this rollout; deadlines start
+  instead of waiting for the next publish. Like a publish, the onboarding rollout **sends an
+  acceptance-notification e-mail** per newly rolled-out version (skipped for versions covered by an
+  `acceptedVersions` import and for customers without contact e-mails); deadlines still start only
   with the first provable access. The same applies when a role is **added** later
   (`PATCH /admin/customers/:id`); removing a role takes effect on the next publish only.
 - If an import covers only an **old (retired) version**, the current version still becomes

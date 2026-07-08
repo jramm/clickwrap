@@ -9,7 +9,12 @@ Short documentation for the Prisma schema (`prisma/schema.prisma`), the post-mig
 - **Dynamic entities instead of enums:** rather than hardcoding document types and audiences as
   database enums (e.g. `DocumentType { TERMS, DPA }`, `Audience { CUSTOMER, PARTNER }`), they are
   modelled as data-driven entities:
-  - `DocumentTypeDef { id, key, name }` — e.g. key `terms`, `dpa`.
+  - `DocumentTypeDef { id, key, name, external, notificationTemplateId?, reminderTemplateId?, acceptanceConfirmationTemplateId? }`
+    — e.g. key `terms`, `dpa`. `external` (default `false`) splits the two document worlds:
+    `false` = the clickwrap version/publish/acceptance flow, `true` = externally-signed documents
+    uploaded per customer (`SignedDocument`, no versions/gate); it is settable at creation only and
+    immutable afterwards. The three optional template ids are the per-type e-mail template
+    assignments (see the `EmailTemplate` note below), validated app-side with no FK.
   - `Audience { id, key, name }` — e.g. key `customer`, `partner`.
   `key` is a URL-safe slug (`[a-z0-9-]{2,32}`, validated in the application layer via
   `src/domain/keys.ts`) and unique per entity (`@unique`).
@@ -44,6 +49,11 @@ Short documentation for the Prisma schema (`prisma/schema.prisma`), the post-mig
   matching the correction chain.
 - **`Customer.roles` as a Postgres array** (`String[]` of audience keys) instead of a join
   table — sufficient for the requirement (few values, no role metadata needed).
+- **Customer identity is `firstName`/`lastName` (contact person) + optional `companyName`**
+  (`firstName`/`lastName` default `''` when unknown; `companyName` nullable). There is no stored
+  `name` column: the display label is *derived* (`src/domain/customer.ts::customerDisplayName` —
+  `companyName` when set, else `firstName lastName`) and surfaced as `{{customerName}}` in mails and
+  as `customerName` in overview/dashboard rows.
 - **`Customer.externalRef` is NOT `@unique` — only `@@index([externalRef])`:** the external ID
   spaces of partners and customers are separate, so the same `externalRef` may legitimately appear
   on a partner record and a customer record (different entities). Uniqueness is therefore
@@ -143,12 +153,14 @@ so a process exit signal reliably triggers `app.close()` → `onModuleDestroy`. 
   - `Acceptance`/`Objection`/`NotificationEvent` PK duplicate (append-only violation) → P2002
     (target `id`) → `DomainError('INVALID_STATE', …)`.
   - `Acceptance` partial unique index (`WHERE "isEffective"`, from `partial-indexes.sql`) →
-    P2002 → `DomainError('ALREADY_ACCEPTED', …)`. **Caution:** this index is unknown to Prisma
-    from its own schema; the query engine reports `meta.target` as a raw constraint-name string
-    (`"Acceptance_customerId_versionId_effective_key"`) instead of a field array. The detection
-    in `acceptance.repo.ts` therefore additionally checks for the name fragment `"effective"` —
-    a best effort that has **not yet been verified against a real Postgres instance**
-    (see validation status, open item).
+    P2002 → `DomainError('ALREADY_ACCEPTED', …)`. This index is unknown to Prisma from its own
+    schema, so how the query engine surfaces it in `meta.target` had to be determined empirically.
+    The Prisma integration suite (`acceptance.repo.prisma.spec.ts`, run against real Postgres 16
+    in CI) showed the engine maps the partial index back to its **column list**
+    (`["customerId", "versionId"]`) rather than the raw constraint name — so `acceptance.repo.ts`
+    detects the violation primarily by that column pair (unambiguous: the hard `@@unique` was
+    dropped in favour of the partial index), keeping the constraint-name / `"effective"` fragment
+    checks as a fallback for engines that report the name instead.
   - `supersede`/`resolve` on an unknown `id` → P2025 (record not found) →
     `DomainError('INVALID_STATE', …)`.
   - Slug validation for `Audience.key`/`DocumentTypeDef.key` happens in the application layer
@@ -179,17 +191,21 @@ so a process exit signal reliably triggers `app.close()` → `onModuleDestroy`. 
   (documents, customers) to implement `deleteIfUnused`; the Prisma variants query the tables
   directly.
 
-### `*.prisma.spec.ts` — test skeletons
+### `*.prisma.spec.ts` — Prisma integration suite
 
-One `*.prisma.spec.ts` per repo (`src/persistence/prisma/<repo>.repo.prisma.spec.ts`),
-counterpart to the respective `src/persistence/inmemory/*.spec.ts` with the most important
+A `*.prisma.spec.ts` per repo (`src/persistence/prisma/<repo>.repo.prisma.spec.ts`), the
+counterpart to the respective `src/persistence/inmemory/*.spec.ts`, with the most important
 invariant tests (incl. partial unique index → `ALREADY_ACCEPTED`, FK violation →
 `INVALID_STATE`, `setNotifiedAtomically` idempotency incl. a real concurrency test via
-`Promise.all`, `findCurrentPublished` tie-break, `delete` status check, and for the new
-entities: key uniqueness, slug validation, `deleteIfUnused` reference checks). Shared helper
+`Promise.all`, `findCurrentPublished` tie-break, `delete` status check, and for the added
+entities: key uniqueness, slug validation, `deleteIfUnused` reference checks, e-mail-template
+and signed-document round-trips, acceptance-link token lookup). Shared helper
 `testing/reset-database.ts` resets the test DB between tests (FK-safe delete order). Gate:
 `const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;` — without
-`DATABASE_URL` the whole block is skipped. Invocation once Postgres is available:
+`DATABASE_URL` the whole block is skipped, which is why the default unit run needs no Postgres.
+**These specs run on every push/PR in CI against a real Postgres 16 service container** (the
+`backend-integration` job; see `.github/workflows/ci.yml`). Local invocation once Postgres is
+available (`pnpm test:integration`, or directly):
 
 ```bash
 DATABASE_URL=postgresql://clickwrap:clickwrap@localhost:5432/clickwrap \
@@ -207,8 +223,8 @@ writes the consent evidence (`AcceptanceRepo.append`) and the state transition
 `REPOSITORY_DRIVER=prisma` mode the underlying queries therefore do **not** run in a single DB
 transaction — there is no cross-repo unit of work, and a clean `prisma.$transaction` across two
 port implementations would be an architectural change (ports would need to pass a transaction
-context) that could not be verified without a real Postgres instance — hence deliberately
-**documented instead of half-implemented** (TODO comment in `src/consent/acceptance.service.ts`).
+context) — hence deliberately **documented instead of half-implemented** (TODO comment in
+`src/consent/acceptance.service.ts`), with the risk mitigated as below.
 
 Risk assessment (why this is acceptable for now):
 
@@ -221,7 +237,7 @@ Risk assessment (why this is acceptable for now):
 - The idempotency store reserves the key before processing (putIfAbsent) — duplicate
   processing of the same request is also excluded.
 
-Approach when implemented (once testable with a DB): introduce a UnitOfWork port (e.g.
+Approach when implemented: introduce a UnitOfWork port (e.g.
 `runInTransaction(fn)`, Prisma implementation via `prisma.$transaction` with the interactive
 transactions client, in-memory implementation as a pass-through) and move acceptance append +
 state transition inside.
@@ -235,10 +251,9 @@ replay). `get` treats the marker as "no response yet", `release` deletes marker 
 
 ## Applying migrations
 
-This environment has **no** working Docker/Postgres — only `prisma format`/`prisma validate`/
-`prisma generate` were executed against a dummy `DATABASE_URL`; no migration was created or
-applied. Procedure once Postgres is available (locally via `docker-compose.yml`, in
-staging/prod via the Postgres there):
+CI provisions the schema against its Postgres 16 service container with `prisma db push` (see the
+`backend-integration` job). For a real deployment you create and apply a migration instead
+(locally via `docker-compose.yml`, in staging/prod via the Postgres there):
 
 ```bash
 # 1) start the local Postgres instance (local only)
@@ -280,37 +295,37 @@ for local development).
 
 ## Validation status
 
-Executed without Docker/Postgres in this environment (WASM query engine, no network access
-needed — the engine was already vendored in `node_modules`):
+The Prisma driver is exercised against a **real Postgres 16** on every push/PR: the CI
+`backend-integration` job (`.github/workflows/ci.yml`) provisions the schema with `prisma db push`,
+applies the index section of `partial-indexes.sql`, verifies the partial unique index exists, and
+then runs the full `*.prisma.spec.ts` suite (`pnpm test:integration`). `prisma format`/`validate`/
+`generate` remain green as well.
 
-```bash
-DATABASE_URL=postgresql://x:x@localhost:5432/x node_modules/.bin/prisma format    # ✅ formatted
-DATABASE_URL=postgresql://x:x@localhost:5432/x node_modules/.bin/prisma validate  # ✅ "is valid"
-DATABASE_URL=postgresql://x:x@localhost:5432/x node_modules/.bin/prisma generate  # ✅ client generated
-```
+What the integration suite confirmed (previously open items, now closed):
 
-All three steps ran successfully again after the dynamic-entities refactor (Audience/
-DocumentTypeDef models, enum removal, string key columns).
+- **The partial unique index on effective acceptances behaves as intended.** A second effective
+  acceptance for the same `(customerId, versionId)` raises P2002 and is translated to
+  `ALREADY_ACCEPTED`; the append-only correction (`isEffective=false` + new row) works.
+- **P2002 target detection.** Against real Postgres the query engine reports the partial index by
+  its **column list** (`["customerId", "versionId"]`), not the raw constraint name — the primary
+  detection in `acceptance.repo.ts` matches on that pair, with the constraint-name / `"effective"`
+  fragment checks kept as a fallback.
+- **`partial-indexes.sql` runs cleanly** against the pushed schema (the index/constraint section;
+  see the CI note about the role-scoped `GRANT`/`REVOKE` below).
+- **Atomic conditional writes** (`setNotifiedAtomically`, `transition`) hold under concurrency
+  (`Promise.all` tests), and `findCurrentPublished` tie-breaking, FK violations, `deleteIfUnused`
+  reference checks, key uniqueness/slug validation, and the e-mail-template / signed-document /
+  acceptance-link round-trips all pass.
 
-What could **not** be verified because no real Postgres instance is available:
+Environment caveats that remain **documented, not test-enforced**:
 
-- Whether `prisma migrate dev` actually produces an applicable migration (schema validity was
-  checked, SQL generation against a real DB was not).
-- Whether `partial-indexes.sql` runs cleanly against the generated schema — table/column names
-  were aligned manually, not tested live.
-- **The P2002 detection of the partial index in `acceptance.repo.ts`** (detection via the name
-  fragment `"effective"` in `meta.target`) — the point with the largest residual uncertainty,
-  as it depends on an undocumented detail of the Prisma query engine. **First priority for the
-  end-to-end test** once Postgres is available: run `acceptance.repo.prisma.spec.ts` and adapt
-  the target detection in `prisma-errors.ts`/`acceptance.repo.ts` if needed.
-- The (column-scoped) `GRANT`/`REVOKE` behaviour with separated roles — documented only.
-- All `*.prisma.spec.ts` files: they compile cleanly (`tsc --noEmit`) and are excluded from the
-  unit run, but were never actually executed for lack of Postgres.
-
-Recommendation: once a Postgres instance is available, run in this order: (1) `migrate dev` +
-`partial-indexes.sql`, (2) `DATABASE_URL=… pnpm jest --testPathIgnorePatterns=/node_modules/
-src/persistence/prisma` (all `*.prisma.spec.ts`), (3) only then switch deployments to
-`REPOSITORY_DRIVER=prisma`.
+- The **column-scoped `GRANT`/`REVOKE` behaviour with separated migration/app roles** is not
+  exercised in CI — CI runs as a single role, so `partial-indexes.sql` applies only the
+  index/constraint statements and skips the role management (see the job comment). The append-only
+  REVOKE enforcement must be validated in a staging environment with the two roles set up (see the
+  role-separation note above).
+- `prisma migrate deploy` in a real deployment (CI uses `db push`); create the migration as
+  described under "Applying migrations".
 
 ## Integration
 
@@ -329,16 +344,19 @@ src/persistence/prisma` (all `*.prisma.spec.ts`), (3) only then switch deploymen
     `src/common/escalation/escalation-log.ts`); append-only via REVOKE in
     `partial-indexes.sql`.
   - `AdminAuditLog` ↔ `PrismaAdminAuditRepo` (port `src/agreements/audit.ts`).
-- **`Customer.contactEmails String[] @default([])`**: rollout/reminder mails go to all stored
-  contacts; mapper + domain type aligned.
-- `prisma format`/`validate`/`generate` ran successfully after all schema changes
-  (dummy `DATABASE_URL`, see "Validation status").
+  - `EmailTemplate` ↔ `PrismaEmailTemplateRepo` (port `src/domain/ports.ts::EmailTemplateRepo`;
+    `deleteIfUnused` refuses templates still assigned to a document type; default rows seeded on
+    boot).
+  - `SignedDocument` ↔ `PrismaSignedDocumentRepo` (externally-signed evidence archive, append-only).
+  - `AcceptanceLink` ↔ `PrismaAcceptanceLinkRepo` (hosted-acceptance capability links; lookup by
+    `tokenHash`).
+- **`Customer.contactEmails String[] @default([])`**: rollout/reminder/confirmation mails go to all
+  stored contacts; mapper + domain type aligned.
+- `prisma format`/`validate`/`generate` run green after every schema change.
 
-Still open (verifiable only with a real Postgres instance):
+Still open (not blocking — the driver is exercised in CI, see "Validation status"):
 
-- Verify the P2002 target detection for the partial acceptance index mentioned under
-  "Validation status" (highest priority).
-- `migrate dev` + `partial-indexes.sql` against a real DB; then run the `*.prisma.spec.ts`
-  files. For `PrismaOutboundEmailRepo`/`PrismaIdempotencyStore`/`PrismaEscalationLog`/
-  `PrismaAdminAuditRepo` there are no `*.prisma.spec.ts` yet — add them following the existing
-  pattern once a DB is available.
+- `PrismaOutboundEmailRepo`/`PrismaIdempotencyStore`/`PrismaEscalationLog`/`PrismaAdminAuditRepo`
+  have no dedicated `*.prisma.spec.ts` yet — add them following the existing pattern.
+- The role-separated append-only enforcement (`REVOKE` for a distinct app role) is validated only
+  in staging, not in the single-role CI job.
