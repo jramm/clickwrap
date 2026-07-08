@@ -5,9 +5,7 @@
 Please report security vulnerabilities **privately** — do not open a public GitHub issue for a
 security-sensitive report.
 
-Contact: **security@example.com** _(replace with the maintainer's real security contact before
-publishing the repository)_. If a GitHub Security Advisory is enabled for this repository, you may
-also use *Report a vulnerability* under the **Security** tab for private disclosure.
+*Report a vulnerability* under the **Security** tab for private disclosure.
 
 Please include:
 
