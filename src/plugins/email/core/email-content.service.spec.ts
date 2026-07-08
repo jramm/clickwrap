@@ -129,6 +129,22 @@ describe('EmailContentService', () => {
     expect(await links.listByCustomer('c-123')).toHaveLength(0);
   });
 
+  it('renders the default reminder with a complete "The deadline is <date>." sentence', async () => {
+    const { service } = await buildService();
+    const out = await service.renderFor('REMINDER', aCustomer(), aVersion(), new Date('2026-07-21T00:00:00Z'));
+
+    expect(out.html).toContain('The deadline is 2026-07-21.');
+    expect(out.html).not.toContain('The deadline is .');
+  });
+
+  it('refuses to render a REMINDER without a deadline (never emits a dangling "The deadline is .")', async () => {
+    const { service } = await buildService();
+
+    // Reproduction of the confirmed bug: without this guard the reminder rendered
+    // "The deadline is ." (empty {{deadlineAt}}). A reminder must always carry a deadline.
+    await expect(service.renderFor('REMINDER', aCustomer(), aVersion())).rejects.toThrow(/deadline/i);
+  });
+
   it('falls back to the in-code default when the default row was never seeded', async () => {
     const { service, templates } = await buildService();
     await templates.deleteIfUnused(DEFAULT_NOTIFICATION_TEMPLATE_ID);

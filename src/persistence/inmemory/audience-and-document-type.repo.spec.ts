@@ -107,7 +107,7 @@ describe('InMemoryDocumentTypeRepo', () => {
 
   it('saves and finds a document type by key', async () => {
     await repo.save(aDocumentTypeDef({ id: 'dt-1', key: 'terms', name: 'Terms of Service' }));
-    expect(await repo.findByKey('terms')).toEqual({ id: 'dt-1', key: 'terms', name: 'Terms of Service' });
+    expect(await repo.findByKey('terms')).toEqual({ id: 'dt-1', key: 'terms', name: 'Terms of Service', external: false });
   });
 
   it('lists all document types', async () => {

@@ -559,8 +559,8 @@ describe('AdminController', () => {
 
       const res = await request(app.getHttpServer()).get('/admin/document-types').expect(200);
       expect(res.body).toEqual([
-        { id: 'dt-1', key: 'dpa', name: 'DPA' },
-        { id: 'dt-2', key: 'terms', name: 'Terms of Service' },
+        { id: 'dt-1', key: 'dpa', name: 'DPA', external: false },
+        { id: 'dt-2', key: 'terms', name: 'Terms of Service', external: false },
       ]);
     });
 
@@ -591,7 +591,7 @@ describe('AdminController', () => {
         .patch(`/admin/document-types/${created.id}`)
         .send({ name: 'Data Processing Agreement' })
         .expect(200);
-      expect(res.body).toEqual({ id: 'dt-1', key: 'dpa', name: 'Data Processing Agreement' });
+      expect(res.body).toEqual({ id: 'dt-1', key: 'dpa', name: 'Data Processing Agreement', external: false });
     });
 
     it('PATCH with a key in the body → 422 INVALID_STATE "key is immutable"', async () => {

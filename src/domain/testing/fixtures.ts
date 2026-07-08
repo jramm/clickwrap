@@ -33,6 +33,9 @@ export const aDocumentTypeDef = (overrides: Partial<DocumentTypeDef> = {}): Docu
   id: 'dt-dpa',
   key: 'dpa',
   name: 'Data Processing Agreement',
+  // Real boolean by default — matches how the admin service creates types (external: input === true)
+  // and how the Prisma column (@default(false)) round-trips, so in-memory and Prisma repos agree.
+  external: false,
   ...overrides,
 });
 

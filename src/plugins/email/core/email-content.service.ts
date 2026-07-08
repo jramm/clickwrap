@@ -58,6 +58,16 @@ export class EmailContentService {
     deadlineAt?: Date,
     acceptedAt?: Date,
   ): Promise<RenderedTemplate> {
+    // Structural guard (belt-and-suspenders): a REMINDER's copy always references the deadline
+    // ("The deadline is {{deadlineAt}}."), so rendering one without a deadline would emit a
+    // dangling "The deadline is ." — the confirmed bug. Every caller must already guarantee a
+    // deadline (sendReminder requires it; the notifier and the admin remind path fall back to the
+    // VERSION_NOTIFICATION template when none is running), so this can only fire as an assertion.
+    if (kind === 'REMINDER' && deadlineAt === undefined) {
+      throw new Error(
+        'Refusing to render a REMINDER e-mail without a deadline: send a VERSION_NOTIFICATION instead.',
+      );
+    }
     const template = await this.resolveTemplate(kind, version);
     const vars = await this.buildVars(customer, version, deadlineAt, acceptedAt);
     return renderTemplate(template, vars);

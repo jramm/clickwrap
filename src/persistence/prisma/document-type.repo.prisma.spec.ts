@@ -38,7 +38,9 @@ describeIfDb('PrismaDocumentTypeRepo (against real Postgres)', () => {
 
   it('save + findByKey roundtrip', async () => {
     await repo.save(aDocumentTypeDef({ id: 'dt-1', key: 'terms', name: 'Terms of Service' }));
-    expect(await repo.findByKey('terms')).toEqual({ id: 'dt-1', key: 'terms', name: 'Terms of Service' });
+    // Assert against the fixture (not a hand-written partial) so new DocumentTypeDef fields —
+    // e.g. `external` (Wave D) and the per-type template assignments — can't leave this stale.
+    expect(await repo.findByKey('terms')).toEqual(aDocumentTypeDef({ id: 'dt-1', key: 'terms', name: 'Terms of Service' }));
     expect(await repo.findByKey('unknown')).toBeUndefined();
   });
 

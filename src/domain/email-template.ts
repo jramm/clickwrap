@@ -306,6 +306,10 @@ export const defaultEmailTemplates = (clock: Clock): EmailTemplate[] => {
       'A new version of {{documentName}} ({{documentType}}) is now available: {{versionLabel}}, effective {{validFrom}}.',
     ),
   );
+  // The reminder copy references the deadline, so it must only ever be rendered WITH one. That is
+  // guaranteed upstream: AgreementEmailService.sendReminder requires a deadline, callers without a
+  // running deadline send the VERSION_NOTIFICATION template instead, and EmailContentService.renderFor
+  // rejects a REMINDER render that lacks a deadline — so this default can never emit "The deadline is .".
   const reminder = buildDefaultTemplate(
     notificationBlocks(
       '{{documentName}} ({{versionLabel}}) is still awaiting your acceptance. The deadline is {{deadlineAt}}.',

@@ -46,8 +46,8 @@ describe('DocumentTypeAdminService', () => {
       await documentTypes.save(aDocumentTypeDef({ id: 'dt-1', key: 'dpa', name: 'DPA' }));
 
       expect(await service.list()).toEqual([
-        { id: 'dt-1', key: 'dpa', name: 'DPA' },
-        { id: 'dt-2', key: 'terms', name: 'Terms of Service' },
+        { id: 'dt-1', key: 'dpa', name: 'DPA', external: false },
+        { id: 'dt-2', key: 'terms', name: 'Terms of Service', external: false },
       ]);
     });
   });
