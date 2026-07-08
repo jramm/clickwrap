@@ -165,17 +165,19 @@ Duplicate (type, audience) → `422 INVALID_STATE`; unknown `type`/`audience` ke
 
 ### GET /admin/documents
 Flat list of all documents including the current PUBLISHED version as a **version DTO** (or
-`null` when only drafts exist), the next **upcoming** published version (scheduled publish with a
-future `validFrom`, or `null`), and the stable public PDF URL (or `null`):
+`null` when only drafts exist), **all upcoming** published versions (scheduled publishes with a
+future `validFrom`, as an array — empty when none), and the stable public PDF URL (or `null`):
 ```json
 { "items": [{ "id": "doc-…", "type": "dpa", "audience": "customer",
               "name": "DPA — Customers",
               "currentVersion": { "id": "v-…", "…": "version DTO, see below" },
-              "upcomingVersion": { "id": "v-…", "…": "version DTO or null" },
+              "upcomingVersions": [{ "id": "v-…", "…": "version DTO" }],
               "latestPdfUrl": "https://…/documents/dpa/customer/latest.pdf" }] }
 ```
-`upcomingVersion` is the next PUBLISHED version whose `validFrom` lies in the future — the
-current version stays the compliance baseline until that flip. `latestPdfUrl` is
+`upcomingVersions` lists **every** PUBLISHED version whose `validFrom` lies in the future, ordered
+by `validFrom` ascending (the nearest flip first) — several future versions may be scheduled
+simultaneously and all are returned, not just the next. The current version stays the compliance
+baseline until the flip at the nearest one's `validFrom`. `latestPdfUrl` is
 `${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf` (see §5b) and is `null` when no
 published version is in effect or `PUBLIC_BASE_URL` is unset.
 
@@ -240,7 +242,7 @@ booked before `validFrom`.
 
 ## 4. Admin — operations
 
-### Customers (GET /admin/customers · POST /admin/customers · PATCH /admin/customers/:id)
+### Customers (GET /admin/customers · GET /admin/customers/:id · POST /admin/customers · PATCH /admin/customers/:id)
 
 Customer administration (also see the integration variant `POST /customers`, §5).
 
@@ -248,6 +250,9 @@ Customer administration (also see the integration variant `POST /customers`, §5
   `{ "items": [{ "id", "externalRef", "name", "roles", "contactEmails" }], "total": 173 }`.
   The optional `search` is a case-insensitive substring match on `name`, `externalRef` and
   `contactEmails`; it is applied **before** pagination, so `total` reflects the filtered count.
+- `GET /admin/customers/:id` — a single customer record
+  `{ "id", "externalRef", "firstName", "lastName", "companyName", "roles", "contactEmails" }`
+  (e.g. for the detail-page header); unknown id → `404 CUSTOMER_NOT_FOUND`.
 - `POST /admin/customers` → 201 with the full object plus `importedAcceptances`:
   ```json
   { "externalRef": "crm-4711", "name": "Acme GmbH", "roles": ["customer"],
@@ -320,9 +325,9 @@ substring on the customer's `name` / `externalRef` / `contactEmails` as `GET /ad
 ### GET /admin/dashboard · GET /admin/versions/:id/stats — per-version acceptance dashboard
 
 `GET /admin/dashboard` returns one entry per **relevant version** — the current published version
-and, if any, the upcoming (scheduled, future `validFrom`) published version of **every document**.
-`GET /admin/versions/:id/stats` returns the same shape for a single version (`404 VERSION_NOT_FOUND`
-for an unknown id).
+and **every** upcoming (scheduled, future `validFrom`) published version of **every document** (all
+of them, not just the next — several futures may be scheduled at once). `GET /admin/versions/:id/stats`
+returns the same shape for a single version (`404 VERSION_NOT_FOUND` for an unknown id).
 
 ```json
 {
@@ -486,9 +491,10 @@ cached result.
 
 ### GET /customers/:customerId/pending-agreements?audience=…
 Popup content (empty = nothing to show). Current PUBLISHED versions with an open state
-(`PENDING_NOTIFICATION` | `NOTIFIED` | `EXPIRED_BLOCKING`) — plus **upcoming** published versions
-(scheduled publish, `validFrom` in the future) with an open state, marked `upcoming: true`; both
-may be open at the same time:
+(`PENDING_NOTIFICATION` | `NOTIFIED` | `EXPIRED_BLOCKING`) — plus **every upcoming** published
+version (scheduled publish, `validFrom` in the future) with an open state, each marked
+`upcoming: true` with its `validFrom` (ordered by `validFrom` ascending); the current one and any
+number of future ones may be open at the same time:
 ```json
 [{ "versionId": "v-9", "documentType": "dpa", "audience": "customer",
    "versionLabel": "2026-06",

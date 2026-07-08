@@ -8,6 +8,8 @@ export type { AdminControllerDashboardSuspenseQueryKey } from './useAdminControl
 export type { AdminControllerDeleteAudienceMutationKey } from './useAdminControllerDeleteAudience.ts';
 export type { AdminControllerDeleteDocumentTypeMutationKey } from './useAdminControllerDeleteDocumentType.ts';
 export type { AdminControllerDeleteEmailTemplateMutationKey } from './useAdminControllerDeleteEmailTemplate.ts';
+export type { AdminControllerGetCustomerQueryKey } from './useAdminControllerGetCustomer.ts';
+export type { AdminControllerGetCustomerSuspenseQueryKey } from './useAdminControllerGetCustomerSuspense.ts';
 export type { AdminControllerHistoryQueryKey } from './useAdminControllerHistory.ts';
 export type { AdminControllerHistorySuspenseQueryKey } from './useAdminControllerHistorySuspense.ts';
 export type { AdminControllerListAudiencesQueryKey } from './useAdminControllerListAudiences.ts';
@@ -85,6 +87,14 @@ export { adminControllerDeleteEmailTemplate } from './useAdminControllerDeleteEm
 export { adminControllerDeleteEmailTemplateMutationKey } from './useAdminControllerDeleteEmailTemplate.ts';
 export { adminControllerDeleteEmailTemplateMutationOptions } from './useAdminControllerDeleteEmailTemplate.ts';
 export { useAdminControllerDeleteEmailTemplate } from './useAdminControllerDeleteEmailTemplate.ts';
+export { adminControllerGetCustomer } from './useAdminControllerGetCustomer.ts';
+export { adminControllerGetCustomerQueryKey } from './useAdminControllerGetCustomer.ts';
+export { adminControllerGetCustomerQueryOptions } from './useAdminControllerGetCustomer.ts';
+export { useAdminControllerGetCustomer } from './useAdminControllerGetCustomer.ts';
+export { adminControllerGetCustomerSuspense } from './useAdminControllerGetCustomerSuspense.ts';
+export { adminControllerGetCustomerSuspenseQueryKey } from './useAdminControllerGetCustomerSuspense.ts';
+export { adminControllerGetCustomerSuspenseQueryOptions } from './useAdminControllerGetCustomerSuspense.ts';
+export { useAdminControllerGetCustomerSuspense } from './useAdminControllerGetCustomerSuspense.ts';
 export { adminControllerHistory } from './useAdminControllerHistory.ts';
 export { adminControllerHistoryQueryKey } from './useAdminControllerHistory.ts';
 export { adminControllerHistoryQueryOptions } from './useAdminControllerHistory.ts';

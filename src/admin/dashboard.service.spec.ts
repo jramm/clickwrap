@@ -152,6 +152,29 @@ describe('DashboardService', () => {
       expect(byId.get('v-terms')?.stats.totalCustomers).toBe(0);
     });
 
+    it('emits a per-version entry for EVERY upcoming version, not just the next (two future versions)', async () => {
+      await versions.save(aVersion({ id: 'v-current', documentId: 'doc-dpa-c', versionLabel: 'June 2026 edition', status: 'PUBLISHED', validFrom: PAST }));
+      await versions.save(aVersion({ id: 'v-near', documentId: 'doc-dpa-c', versionLabel: 'Aug 2026 edition', status: 'PUBLISHED', validFrom: new Date('2026-08-01T00:00:00Z') }));
+      await versions.save(aVersion({ id: 'v-far', documentId: 'doc-dpa-c', versionLabel: 'Oct 2026 edition', status: 'PUBLISHED', validFrom: new Date('2026-10-01T00:00:00Z') }));
+
+      // Each future version carries its own per-version stats population.
+      await states.save(aState({ id: 'cvs-near', customerId: 'c-1', versionId: 'v-near', state: 'ACCEPTED' }));
+      await acceptances.append(anAcceptance({ id: 'a-near', customerId: 'c-1', versionId: 'v-near', channel: 'PORTAL', method: 'ACTIVE_CONSENT' }));
+      await states.save(aState({ id: 'cvs-far', customerId: 'c-2', versionId: 'v-far', state: 'PENDING_NOTIFICATION' }));
+
+      const { items } = await service.dashboard();
+      const byId = new Map(items.map((i) => [i.versionId, i]));
+      expect([...byId.keys()].sort()).toEqual(['v-current', 'v-far', 'v-near']);
+      expect(byId.get('v-near')?.upcoming).toBe(true);
+      expect(byId.get('v-far')?.upcoming).toBe(true);
+      // Own per-version stats, not shared.
+      expect(byId.get('v-near')?.stats.accepted).toBe(1);
+      expect(byId.get('v-far')?.stats.accepted).toBe(0);
+      expect(byId.get('v-far')?.stats.pending).toBe(1);
+      // Ordered current-first, then upcoming by validFrom asc.
+      expect(items.map((i) => i.versionId)).toEqual(['v-current', 'v-near', 'v-far']);
+    });
+
     it('returns an empty list when there are no published versions', async () => {
       await versions.save(aVersion({ id: 'v-draft', documentId: 'doc-dpa-c', status: 'DRAFT', validFrom: PAST }));
       expect((await service.dashboard()).items).toEqual([]);

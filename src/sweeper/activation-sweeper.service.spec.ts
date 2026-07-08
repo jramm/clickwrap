@@ -136,6 +136,31 @@ describe('ActivationSweeperService', () => {
     expect((await versions.findById('v-later'))?.status).toBe('PUBLISHED');
   });
 
+  it('two futures flip one-by-one: the nearer becomes current first (the later stays upcoming), then the later at its own validFrom', async () => {
+    // current (June) + two scheduled futures: near (Aug 1) and far (Oct 1).
+    await versions.save(aVersion({ id: 'v-old', status: 'PUBLISHED', validFrom: new Date('2026-06-01T00:00:00Z'), publishedAt: new Date('2026-06-01T00:00:00Z') }));
+    await versions.save(aVersion({ id: 'v-near', status: 'PUBLISHED', validFrom: VALID_FROM, publishedAt: T0 }));
+    await versions.save(aVersion({ id: 'v-far', status: 'PUBLISHED', validFrom: new Date('2026-10-01T00:00:00Z'), publishedAt: T0 }));
+
+    // First flip: at Aug 1 the near version becomes current, the old one is retired, the far one
+    // remains upcoming (validFrom still in the future).
+    clock.set(AFTER_FLIP);
+    await service.run();
+    expect((await versions.findById('v-old'))?.status).toBe('RETIRED');
+    expect((await versions.findById('v-near'))?.status).toBe('PUBLISHED');
+    expect((await versions.findById('v-far'))?.status).toBe('PUBLISHED');
+    expect((await versions.findCurrentPublished('dpa', 'customer', clock.now()))?.id).toBe('v-near');
+    expect((await versions.findUpcomingPublishedList('dpa', 'customer', clock.now())).map((v) => v.id)).toEqual(['v-far']);
+
+    // Second flip: at Oct 1 the far version becomes current and the near one is retired.
+    clock.set(new Date('2026-10-01T06:00:00Z'));
+    await service.run();
+    expect((await versions.findById('v-near'))?.status).toBe('RETIRED');
+    expect((await versions.findById('v-far'))?.status).toBe('PUBLISHED');
+    expect((await versions.findCurrentPublished('dpa', 'customer', clock.now()))?.id).toBe('v-far');
+    expect(await versions.findUpcomingPublishedList('dpa', 'customer', clock.now())).toEqual([]);
+  });
+
   it('kill switch: SWEEPER_ENABLED=false → complete no-op', async () => {
     await seedScheduledPair();
     clock.set(AFTER_FLIP);

@@ -49,14 +49,14 @@ export class InMemoryAgreementVersionRepo implements AgreementVersionRepo {
     return deepCopy(candidates[0]);
   }
 
-  async findUpcomingPublished(
+  async findUpcomingPublishedList(
     typeKey: string,
     audienceKey: string,
     now: Date,
-  ): Promise<AgreementVersion | undefined> {
+  ): Promise<AgreementVersion[]> {
     const document = await this.documents.findByTypeAndAudience(typeKey, audienceKey);
     if (!document) {
-      return undefined;
+      return [];
     }
     const candidates = [...this.versions.values()]
       .filter(
@@ -72,7 +72,7 @@ export class InMemoryAgreementVersionRepo implements AgreementVersionRepo {
           a.validFrom.getTime() - b.validFrom.getTime() ||
           (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
       );
-    return deepCopy(candidates[0]);
+    return deepCopy(candidates);
   }
 
   async delete(id: string): Promise<void> {

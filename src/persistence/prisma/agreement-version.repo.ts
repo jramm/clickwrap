@@ -69,24 +69,24 @@ export class PrismaAgreementVersionRepo implements AgreementVersionRepo {
     return row ? toDomain(row) : undefined;
   }
 
-  async findUpcomingPublished(
+  async findUpcomingPublishedList(
     typeKey: string,
     audienceKey: string,
     now: Date,
-  ): Promise<AgreementVersion | undefined> {
+  ): Promise<AgreementVersion[]> {
     const document = await this.prisma.agreementDocument.findUnique({
       where: { type_audience: { type: typeKey, audience: audienceKey } },
     });
     if (!document) {
-      return undefined;
+      return [];
     }
-    const row = await this.prisma.agreementVersion.findFirst({
+    const rows = await this.prisma.agreementVersion.findMany({
       where: { documentId: document.id, status: 'PUBLISHED', validFrom: { gt: now } },
       // Next flip first (smallest validFrom); tie-break like the fake: newest publishedAt —
       // the version findCurrentPublished would pick once the flip has happened.
       orderBy: [{ validFrom: 'asc' }, { publishedAt: { sort: 'desc', nulls: 'last' } }],
     });
-    return row ? toDomain(row) : undefined;
+    return rows.map(toDomain);
   }
 
   async delete(id: string): Promise<void> {

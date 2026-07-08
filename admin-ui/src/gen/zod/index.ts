@@ -71,6 +71,13 @@ export {
   adminControllerDeleteEmailTemplatePathParamsSchema,
 } from './adminControllerDeleteEmailTemplateSchema.ts';
 export {
+  adminControllerGetCustomer200Schema,
+  adminControllerGetCustomer401Schema,
+  adminControllerGetCustomer404Schema,
+  adminControllerGetCustomerPathParamsSchema,
+  adminControllerGetCustomerQueryResponseSchema,
+} from './adminControllerGetCustomerSchema.ts';
+export {
   adminControllerHistory200Schema,
   adminControllerHistory401Schema,
   adminControllerHistory404Schema,

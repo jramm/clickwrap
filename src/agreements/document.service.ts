@@ -28,10 +28,12 @@ export interface DocumentListEntry {
   /** The newest applicable PUBLISHED version as a DTO, or null when only drafts exist. */
   currentVersion: VersionDto | null;
   /**
-   * The next UPCOMING published version (validFrom in the future, scheduled publish) as a DTO,
-   * or null. The current version stays the compliance baseline until the flip at its validFrom.
+   * ALL UPCOMING published versions (validFrom in the future, scheduled publish) as DTOs, ordered
+   * by validFrom ASC (the nearest flip first). Empty when none are scheduled. Several future
+   * versions may be scheduled at once — every one is listed, not just the next. The current version
+   * stays the compliance baseline until the flip at the nearest one's validFrom.
    */
-  upcomingVersion: VersionDto | null;
+  upcomingVersions: VersionDto[];
   /**
    * Stable public URL (`${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf`) that always
    * 302-redirects to the currently effective published PDF — for rendering into offers. Null
@@ -81,20 +83,20 @@ export class DocumentService {
     return Promise.all(
       documents.map(async (document) => {
         const current = await this.versions.findCurrentPublished(document.type, document.audience, now);
-        const upcoming = await this.versions.findUpcomingPublished(document.type, document.audience, now);
+        const upcoming = await this.versions.findUpcomingPublishedList(document.type, document.audience, now);
         const currentVersion = current
           ? toVersionDto(current, await this.pdf.getPresignedUrl(current.storageKey))
           : null;
-        const upcomingVersion = upcoming
-          ? toVersionDto(upcoming, await this.pdf.getPresignedUrl(upcoming.storageKey))
-          : null;
+        const upcomingVersions = await Promise.all(
+          upcoming.map(async (v) => toVersionDto(v, await this.pdf.getPresignedUrl(v.storageKey))),
+        );
         return {
           id: document.id,
           type: document.type,
           audience: document.audience,
           name: document.name,
           currentVersion,
-          upcomingVersion,
+          upcomingVersions,
           latestPdfUrl:
             current && baseUrl ? `${baseUrl}${latestPdfPath(document.type, document.audience)}` : null,
         };

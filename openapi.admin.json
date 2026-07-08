@@ -586,6 +586,64 @@
       }
     },
     "/admin/customers/{id}": {
+      "get": {
+        "description": "The full customer record (id, externalRef, firstName, lastName, companyName, roles, contactEmails) — e.g. for the detail-page header.",
+        "operationId": "AdminController_getCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRowModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Get a single customer by id",
+        "tags": [
+          "admin"
+        ]
+      },
       "patch": {
         "description": "A `roles` change takes effect on the next publish/rollout only (no auto-rollout on role add). Adding a role is rejected with 422 INVALID_STATE if it would overlap another customer that already shares this externalRef.",
         "operationId": "AdminController_updateCustomer",
@@ -2473,15 +2531,12 @@
               }
             ]
           },
-          "upcomingVersion": {
-            "nullable": true,
-            "description": "Next UPCOMING published version (validFrom in the future, scheduled publish) or null. The current version stays the compliance baseline until the flip at its validFrom.",
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/VersionModel"
-              }
-            ]
+          "upcomingVersions": {
+            "description": "ALL UPCOMING published versions (validFrom in the future, scheduled publish), ordered by validFrom ascending (the nearest flip first). Empty when none are scheduled. Several future versions may be scheduled simultaneously — every one is listed, not just the next. The current version stays the compliance baseline until the flip at the nearest one's validFrom.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VersionModel"
+            }
           },
           "latestPdfUrl": {
             "type": "string",
@@ -2494,7 +2549,8 @@
           "id",
           "type",
           "audience",
-          "name"
+          "name",
+          "upcomingVersions"
         ]
       },
       "DocumentListResponseModel": {

@@ -85,12 +85,14 @@ export interface AgreementVersionRepo {
    */
   findCurrentPublished(typeKey: string, audienceKey: string, now: Date): Promise<AgreementVersion | undefined>;
   /**
-   * The next upcoming revision per (type key, audience key) = PUBLISHED version with
-   * validFrom > now and the SMALLEST validFrom (the next one to become effective; tie-break:
+   * ALL upcoming revisions per (type key, audience key) = every PUBLISHED version with
+   * validFrom > now, ordered by validFrom ASC (the next one to become effective first; tie-break:
    * newest publishedAt — mirroring findCurrentPublished, which would pick it after the flip).
-   * Scheduled effectiveness: published in advance, becomes the compliance baseline at validFrom.
+   * Scheduled effectiveness: published in advance, each becomes the compliance baseline at its
+   * validFrom. Several future versions may be scheduled simultaneously — all are returned so the
+   * dashboard, documents list and advance-acceptance surfaces show every one, not just the next.
    */
-  findUpcomingPublished(typeKey: string, audienceKey: string, now: Date): Promise<AgreementVersion | undefined>;
+  findUpcomingPublishedList(typeKey: string, audienceKey: string, now: Date): Promise<AgreementVersion[]>;
   /** Only DRAFTs may be deleted. */
   delete(id: string): Promise<void>;
 }

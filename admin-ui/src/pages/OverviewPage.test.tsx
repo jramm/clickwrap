@@ -56,7 +56,15 @@ describe('OverviewPage', () => {
       http.get(`${BASE}/admin/documents`, () =>
         HttpResponse.json({
           items: [
-            { id: 'doc-terms-op', type: 'terms', audience: 'operator', name: 'ToS — Operator' },
+            {
+              id: 'doc-terms-op',
+              type: 'terms',
+              audience: 'operator',
+              name: 'ToS — Operator',
+              currentVersion: null,
+              upcomingVersions: [],
+              latestPdfUrl: null,
+            },
           ],
         }),
       ),

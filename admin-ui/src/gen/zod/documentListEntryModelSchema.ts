@@ -17,12 +17,11 @@ export const documentListEntryModelSchema = z.object({
     .lazy(() => versionModelSchema)
     .describe('Current PUBLISHED version or null.')
     .nullish(),
-  upcomingVersion: z
-    .lazy(() => versionModelSchema)
+  upcomingVersions: z
+    .array(z.lazy(() => versionModelSchema))
     .describe(
-      'Next UPCOMING published version (validFrom in the future, scheduled publish) or null. The current version stays the compliance baseline until the flip at its validFrom.',
-    )
-    .nullish(),
+      "ALL UPCOMING published versions (validFrom in the future, scheduled publish), ordered by validFrom ascending (the nearest flip first). Empty when none are scheduled. Several future versions may be scheduled simultaneously — every one is listed, not just the next. The current version stays the compliance baseline until the flip at the nearest one's validFrom.",
+    ),
   latestPdfUrl: z
     .string()
     .describe(

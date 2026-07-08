@@ -139,6 +139,15 @@ export class CustomerAdminService {
     return { items, total };
   }
 
+  /** Single customer by id (for the detail page header). Unknown id → CUSTOMER_NOT_FOUND. */
+  async get(id: string): Promise<CustomerRow> {
+    const customer = await this.customers.findById(id);
+    if (!customer) {
+      throw new DomainError('CUSTOMER_NOT_FOUND', `Customer ${id} not found`);
+    }
+    return toRow(customer);
+  }
+
   async create(input: CreateCustomerInput, actor: Actor, source: CustomerCreateSource = 'admin'): Promise<CreateCustomerResult> {
     if (!input.externalRef || input.externalRef.trim() === '') {
       throw new DomainError('INVALID_STATE', 'externalRef is required');
@@ -243,8 +252,9 @@ export class CustomerAdminService {
   /**
    * Onboarding rollout — the per-customer counterpart of PublishService.publish step 5+6: one
    * PENDING_NOTIFICATION state per current published version whose audience is covered by
-   * `roles` — plus one per UPCOMING published version (validFrom in the future), so the new
-   * customer can accept a scheduled revision in advance exactly like existing customers.
+   * `roles` — plus one per UPCOMING published version (validFrom in the future; all of them, not
+   * just the next), so the new customer can accept every scheduled revision in advance exactly
+   * like existing customers.
    * Versions that already have a state (e.g. just-imported ACCEPTED ones) are skipped — no state,
    * no mail. Every created state triggers an acceptance-notification e-mail through the same
    * RolloutNotifier publish uses (template per document type, permanent acceptance link).
@@ -261,7 +271,7 @@ export class CustomerAdminService {
       }
       const rolloutVersions = [
         await this.versions.findCurrentPublished(document.type, document.audience, now),
-        await this.versions.findUpcomingPublished(document.type, document.audience, now),
+        ...(await this.versions.findUpcomingPublishedList(document.type, document.audience, now)),
       ];
       for (const version of rolloutVersions) {
         if (!version || (await this.states.findByCustomerAndVersion(customer.id, version.id))) {

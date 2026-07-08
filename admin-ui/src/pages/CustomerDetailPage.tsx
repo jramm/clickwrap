@@ -11,11 +11,13 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
-import { useCustomerHistory, useRemind } from '../api/hooks';
+import { useCustomer, useCustomerHistory, useRemind } from '../api/hooks';
 import type { Acceptance, HistoryState } from '../api/hooks';
 import { ManualAcceptanceDialog } from '../components/ManualAcceptanceDialog';
 import { StateActionDialog } from '../components/StateActionDialog';
 import { useTranslation } from '../i18n';
+import { customerDisplayName } from '../lib/customerDisplayName';
+import { copyTextToClipboard } from '../lib/clipboard';
 import { Button, Card, PageHeader, StatusChip, useToast } from '../ui';
 
 /**
@@ -33,7 +35,17 @@ export function CustomerDetailPage() {
   const { t, language } = useTranslation();
   const { id = '' } = useParams();
   const { data, isLoading, isError, error } = useCustomerHistory(id);
+  const { data: customer } = useCustomer(id);
+  const toast = useToast();
   const [manualOpen, setManualOpen] = useState(false);
+
+  const displayName = customer ? customerDisplayName(customer) : '';
+  const headerTitle = displayName || `${t('overview.customer')} ${id}`;
+
+  const handleCopyId = async () => {
+    const copied = await copyTextToClipboard(id, t('customerDetail.copyIdPrompt'));
+    toast.success(t(copied ? 'customerDetail.idCopied' : 'customerDetail.idCopiedManual'));
+  };
 
   return (
     <Box>
@@ -48,10 +60,37 @@ export function CustomerDetailPage() {
         {t('customerDetail.backToOverview')}
       </Button>
       <PageHeader
-        title={`${t('overview.customer')} ${id}`}
-        subtitle={t('customerDetail.customerId', { id })}
+        title={headerTitle}
         actions={<Button onClick={() => setManualOpen(true)}>{t('manualAcceptance.trigger')}</Button>}
       />
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 0.5, sm: 2 }}
+        alignItems={{ sm: 'center' }}
+        sx={{ mt: -2, mb: 3, flexWrap: 'wrap', rowGap: 0.5 }}
+      >
+        {customer?.externalRef && (
+          <Typography variant="body2" color="text.secondary">
+            {t('customerDetail.externalRef', { ref: customer.externalRef })}
+          </Typography>
+        )}
+        {customer?.roles?.length ? (
+          <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+            {customer.roles.map((role) => (
+              <Chip key={role} size="small" variant="outlined" label={role} />
+            ))}
+          </Stack>
+        ) : null}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          onClick={() => void handleCopyId()}
+          title={t('customerDetail.copyId')}
+          sx={{ cursor: 'pointer', fontFamily: 'monospace', opacity: 0.7 }}
+        >
+          {t('customerDetail.customerId', { id })}
+        </Typography>
+      </Stack>
 
       {isError && (
         <Typography color="error">

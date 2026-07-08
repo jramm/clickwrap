@@ -71,6 +71,20 @@ describe('ManualAcceptanceDialog — older versions', () => {
     ).toBeInTheDocument();
   });
 
+  it('offers EVERY upcoming (future) version for advance acceptance, not just the next one', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ManualAcceptanceDialog customerId="c-123" open onClose={() => {}} />);
+
+    await user.click(await screen.findByLabelText('Version'));
+    const listbox = await screen.findByRole('listbox');
+    expect(
+      within(listbox).getByText(/September 2026 edition \(upcoming, effective/),
+    ).toBeInTheDocument();
+    expect(
+      within(listbox).getByText(/December 2026 edition \(upcoming, effective/),
+    ).toBeInTheDocument();
+  });
+
   it('shows the "current version remains outstanding" hint when a retired version is selected', async () => {
     useRetiredVersionsHandler();
     const user = userEvent.setup();

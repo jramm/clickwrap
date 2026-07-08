@@ -29,7 +29,7 @@ class FakeAgreementVersionRepo implements AgreementVersionRepo {
     throw new Error('not implemented');
   }
 
-  async findUpcomingPublished(): Promise<AgreementVersion | undefined> {
+  async findUpcomingPublishedList(): Promise<AgreementVersion[]> {
     throw new Error('not implemented');
   }
 

@@ -8,6 +8,8 @@ export type { AdminControllerDashboardSuspenseQueryKey } from './hooks/useAdminC
 export type { AdminControllerDeleteAudienceMutationKey } from './hooks/useAdminControllerDeleteAudience.ts';
 export type { AdminControllerDeleteDocumentTypeMutationKey } from './hooks/useAdminControllerDeleteDocumentType.ts';
 export type { AdminControllerDeleteEmailTemplateMutationKey } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
+export type { AdminControllerGetCustomerQueryKey } from './hooks/useAdminControllerGetCustomer.ts';
+export type { AdminControllerGetCustomerSuspenseQueryKey } from './hooks/useAdminControllerGetCustomerSuspense.ts';
 export type { AdminControllerHistoryQueryKey } from './hooks/useAdminControllerHistory.ts';
 export type { AdminControllerHistorySuspenseQueryKey } from './hooks/useAdminControllerHistorySuspense.ts';
 export type { AdminControllerListAudiencesQueryKey } from './hooks/useAdminControllerListAudiences.ts';
@@ -126,6 +128,14 @@ export type {
   AdminControllerDeleteEmailTemplateMutationResponse,
   AdminControllerDeleteEmailTemplatePathParams,
 } from './types/AdminControllerDeleteEmailTemplate.ts';
+export type {
+  AdminControllerGetCustomer200,
+  AdminControllerGetCustomer401,
+  AdminControllerGetCustomer404,
+  AdminControllerGetCustomerPathParams,
+  AdminControllerGetCustomerQuery,
+  AdminControllerGetCustomerQueryResponse,
+} from './types/AdminControllerGetCustomer.ts';
 export type {
   AdminControllerHistory200,
   AdminControllerHistory401,
@@ -482,6 +492,14 @@ export { adminControllerDeleteEmailTemplate } from './hooks/useAdminControllerDe
 export { adminControllerDeleteEmailTemplateMutationKey } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
 export { adminControllerDeleteEmailTemplateMutationOptions } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
 export { useAdminControllerDeleteEmailTemplate } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
+export { adminControllerGetCustomer } from './hooks/useAdminControllerGetCustomer.ts';
+export { adminControllerGetCustomerQueryKey } from './hooks/useAdminControllerGetCustomer.ts';
+export { adminControllerGetCustomerQueryOptions } from './hooks/useAdminControllerGetCustomer.ts';
+export { useAdminControllerGetCustomer } from './hooks/useAdminControllerGetCustomer.ts';
+export { adminControllerGetCustomerSuspense } from './hooks/useAdminControllerGetCustomerSuspense.ts';
+export { adminControllerGetCustomerSuspenseQueryKey } from './hooks/useAdminControllerGetCustomerSuspense.ts';
+export { adminControllerGetCustomerSuspenseQueryOptions } from './hooks/useAdminControllerGetCustomerSuspense.ts';
+export { useAdminControllerGetCustomerSuspense } from './hooks/useAdminControllerGetCustomerSuspense.ts';
 export { adminControllerHistory } from './hooks/useAdminControllerHistory.ts';
 export { adminControllerHistoryQueryKey } from './hooks/useAdminControllerHistory.ts';
 export { adminControllerHistoryQueryOptions } from './hooks/useAdminControllerHistory.ts';
@@ -702,6 +720,13 @@ export {
   adminControllerDeleteEmailTemplateMutationResponseSchema,
   adminControllerDeleteEmailTemplatePathParamsSchema,
 } from './zod/adminControllerDeleteEmailTemplateSchema.ts';
+export {
+  adminControllerGetCustomer200Schema,
+  adminControllerGetCustomer401Schema,
+  adminControllerGetCustomer404Schema,
+  adminControllerGetCustomerPathParamsSchema,
+  adminControllerGetCustomerQueryResponseSchema,
+} from './zod/adminControllerGetCustomerSchema.ts';
 export {
   adminControllerHistory200Schema,
   adminControllerHistory401Schema,

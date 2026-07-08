@@ -285,7 +285,12 @@
     "evidenceNote": "Evidence note",
     "ip": "IP",
     "userAgent": "User agent",
-    "consentText": "Consent text"
+    "consentText": "Consent text",
+    "externalRef": "Ref: {{ref}}",
+    "copyId": "Copy customer ID",
+    "copyIdPrompt": "Copy the customer ID:",
+    "idCopied": "Customer ID copied.",
+    "idCopiedManual": "Copy the customer ID manually."
   },
   "customers": {
     "title": "Customers",

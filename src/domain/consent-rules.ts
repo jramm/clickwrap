@@ -58,8 +58,9 @@ export const assertDisplayedConsentTextMatches = (
 };
 
 /**
- * Consent to the current revision OR to an upcoming one (PUBLISHED with validFrom in the
- * future) — acceptance may be collected in advance of the flip. Anything else (retired
+ * Consent to the current revision OR to ANY upcoming one (PUBLISHED with validFrom in the
+ * future) — acceptance may be collected in advance of the flip, for the nearest future version
+ * or a far-future one alike (several futures may be scheduled at once). Anything else (retired
  * versions, drafts, stale popup content) → VERSION_NOT_CURRENT (portal reloads pending items).
  */
 export const assertVersionCurrent = (

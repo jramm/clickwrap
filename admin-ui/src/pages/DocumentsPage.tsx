@@ -123,18 +123,19 @@ function DocumentCard({
                   })}
                 />
               )}
-              {document.upcomingVersion && (
+              {document.upcomingVersions.map((upcoming) => (
                 <Chip
+                  key={upcoming.id}
                   size="small"
                   color="info"
                   label={t('documents.upcoming', {
-                    label: document.upcomingVersion.versionLabel ?? document.upcomingVersion.id,
-                    date: document.upcomingVersion.validFrom
-                      ? new Date(document.upcomingVersion.validFrom).toLocaleDateString(language)
+                    label: upcoming.versionLabel ?? upcoming.id,
+                    date: upcoming.validFrom
+                      ? new Date(upcoming.validFrom).toLocaleDateString(language)
                       : '',
                   })}
                 />
-              )}
+              ))}
             </Stack>
           </Box>
         }

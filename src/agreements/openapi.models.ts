@@ -66,14 +66,15 @@ export class DocumentListEntryModel {
   @ApiPropertyOptional({ type: VersionModel, nullable: true, description: 'Current PUBLISHED version or null.' })
   currentVersion!: VersionModel | null;
 
-  @ApiPropertyOptional({
-    type: VersionModel,
-    nullable: true,
+  @ApiProperty({
+    type: [VersionModel],
     description:
-      'Next UPCOMING published version (validFrom in the future, scheduled publish) or null. ' +
-      'The current version stays the compliance baseline until the flip at its validFrom.',
+      'ALL UPCOMING published versions (validFrom in the future, scheduled publish), ordered by ' +
+      'validFrom ascending (the nearest flip first). Empty when none are scheduled. Several future ' +
+      'versions may be scheduled simultaneously — every one is listed, not just the next. The ' +
+      'current version stays the compliance baseline until the flip at the nearest one\'s validFrom.',
   })
-  upcomingVersion!: VersionModel | null;
+  upcomingVersions!: VersionModel[];
 
   @ApiPropertyOptional({
     type: String,

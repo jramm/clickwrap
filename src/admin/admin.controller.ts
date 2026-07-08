@@ -138,6 +138,17 @@ export class AdminController {
     return this.customerAdminService.list(page ? Number(page) : undefined, search);
   }
 
+  @Get('customers/:id')
+  @ApiOperation({
+    summary: 'Get a single customer by id',
+    description: 'The full customer record (id, externalRef, firstName, lastName, companyName, roles, contactEmails) — e.g. for the detail-page header.',
+  })
+  @ApiOkResponse({ type: CustomerRowModel })
+  @ApiErrorResponses({ 404: 'CUSTOMER_NOT_FOUND' })
+  async getCustomer(@Param('id') id: string) {
+    return this.customerAdminService.get(id);
+  }
+
   @Post('customers')
   @ApiOperation({
     summary: 'Create a customer',

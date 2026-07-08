@@ -53,15 +53,16 @@ export function ManualAcceptanceDialog({ customerId, open, onClose }: Props) {
     }));
 
   // Upcoming (published, future validFrom) versions are acceptable in advance — e.g. a signed
-  // offer already covering the next revision (same rule as the portal/link advance acceptance).
-  const upcomingOptions = docs
-    .filter((doc) => doc.upcomingVersion)
-    .map((doc) => ({
-      value: doc.upcomingVersion!.id,
-      label: `${doc.name} — ${doc.upcomingVersion!.versionLabel} (${t('manualAcceptance.upcomingLabel', {
-        date: doc.upcomingVersion!.validFrom ? new Date(doc.upcomingVersion!.validFrom).toLocaleDateString() : '',
+  // offer already covering a future revision (same rule as the portal/link advance acceptance).
+  // Every scheduled future version is offered, not just the next one.
+  const upcomingOptions = docs.flatMap((doc) =>
+    doc.upcomingVersions.map((upcoming) => ({
+      value: upcoming.id,
+      label: `${doc.name} — ${upcoming.versionLabel} (${t('manualAcceptance.upcomingLabel', {
+        date: upcoming.validFrom ? new Date(upcoming.validFrom).toLocaleDateString() : '',
       })})`,
-    }));
+    })),
+  );
 
   // "Show older versions": RETIRED history per document (e.g. a signed offer covering a
   // superseded revision). DRAFTs stay hidden — they were never in force.

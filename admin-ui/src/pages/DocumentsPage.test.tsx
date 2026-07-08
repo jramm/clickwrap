@@ -72,15 +72,16 @@ describe('DocumentsPage — publish flow', () => {
 });
 
 describe('DocumentsPage — scheduled effectiveness & public PDF link', () => {
-  it('shows an "upcoming" chip next to the current-version chip when a future published version exists', async () => {
+  it('shows a chip per upcoming version — MULTIPLE future scheduled versions each get their own chip', async () => {
     renderWithProviders(<DocumentsPage />);
 
     expect(await screen.findByText('Data Processing Agreement — Operator')).toBeInTheDocument();
     // Both operator documents carry a current chip …
     expect(await screen.findAllByText(/Current: /)).toHaveLength(2);
-    // … but only the DPA (fixture with upcomingVersion) shows the upcoming chip.
+    // … and the DPA (fixture with two scheduled futures) shows one upcoming chip per version.
     expect(screen.getByText(/Upcoming: September 2026 edition/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Upcoming:/)).toHaveLength(1);
+    expect(screen.getByText(/Upcoming: December 2026 edition/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Upcoming:/)).toHaveLength(2);
   });
 
   it('copies the stable public PDF link to the clipboard and confirms with a toast', async () => {

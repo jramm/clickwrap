@@ -69,21 +69,22 @@ describeIfDb('PrismaAgreementVersionRepo (against real Postgres)', () => {
     });
   });
 
-  describe('findUpcomingPublished — next PUBLISHED version with validFrom > now', () => {
-    it('returns the next upcoming published version (smallest future validFrom), ignoring drafts', async () => {
+  describe('findUpcomingPublishedList — ALL PUBLISHED versions with validFrom > now (validFrom asc)', () => {
+    it('returns every upcoming published version ordered by validFrom asc, ignoring drafts', async () => {
       await repo.save(aVersion({ id: 'v-now', documentId: 'doc-dpa-c', validFrom: new Date('2026-06-01') }));
       await repo.save(aVersion({ id: 'v-aug', documentId: 'doc-dpa-c', validFrom: new Date('2026-08-01') }));
       await repo.save(aVersion({ id: 'v-sep', documentId: 'doc-dpa-c', validFrom: new Date('2026-09-01') }));
       await repo.save(aVersion({ id: 'v-draft', documentId: 'doc-dpa-c', status: 'DRAFT', validFrom: new Date('2026-07-15') }));
 
-      expect((await repo.findUpcomingPublished('dpa', 'customer', NOW))?.id).toBe('v-aug');
+      expect((await repo.findUpcomingPublishedList('dpa', 'customer', NOW)).map((v) => v.id)).toEqual(['v-aug', 'v-sep']);
     });
 
-    it('returns undefined once the version has become effective, and for unknown (type, audience)', async () => {
+    it('excludes an effective version and returns [] for unknown (type, audience)', async () => {
       await repo.save(aVersion({ id: 'v-aug', documentId: 'doc-dpa-c', validFrom: new Date('2026-08-01') }));
+      await repo.save(aVersion({ id: 'v-sep', documentId: 'doc-dpa-c', validFrom: new Date('2026-09-01') }));
 
-      expect(await repo.findUpcomingPublished('dpa', 'customer', new Date('2026-08-01T00:00:00Z'))).toBeUndefined();
-      expect(await repo.findUpcomingPublished('terms', 'customer', NOW)).toBeUndefined();
+      expect((await repo.findUpcomingPublishedList('dpa', 'customer', new Date('2026-08-01T00:00:00Z'))).map((v) => v.id)).toEqual(['v-sep']);
+      expect(await repo.findUpcomingPublishedList('terms', 'customer', NOW)).toEqual([]);
     });
   });
 

@@ -103,10 +103,10 @@ describe('DocumentService', () => {
       await versions.save(aVersion({ id: 'v-draft', documentId: doc.id, status: 'DRAFT' }));
       const list = await service.list();
       expect(list[0].currentVersion).toBeNull();
-      expect(list[0].upcomingVersion).toBeNull();
+      expect(list[0].upcomingVersions).toEqual([]);
     });
 
-    it('upcomingVersion carries the next scheduled published version (validFrom in the future) alongside currentVersion', async () => {
+    it('upcomingVersions carries the next scheduled published version (validFrom in the future) alongside currentVersion', async () => {
       const doc = await service.create({ type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
       const current = await pdf.store({ buffer: Buffer.from('%PDF current'), fileName: 'current.pdf' });
       const next = await pdf.store({ buffer: Buffer.from('%PDF next'), fileName: 'next.pdf' });
@@ -120,9 +120,30 @@ describe('DocumentService', () => {
       const list = await service.list();
 
       expect(list[0].currentVersion?.id).toBe('v-current');
-      expect(list[0].upcomingVersion?.id).toBe('v-next');
-      expect(list[0].upcomingVersion?.validFrom).toEqual(new Date('2026-08-01T00:00:00Z'));
-      expect(list[0].upcomingVersion).not.toHaveProperty('storageKey');
+      expect(list[0].upcomingVersions.map((v) => v.id)).toEqual(['v-next']);
+      expect(list[0].upcomingVersions[0]?.validFrom).toEqual(new Date('2026-08-01T00:00:00Z'));
+      expect(list[0].upcomingVersions[0]).not.toHaveProperty('storageKey');
+    });
+
+    it('upcomingVersions lists MULTIPLE future scheduled versions ordered by validFrom asc', async () => {
+      const doc = await service.create({ type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
+      const current = await pdf.store({ buffer: Buffer.from('%PDF current'), fileName: 'current.pdf' });
+      const near = await pdf.store({ buffer: Buffer.from('%PDF near'), fileName: 'near.pdf' });
+      const far = await pdf.store({ buffer: Buffer.from('%PDF far'), fileName: 'far.pdf' });
+      await versions.save(
+        aVersion({ id: 'v-current', documentId: doc.id, storageKey: current.storageKey, validFrom: new Date('2026-07-01T00:00:00Z') }),
+      );
+      await versions.save(
+        aVersion({ id: 'v-far', documentId: doc.id, storageKey: far.storageKey, validFrom: new Date('2026-10-01T00:00:00Z'), publishedAt: T0 }),
+      );
+      await versions.save(
+        aVersion({ id: 'v-near', documentId: doc.id, storageKey: near.storageKey, validFrom: new Date('2026-08-01T00:00:00Z'), publishedAt: T0 }),
+      );
+
+      const list = await service.list();
+
+      expect(list[0].currentVersion?.id).toBe('v-current');
+      expect(list[0].upcomingVersions.map((v) => v.id)).toEqual(['v-near', 'v-far']);
     });
 
     describe('latestPdfUrl (stable public link for offers)', () => {

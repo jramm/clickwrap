@@ -80,6 +80,14 @@ export type {
   AdminControllerDeleteEmailTemplatePathParams,
 } from './AdminControllerDeleteEmailTemplate.ts';
 export type {
+  AdminControllerGetCustomer200,
+  AdminControllerGetCustomer401,
+  AdminControllerGetCustomer404,
+  AdminControllerGetCustomerPathParams,
+  AdminControllerGetCustomerQuery,
+  AdminControllerGetCustomerQueryResponse,
+} from './AdminControllerGetCustomer.ts';
+export type {
   AdminControllerHistory200,
   AdminControllerHistory401,
   AdminControllerHistory404,

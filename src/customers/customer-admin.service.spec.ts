@@ -124,6 +124,25 @@ describe('CustomerAdminService', () => {
     });
   });
 
+  describe('get', () => {
+    it('returns the full customer row by id', async () => {
+      await customers.save({ id: 'c-acme', externalRef: 'crm-1', firstName: 'Jo', lastName: 'Doe', companyName: 'Acme GmbH', roles: ['customer'], contactEmails: ['legal@acme.example'] });
+      expect(await service.get('c-acme')).toEqual({
+        id: 'c-acme',
+        externalRef: 'crm-1',
+        firstName: 'Jo',
+        lastName: 'Doe',
+        companyName: 'Acme GmbH',
+        roles: ['customer'],
+        contactEmails: ['legal@acme.example'],
+      });
+    });
+
+    it('CUSTOMER_NOT_FOUND for an unknown id', async () => {
+      await expect(service.get('missing')).rejects.toMatchObject({ name: 'DomainError', code: 'CUSTOMER_NOT_FOUND' });
+    });
+  });
+
   describe('create', () => {
     it('creates a customer (201 object) and writes a CUSTOMER_CREATE audit entry', async () => {
       const created = await service.create(

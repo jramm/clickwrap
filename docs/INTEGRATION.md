@@ -90,17 +90,22 @@ and `validFrom`. `blocking=true` → show the block screen; accepting lifts the 
 A version may be **published with a future `validFrom`** ("publish now, effective later"). What
 that means for integrators:
 
-- **Both versions can be open at once.** The pending list then contains the current version
-  (`upcoming: false`) AND the upcoming one (`upcoming: true`, with its `validFrom`). The current
-  version remains the compliance baseline — `GET /compliance` keeps requiring it until the flip.
+- **Multiple upcoming versions are supported.** More than one future version may be scheduled at
+  the same time (e.g. an August and an October revision). The documents list exposes them as the
+  `upcomingVersions` **array** (ordered by `validFrom` ascending), the dashboard emits an entry per
+  upcoming version, and each appears in the pending list and hosted page — not just the nearest one.
+- **Current + all upcoming can be open at once.** The pending list then contains the current version
+  (`upcoming: false`) AND every upcoming one (`upcoming: true`, each with its `validFrom`). The
+  current version remains the compliance baseline — `GET /compliance` keeps requiring it until the flip.
 - **Advance acceptance is valid.** `POST /customers/:id/acceptances` accepts the current version
-  **or** an upcoming one; anything else is `422 VERSION_NOT_CURRENT`. Collecting the acceptance
-  of the upcoming version before its `validFrom` means the customer is already covered when the
-  flip happens.
-- **The flip is automatic.** At `validFrom` the compliance baseline switches to the new version
-  (server time); the hourly activation sweep retires the predecessor, closes its open states as
-  SUPERSEDED (no tacit acceptance is ever booked for them afterwards) and carries an existing
-  hard block over to the new version's state.
+  **or ANY** upcoming one (the nearest or a far-future one alike); anything else is
+  `422 VERSION_NOT_CURRENT`. Collecting the acceptance of an upcoming version before its `validFrom`
+  means the customer is already covered when the flip happens.
+- **The flip is automatic and one-by-one.** At each `validFrom` the compliance baseline switches to
+  that version (server time); the hourly activation sweep retires the predecessor, closes its open
+  states as SUPERSEDED (no tacit acceptance is ever booked for them afterwards) and carries an
+  existing hard block over to the new version's state. With several futures the nearest becomes
+  current at its `validFrom` while later ones stay upcoming until their own `validFrom`.
 - **Deadlines never bite before `validFrom`.** For states of a not-yet-effective version the
   deadline is `max(notifiedAt + objection/grace period, validFrom)` — recipients always get the
   full window, and nothing can block or be tacitly accepted before the version is in force.

@@ -65,8 +65,9 @@ export interface DashboardResult {
 
 /**
  * Per-version acceptance dashboard. `dashboard()` returns one entry per RELEVANT version — the
- * current published version plus the upcoming (scheduled) published version of every document;
- * `versionStats(id)` returns the same shape for a single version.
+ * current published version plus EVERY upcoming (scheduled) published version of every document
+ * (not just the next one — several futures may be scheduled at once); `versionStats(id)` returns
+ * the same shape for a single version.
  */
 @Injectable()
 export class DashboardService {
@@ -84,7 +85,7 @@ export class DashboardService {
     for (const document of await this.documents.findAll()) {
       const relevant = [
         await this.versions.findCurrentPublished(document.type, document.audience, now),
-        await this.versions.findUpcomingPublished(document.type, document.audience, now),
+        ...(await this.versions.findUpcomingPublishedList(document.type, document.audience, now)),
       ];
       for (const version of relevant) {
         if (version) {
@@ -94,7 +95,9 @@ export class DashboardService {
     }
     items.sort(
       (a, b) =>
-        a.documentName.localeCompare(b.documentName) || Number(a.upcoming) - Number(b.upcoming),
+        a.documentName.localeCompare(b.documentName) ||
+        Number(a.upcoming) - Number(b.upcoming) ||
+        a.validFrom.getTime() - b.validFrom.getTime(),
     );
     return { items };
   }

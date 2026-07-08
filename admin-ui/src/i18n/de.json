@@ -285,7 +285,12 @@
     "evidenceNote": "Beleg-Notiz",
     "ip": "IP",
     "userAgent": "User-Agent",
-    "consentText": "Einwilligungstext"
+    "consentText": "Einwilligungstext",
+    "externalRef": "Ref: {{ref}}",
+    "copyId": "Kunden-ID kopieren",
+    "copyIdPrompt": "Kunden-ID kopieren:",
+    "idCopied": "Kunden-ID kopiert.",
+    "idCopiedManual": "Kunden-ID bitte manuell kopieren."
   },
   "customers": {
     "title": "Kunden",

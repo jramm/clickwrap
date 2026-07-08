@@ -249,6 +249,18 @@ describe('AcceptanceService', () => {
     expect(currentResponse.state).toBe('ACCEPTED');
   });
 
+  it('advance acceptance: the FAR (second) future version is acceptable, not only the nearest upcoming one', async () => {
+    await seedVersion({ validFrom: new Date('2026-07-01T00:00:00Z') });
+    await seedVersion({ id: 'v-near', validFrom: new Date('2026-08-01T00:00:00Z'), publishedAt: NOW });
+    await seedVersion({ id: 'v-far', validFrom: new Date('2026-10-01T00:00:00Z'), publishedAt: NOW });
+    await states.save(aState({ id: 'cvs-far', versionId: 'v-far', state: 'PENDING_NOTIFICATION' }));
+
+    const response = await service.accept(acceptInput({ versionId: 'v-far' }));
+
+    expect(response.state).toBe('ACCEPTED');
+    expect((await states.findByCustomerAndVersion('c-123', 'v-far'))?.state).toBe('ACCEPTED');
+  });
+
   it('a RETIRED old revision stays rejected as VERSION_NOT_CURRENT (only current or upcoming are acceptable)', async () => {
     await seedVersion({ id: 'v-old', status: 'RETIRED', validFrom: new Date('2026-06-01T00:00:00Z') });
     await seedVersion({ validFrom: new Date('2026-07-01T00:00:00Z') });

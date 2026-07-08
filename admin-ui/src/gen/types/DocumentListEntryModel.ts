@@ -30,10 +30,10 @@ export type DocumentListEntryModel = {
    */
   currentVersion?: VersionModel | null;
   /**
-   * @description Next UPCOMING published version (validFrom in the future, scheduled publish) or null. The current version stays the compliance baseline until the flip at its validFrom.
-   * @type object
+   * @description ALL UPCOMING published versions (validFrom in the future, scheduled publish), ordered by validFrom ascending (the nearest flip first). Empty when none are scheduled. Several future versions may be scheduled simultaneously — every one is listed, not just the next. The current version stays the compliance baseline until the flip at the nearest one\'s validFrom.
+   * @type array
    */
-  upcomingVersion?: VersionModel | null;
+  upcomingVersions: VersionModel[];
   /**
    * @description Stable public URL (`${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf`) that always 302-redirects to the currently effective published PDF — deterministic from the document keys, valid across future publishes (for rendering into offers). Null when no published version is in effect or PUBLIC_BASE_URL is unset.
    * @type string

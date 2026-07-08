@@ -2,8 +2,9 @@
  * Pending agreements service — content for the portal popup
  * (GET /customers/:customerId/pending-agreements). Returns one item per current PUBLISHED
  * version with an open state — plus one per UPCOMING published version (validFrom in the
- * future, marked `upcoming: true`) so acceptance can be collected in advance; both may be open
- * simultaneously. ACCEPTED/OBJECTED/SUPERSEDED never appear (nothing left to do or no block).
+ * future, marked `upcoming: true`) so acceptance can be collected in advance; the current one
+ * and any number of future ones may be open simultaneously (every future version is listed, not
+ * just the next). ACCEPTED/OBJECTED/SUPERSEDED never appear (nothing left to do or no block).
  */
 import { Inject, Injectable } from '@nestjs/common';
 import { DomainError } from '../common/errors';
@@ -72,14 +73,15 @@ export class PendingAgreementsService {
       if (!relevantAudiences.includes(document.audience)) {
         continue;
       }
-      // Current AND upcoming revision may both be open at the same time (scheduled publish):
-      // the current one remains the compliance baseline, the upcoming one is offered for
-      // advance acceptance and is marked `upcoming: true`.
+      // Current AND every upcoming revision may be open at the same time (scheduled publish):
+      // the current one remains the compliance baseline, each upcoming one is offered for
+      // advance acceptance and is marked `upcoming: true`. Several futures may be scheduled at
+      // once — all are listed (ordered by validFrom asc), not just the next.
       const current = await this.versions.findCurrentPublished(document.type, document.audience, now);
-      const upcoming = await this.versions.findUpcomingPublished(document.type, document.audience, now);
+      const upcoming = await this.versions.findUpcomingPublishedList(document.type, document.audience, now);
       for (const { version, isUpcoming } of [
         { version: current, isUpcoming: false },
-        { version: upcoming, isUpcoming: true },
+        ...upcoming.map((version) => ({ version, isUpcoming: true })),
       ]) {
         if (!version) {
           continue;

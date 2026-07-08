@@ -251,6 +251,29 @@ describe('PendingAgreementsService', () => {
       });
     });
 
+    it('lists current AND ALL upcoming versions simultaneously (two futures), ordered current-first then validFrom asc', async () => {
+      const customer = await customers.save(aCustomer());
+      const { current, upcoming: near } = await setupUpcoming();
+      const far = anActiveVersion({
+        id: 'v-dpa-far',
+        documentId: 'doc-dpa-c',
+        versionLabel: 'October 2026 edition',
+        changeSummary: 'Second scheduled revision.',
+        validFrom: new Date('2026-10-01T00:00:00Z'),
+        publishedAt: T0,
+      });
+      await versionsRepo.save(far);
+      await statesRepo.save(aState({ id: 'cvs-cur', versionId: current.id, state: 'NOTIFIED', notifiedAt: T0, deadlineAt: DEADLINE }));
+      await statesRepo.save(aState({ id: 'cvs-near', versionId: near.id, state: 'PENDING_NOTIFICATION' }));
+      await statesRepo.save(aState({ id: 'cvs-far', versionId: far.id, state: 'PENDING_NOTIFICATION' }));
+
+      const result = await service.getPendingAgreements(customer.id, 'customer');
+
+      expect(result.map((i) => i.versionId)).toEqual([current.id, near.id, far.id]);
+      expect(result.map((i) => i.upcoming)).toEqual([false, true, true]);
+      expect(result[2]).toMatchObject({ validFrom: new Date('2026-10-01T00:00:00Z'), versionLabel: 'October 2026 edition' });
+    });
+
     it('an upcoming version already ACCEPTED in advance no longer appears (only the current one stays)', async () => {
       const customer = await customers.save(aCustomer());
       const { current, upcoming } = await setupUpcoming();

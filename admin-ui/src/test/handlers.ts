@@ -5,6 +5,7 @@ import {
   createCustomerResponseModelSchema,
   customerHistoryResponseModelSchema,
   customerListResponseModelSchema,
+  customerRowModelSchema,
   dashboardResponseModelSchema,
   documentListResponseModelSchema,
   documentTypeModelSchema,
@@ -156,6 +157,9 @@ export const overviewFixture = overviewResponseModelSchema.parse({
 /** Future timestamp relative to the test run — powers the scheduled-publish fixtures. */
 export const futureValidFromFixture = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
+/** A second, farther future timestamp — for the multiple-scheduled-versions fixtures. */
+export const farFutureValidFromFixture = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString();
+
 export const documentsFixture = documentListResponseModelSchema.parse({
   items: [
     {
@@ -164,15 +168,26 @@ export const documentsFixture = documentListResponseModelSchema.parse({
       audience: 'operator',
       name: 'Data Processing Agreement — Operator',
       currentVersion: makeVersion({ id: 'v-100', documentId: 'doc-dpa-op' }),
-      // Scheduled publish: a newer PUBLISHED version that becomes effective in the future.
-      upcomingVersion: makeVersion({
-        id: 'v-300',
-        documentId: 'doc-dpa-op',
-        versionLabel: 'September 2026 edition',
-        validFrom: futureValidFromFixture,
-        fileName: 'dpa-2026-09.pdf',
-        pdfUrl: 'https://example.test/v-300.pdf',
-      }),
+      // Scheduled publish: TWO newer PUBLISHED versions that become effective in the future
+      // (ordered by validFrom asc) — several futures may be scheduled at once.
+      upcomingVersions: [
+        makeVersion({
+          id: 'v-300',
+          documentId: 'doc-dpa-op',
+          versionLabel: 'September 2026 edition',
+          validFrom: futureValidFromFixture,
+          fileName: 'dpa-2026-09.pdf',
+          pdfUrl: 'https://example.test/v-300.pdf',
+        }),
+        makeVersion({
+          id: 'v-400',
+          documentId: 'doc-dpa-op',
+          versionLabel: 'December 2026 edition',
+          validFrom: farFutureValidFromFixture,
+          fileName: 'dpa-2026-12.pdf',
+          pdfUrl: 'https://example.test/v-400.pdf',
+        }),
+      ],
       latestPdfUrl: 'https://clickwrap.example.org/documents/dpa/operator/latest.pdf',
     },
     {
@@ -186,7 +201,7 @@ export const documentsFixture = documentListResponseModelSchema.parse({
         fileName: 'tos-2026-04.pdf',
         pdfUrl: 'https://example.test/v-050.pdf',
       }),
-      upcomingVersion: null,
+      upcomingVersions: [],
       latestPdfUrl: 'https://clickwrap.example.org/documents/terms/operator/latest.pdf',
     },
     {
@@ -195,7 +210,7 @@ export const documentsFixture = documentListResponseModelSchema.parse({
       audience: 'partner',
       name: 'Terms of Service — Partner',
       currentVersion: null,
-      upcomingVersion: null,
+      upcomingVersions: [],
       latestPdfUrl: null,
     },
     {
@@ -204,7 +219,7 @@ export const documentsFixture = documentListResponseModelSchema.parse({
       audience: 'partner',
       name: 'Data Processing Agreement — Partner',
       currentVersion: null,
-      upcomingVersion: null,
+      upcomingVersions: [],
       latestPdfUrl: null,
     },
   ],
@@ -283,6 +298,17 @@ export const customersFixture = customerListResponseModelSchema.parse({
     },
   ],
   total: 1,
+});
+
+/** Single-customer read (detail-page header) — mirrors the c-123 list row. */
+export const customerFixture = customerRowModelSchema.parse({
+  id: 'c-123',
+  externalRef: 'crm-4711',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  companyName: 'Example Utility Ltd',
+  roles: ['operator'],
+  contactEmails: ['legal@example.test'],
 });
 
 export const dashboardFixture = dashboardResponseModelSchema.parse({
@@ -439,6 +465,7 @@ export const handlers = [
   http.get(`${BASE}/admin/documents/:id/versions`, () => HttpResponse.json(versionsFixture)),
   http.get(`${BASE}/admin/customers`, () => HttpResponse.json(customersFixture)),
   http.get(`${BASE}/admin/customers/:id/history`, () => HttpResponse.json(historyFixture)),
+  http.get(`${BASE}/admin/customers/:id`, () => HttpResponse.json(customerFixture)),
   http.post(`${BASE}/admin/customers`, () => HttpResponse.json(createdCustomerFixture, { status: 201 })),
   http.post(`${BASE}/admin/versions/:id/publish`, () => HttpResponse.json(publishFixture, { status: 201 })),
   http.post(`${BASE}/admin/customers/:id/acceptance-links`, () =>

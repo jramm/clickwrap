@@ -16,6 +16,7 @@ import {
   adminControllerUpdateEmailTemplate,
   adminControllerHistoryQueryKey,
   adminControllerHistoryQueryOptions,
+  adminControllerGetCustomerQueryOptions,
   adminControllerListAudiences,
   adminControllerListAudiencesQueryKey,
   adminControllerListCustomersQueryKey,
@@ -225,6 +226,14 @@ export function useCreateAcceptanceLink() {
 export function useCustomerHistory(customerId: string) {
   return useQuery({
     ...adminControllerHistoryQueryOptions({ id: customerId }),
+    enabled: Boolean(customerId),
+  });
+}
+
+/** Single customer record (`GET /admin/customers/:id`) — powers the detail-page header. */
+export function useCustomer(customerId: string) {
+  return useQuery({
+    ...adminControllerGetCustomerQueryOptions({ id: customerId }),
     enabled: Boolean(customerId),
   });
 }
