@@ -91,12 +91,24 @@ per entity and immutable after creation; `name` is a human-readable label.
 Identical family under `/admin/document-types` (with two extra optional fields — the per-type
 e-mail template assignments, see §2a):
 
-- `GET /admin/document-types` — each entry is `{ id, key, name, notificationTemplateId?, reminderTemplateId? }`.
-- `POST /admin/document-types` — `{ "key": "terms", "name": "Terms of Service" }`
+- `GET /admin/document-types` — each entry is `{ id, key, name, external, notificationTemplateId?, reminderTemplateId? }`.
+- `POST /admin/document-types` — `{ "key": "terms", "name": "Terms of Service", "external"?: false }`
 - `PATCH /admin/document-types/:id` — `{ "name"?, "notificationTemplateId"?, "reminderTemplateId"? }`.
   For the template fields: a string assigns (validated to exist and match the kind), `null` clears
   the assignment, an omitted field keeps it. Unknown/incompatible template → `422 INVALID_STATE`.
+  `key` **and** `external` are immutable — sending either in the PATCH body → `422 INVALID_STATE`.
 - `DELETE /admin/document-types/:id` — refuses if referenced by any document.
+
+#### Clickwrap vs. externally-signed document types (`external`)
+
+`external` splits the two document worlds the service supports and is **settable at creation only**
+(immutable afterwards):
+
+- **`external: false` (default) — clickwrap flow.** The existing versions / publish / acceptance /
+  compliance-gate machinery (§3). Documents and versions can be created for the type.
+- **`external: true` — externally-signed documents.** No versions, no publish, no compliance gate.
+  Instead, already-signed PDFs (e.g. counter-signed offers) are uploaded per customer as immutable
+  evidence (§4a). Creating a document/version for an external type → `422 DOCUMENT_TYPE_EXTERNAL`.
 
 Using a `type`/`audience` key that does not exist as an entity raises `422 UNKNOWN_DOCUMENT_TYPE` /
 `422 UNKNOWN_AUDIENCE` at the point of use (e.g. creating a document).
@@ -423,9 +435,18 @@ states with their IDs:
     "id": "cvs-1", "versionId": "…", "documentType": "dpa", "versionLabel": "2026-06",
     "state": "NOTIFIED", "notifiedAt": "…", "deadlineAt": "…", "remindersSent": 1,
     "carryOverBlocking": false
+  }],
+  "signedDocuments": [{
+    "id": "sd-…", "documentTypeKey": "signed-offer", "audience": "customer",
+    "fileName": "signed-offer.pdf", "contentHash": "sha256:…", "fileSize": 20480,
+    "signedAt": "2026-06-15T00:00:00Z", "signerName": "Jane Doe",
+    "reference": "HubSpot deal 12345", "uploadedBy": "u-42", "uploadedAt": "…"
   }]
 }
 ```
+`signedDocuments` (newest first) is the externally-signed evidence archive (§4a). It is a **pure
+evidence view** — signed documents never affect `compliant`, pending agreements, deadlines or the
+dashboards.
 
 ### POST /admin/customers/:id/acceptances — manual (back-dated) recording
 ```json
@@ -445,6 +466,31 @@ actor = the Google SSO identity. Writes an audit-log entry.
 
 ### POST /admin/customer-version-states/:id/remind
 Re-send the reminder (`remindersSent`++, e-mail send). Writes an audit-log entry.
+
+---
+
+## 4a. Admin — signed documents (externally-signed evidence archive)
+
+For document types with `external: true` (§2). Signed PDFs are uploaded per customer as immutable
+evidence — append-only (corrections are a new upload), and **never part of the compliance gate**.
+The internal `storageKey` is never exposed; each response carries a presigned `pdfUrl`.
+
+### POST /admin/customers/:id/signed-documents → 201
+`multipart/form-data` (primary) or base64 JSON (fallback), mirroring the version upload:
+- File: multipart field `file`, or base64 `file` + `fileName` in the JSON body.
+- Metadata: `documentTypeKey` (required, must be an `external` type), `signedAt` (required, ISO —
+  backdatable), `signerName?`, `reference?`, `audience?`, `note?`.
+- Validation: unknown customer → `404 CUSTOMER_NOT_FOUND`; unknown type → `422
+  UNKNOWN_DOCUMENT_TYPE`; a non-external type → `422 DOCUMENT_TYPE_NOT_EXTERNAL` (those use the
+  version flow); unknown `audience` → `422 UNKNOWN_AUDIENCE`.
+- 201 → the created `SignedDocument` (with a presigned `pdfUrl`; `contentHash` computed host-side).
+  Writes a `SIGNED_DOCUMENT_UPLOAD` admin-audit entry.
+
+### GET /admin/customers/:id/signed-documents
+`{ items: SignedDocument[] }`, newest first.
+
+### GET /admin/signed-documents/:id/pdf → 302
+Redirects to a fresh presigned PDF URL. Unknown id → `404 VERSION_NOT_FOUND`.
 
 ---
 
@@ -667,6 +713,8 @@ the portal popup (`POST /customers/:id/notifications`).
 | 422 | `CONSENT_TEXT_REQUIRED` | Publish of an ACTIVE version without consent text |
 | 422 | `UNKNOWN_AUDIENCE` | Unknown/invalid `audience` key |
 | 422 | `UNKNOWN_DOCUMENT_TYPE` | Unknown/invalid document `type` key |
+| 422 | `DOCUMENT_TYPE_EXTERNAL` | Version/document operation on an `external` document type (use the signed-documents flow) |
+| 422 | `DOCUMENT_TYPE_NOT_EXTERNAL` | Signed-document upload targeting a non-external type (use the version/clickwrap flow) |
 | 422 | `ROLE_MISMATCH` | Customer does not have the document audience's role |
 | 422 | `CONSENT_TEXT_MISMATCH` | Displayed text ≠ versioned consent text |
 | 422 | `OBJECTION_NOT_APPLICABLE` | Objection on an ACTIVE version |

@@ -10,6 +10,11 @@ import { TOKENS } from '../persistence/tokens';
 export interface CreateDocumentTypeInput {
   key: string;
   name: string;
+  /**
+   * Marks the type as externally-signed (SignedDocument flow) instead of clickwrap
+   * (versions/publish/gate). SETTABLE AT CREATION ONLY — immutable afterwards. Default false.
+   */
+  external?: boolean;
 }
 
 /** `key` is deliberately NOT part of this type — it is immutable, see `update()`. */
@@ -44,14 +49,19 @@ export class DocumentTypeAdminService {
     if (!input.name || input.name.trim() === '') {
       throw new DomainError('INVALID_STATE', 'name is required');
     }
-    const saved = await this.documentTypes.save({ id: newId('dt'), key: input.key, name: input.name });
+    const saved = await this.documentTypes.save({
+      id: newId('dt'),
+      key: input.key,
+      name: input.name,
+      external: input.external === true,
+    });
     await this.audit.append({
       id: newId('audit'),
       action: 'DOCUMENT_TYPE_CREATE',
       actor,
       targetType: 'DocumentType',
       targetId: saved.id,
-      metadata: { key: saved.key, name: saved.name },
+      metadata: { key: saved.key, name: saved.name, external: saved.external === true },
       createdAt: this.clock.now(),
     });
     return saved;
@@ -65,6 +75,9 @@ export class DocumentTypeAdminService {
   async update(id: string, body: Record<string, unknown>, actor: string): Promise<DocumentTypeDef> {
     if (Object.prototype.hasOwnProperty.call(body, 'key')) {
       throw new DomainError('INVALID_STATE', 'key is immutable');
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'external')) {
+      throw new DomainError('INVALID_STATE', 'external is immutable (set it only at creation)');
     }
     const existing = await this.findByIdOrThrow(id);
     const name = typeof body.name === 'string' && body.name.trim() !== '' ? body.name : existing.name;

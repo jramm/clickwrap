@@ -11,10 +11,12 @@ import {
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemorySignedDocumentRepo,
 } from '../persistence/inmemory';
 import {
   aCustomer,
   aDocument,
+  aSignedDocument,
   aState,
   aVersion,
   anAcceptance,
@@ -206,6 +208,20 @@ describe('ComplianceService', () => {
 
     expect(result.compliant).toBe(true);
     expect(result.roles).toEqual([]);
+    expect(result.details).toEqual({});
+  });
+
+  it('externally-signed documents are NOT part of the compliance gate (no coupling)', async () => {
+    // The ComplianceService is constructed without a SignedDocumentRepo — signed documents can
+    // never affect `compliant`, the details or deadlines. A customer whose only document activity
+    // is signed documents (external type, no clickwrap versions) is fully compliant.
+    const customer = await customers.save(aCustomer());
+    const signedDocuments = new InMemorySignedDocumentRepo();
+    await signedDocuments.append(aSignedDocument({ id: 'sd-1', customerId: customer.id }));
+
+    const result = await service.getCompliance(customer.id, 'customer');
+
+    expect(result.compliant).toBe(true);
     expect(result.details).toEqual({});
   });
 

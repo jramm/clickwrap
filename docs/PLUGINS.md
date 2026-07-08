@@ -134,6 +134,10 @@ interface FileStorage {
 
 - The `storageKey` format is yours (S3 key, generated id, …). The host computes `contentHash`,
   `fileName`, `fileSize` itself — a plugin is never trusted with evidence metadata.
+- The same plugin backs **both** blob kinds: clickwrap version PDFs / acceptance evidence **and**
+  externally-signed documents (the `SignedDocument` archive). Both go through the identical
+  `store` / `getPresignedUrl` (download) / `retrieve` contract and the host-side content hashing —
+  a plugin needs no awareness of which kind it is storing.
 - `getPresignedUrl` and `retrieve` must reject unknown keys.
 - `retrieve` loads the whole file into memory — the host uses it to attach the accepted document PDF
   to the acceptance-confirmation mail.

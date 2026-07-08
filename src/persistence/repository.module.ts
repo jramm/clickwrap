@@ -31,6 +31,7 @@ import {
   InMemoryEmailTemplateRepo,
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
+  InMemorySignedDocumentRepo,
 } from './inmemory';
 import { PersistenceModule } from './prisma/persistence.module';
 import { TOKENS } from './tokens';
@@ -75,6 +76,7 @@ const inMemoryProviders: Provider[] = [
   { provide: TOKENS.ObjectionRepo, useClass: InMemoryObjectionRepo },
   { provide: TOKENS.NotificationEventRepo, useClass: InMemoryNotificationEventRepo },
   { provide: TOKENS.AcceptanceLinkRepo, useClass: InMemoryAcceptanceLinkRepo },
+  { provide: TOKENS.SignedDocumentRepo, useClass: InMemorySignedDocumentRepo },
   { provide: TOKENS.Clock, useClass: SystemClock },
   { provide: ADMIN_AUDIT_TOKEN, useClass: InMemoryAdminAuditRepo },
   { provide: CONSENT_TOKENS.IdempotencyStore, useClass: InMemoryIdempotencyStore },

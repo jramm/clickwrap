@@ -203,6 +203,44 @@ export class HistoryStateModel {
   carryOverBlocking?: boolean;
 }
 
+export class HistorySignedDocumentModel {
+  @ApiProperty({ example: 'sd-8a71…' })
+  id!: string;
+
+  @ApiProperty({ example: 'signed-offer' })
+  documentTypeKey!: string;
+
+  @ApiPropertyOptional({ example: 'customer' })
+  audience?: string;
+
+  @ApiProperty({ example: 'signed-offer.pdf' })
+  fileName!: string;
+
+  @ApiProperty({ example: 'sha256:…' })
+  contentHash!: string;
+
+  @ApiProperty({ example: 20480 })
+  fileSize!: number;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  signedAt!: Date;
+
+  @ApiPropertyOptional({ example: 'Jane Doe' })
+  signerName?: string;
+
+  @ApiPropertyOptional({ example: 'HubSpot deal 12345 / signed offer' })
+  reference?: string;
+
+  @ApiPropertyOptional()
+  note?: string;
+
+  @ApiProperty({ example: 'u-42' })
+  uploadedBy!: string;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  uploadedAt!: Date;
+}
+
 export class CustomerHistoryResponseModel {
   @ApiProperty({ type: [HistoryAcceptanceModel] })
   acceptances!: HistoryAcceptanceModel[];
@@ -215,6 +253,12 @@ export class CustomerHistoryResponseModel {
 
   @ApiProperty({ type: [HistoryStateModel] })
   states!: HistoryStateModel[];
+
+  @ApiProperty({
+    type: [HistorySignedDocumentModel],
+    description: 'Externally-signed documents (evidence archive) — never part of the compliance gate.',
+  })
+  signedDocuments!: HistorySignedDocumentModel[];
 }
 
 export class ManualAcceptanceBodyModel {
@@ -303,6 +347,22 @@ export class UpdateNamedEntityBodyModel {
   name!: string;
 }
 
+export class CreateDocumentTypeBodyModel {
+  @ApiProperty({ example: 'signed-offer', description: 'URL-safe slug [a-z0-9-]{2,32}.' })
+  key!: string;
+
+  @ApiProperty({ example: 'Signed offer' })
+  name!: string;
+
+  @ApiPropertyOptional({
+    example: false,
+    description:
+      'true = externally-signed document type (SignedDocument flow, no versions/publish/gate). ' +
+      'Default false (clickwrap). Immutable after creation.',
+  })
+  external?: boolean;
+}
+
 const EMAIL_TEMPLATE_KINDS = ['VERSION_NOTIFICATION', 'REMINDER', 'ACCEPTANCE_CONFIRMATION'] as const;
 
 export class DocumentTypeModel {
@@ -314,6 +374,14 @@ export class DocumentTypeModel {
 
   @ApiProperty({ example: 'Data Processing Agreement' })
   name!: string;
+
+  @ApiProperty({
+    example: false,
+    description:
+      'true = externally-signed document type (SignedDocument flow, no versions/publish/gate); ' +
+      'false = clickwrap type. Set at creation only, immutable afterwards.',
+  })
+  external!: boolean;
 
   @ApiPropertyOptional({ example: 'tpl-1', description: 'Assigned VERSION_NOTIFICATION template id.' })
   notificationTemplateId?: string;

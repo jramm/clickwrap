@@ -112,6 +112,7 @@ enum AdminAuditAction {
   EMAIL_TEMPLATE_CREATE
   EMAIL_TEMPLATE_UPDATE
   EMAIL_TEMPLATE_DELETE
+  SIGNED_DOCUMENT_UPLOAD
 }
 
 /// Source of an escalation entry — see src/common/escalation/escalation-log.ts.
@@ -147,6 +148,12 @@ model DocumentTypeDef {
   id   String @id @default(cuid())
   key  String @unique
   name String
+
+  /// Splits clickwrap vs. externally-signed document types (= src/domain/types.ts::
+  /// DocumentTypeDef.external). false (default) = the clickwrap version/publish/acceptance flow;
+  /// true = externally-signed documents uploaded per customer (SignedDocument), no versions/gate.
+  /// Settable at creation only; immutable afterwards (the admin PATCH never reads it).
+  external Boolean @default(false)
 
   /// Optional per-document-type e-mail template assignments (EmailTemplate.id). No FK on purpose
   /// (application-level integrity, same rationale as the key references above): the admin service
@@ -410,6 +417,33 @@ model AcceptanceLink {
   lastUsedAt  DateTime?
 
   @@index([customerId])
+}
+
+/// Externally-signed document uploaded per customer (= src/domain/types.ts::SignedDocument):
+/// the evidence archive of the "legal signed document service". Append-only and immutable
+/// (corrections = a new upload; no update/delete in the MVP). `documentTypeKey` references a
+/// DocumentTypeDef with external=true; `customerId`/`audience` are plain references like elsewhere
+/// (no FK, application-level integrity — same rationale as Audience/DocumentTypeDef above).
+/// contentHash is `sha256:<hex>` computed host-side. NOT part of the compliance gate.
+model SignedDocument {
+  id              String   @id
+  customerId      String
+  documentTypeKey String
+  audience        String?
+  fileName        String
+  storageKey      String
+  contentHash     String
+  fileSize        Int
+  signedAt        DateTime // when the document was signed (backdatable)
+  signerName      String?
+  reference       String?
+  note            String?
+  uploadedBy      String // actor from the auth context, never the body
+  uploadedAt      DateTime // set by the service (Clock)
+
+  createdAt DateTime @default(now())
+
+  @@index([customerId, uploadedAt])
 }
 
 /// Auditability of admin actions: publish, manual acceptance, deadline extension/block

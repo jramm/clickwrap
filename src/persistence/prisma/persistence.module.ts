@@ -28,6 +28,7 @@ import { PrismaIdempotencyStore } from './idempotency-store.repo';
 import { PrismaNotificationEventRepo } from './notification-event.repo';
 import { PrismaObjectionRepo } from './objection.repo';
 import { PrismaOutboundEmailRepo } from './outbound-email.repo';
+import { PrismaSignedDocumentRepo } from './signed-document.repo';
 import { PrismaService } from './prisma.service';
 
 @Module({
@@ -44,6 +45,7 @@ import { PrismaService } from './prisma.service';
     { provide: TOKENS.ObjectionRepo, useClass: PrismaObjectionRepo },
     { provide: TOKENS.NotificationEventRepo, useClass: PrismaNotificationEventRepo },
     { provide: TOKENS.AcceptanceLinkRepo, useClass: PrismaAcceptanceLinkRepo },
+    { provide: TOKENS.SignedDocumentRepo, useClass: PrismaSignedDocumentRepo },
     { provide: TOKENS.Clock, useClass: SystemClock },
     { provide: ADMIN_AUDIT_TOKEN, useClass: PrismaAdminAuditRepo },
     { provide: CONSENT_TOKENS.IdempotencyStore, useClass: PrismaIdempotencyStore },
@@ -63,6 +65,7 @@ import { PrismaService } from './prisma.service';
     TOKENS.ObjectionRepo,
     TOKENS.NotificationEventRepo,
     TOKENS.AcceptanceLinkRepo,
+    TOKENS.SignedDocumentRepo,
     TOKENS.Clock,
     ADMIN_AUDIT_TOKEN,
     CONSENT_TOKENS.IdempotencyStore,

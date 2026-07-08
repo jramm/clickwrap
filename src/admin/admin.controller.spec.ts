@@ -33,6 +33,7 @@ import {
   InMemoryEmailTemplateRepo,
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
+  InMemorySignedDocumentRepo,
 } from '../persistence/inmemory';
 import { CustomerAdminService } from '../customers/customer-admin.service';
 import { AdminController } from './admin.controller';
@@ -115,6 +116,7 @@ describe('AdminController', () => {
         { provide: TOKENS.NotificationEventRepo, useValue: notifications },
         { provide: TOKENS.AudienceRepo, useValue: audiences },
         { provide: TOKENS.DocumentTypeRepo, useValue: documentTypes },
+        { provide: TOKENS.SignedDocumentRepo, useValue: new InMemorySignedDocumentRepo() },
         { provide: TOKENS.Clock, useValue: new FixedClock(T0) },
         { provide: AGREEMENTS_TOKENS.PdfStorage, useValue: new InMemoryPdfStorage() },
         { provide: AGREEMENTS_TOKENS.RolloutNotifier, useValue: notifier },

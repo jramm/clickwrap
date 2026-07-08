@@ -9,6 +9,7 @@ import type { CustomerHistoryResponseModel } from '../types/CustomerHistoryRespo
 import { historyAcceptanceModelSchema } from './historyAcceptanceModelSchema.ts';
 import { historyNotificationModelSchema } from './historyNotificationModelSchema.ts';
 import { historyObjectionModelSchema } from './historyObjectionModelSchema.ts';
+import { historySignedDocumentModelSchema } from './historySignedDocumentModelSchema.ts';
 import { historyStateModelSchema } from './historyStateModelSchema.ts';
 
 export const customerHistoryResponseModelSchema = z.object({
@@ -16,4 +17,9 @@ export const customerHistoryResponseModelSchema = z.object({
   objections: z.array(z.lazy(() => historyObjectionModelSchema)),
   notifications: z.array(z.lazy(() => historyNotificationModelSchema)),
   states: z.array(z.lazy(() => historyStateModelSchema)),
+  signedDocuments: z
+    .array(z.lazy(() => historySignedDocumentModelSchema))
+    .describe(
+      'Externally-signed documents (evidence archive) — never part of the compliance gate.',
+    ),
 }) as unknown as ToZod<CustomerHistoryResponseModel>;

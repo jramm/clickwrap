@@ -68,6 +68,14 @@ describe('DocumentService', () => {
       );
     });
 
+    it('external document type → DomainError DOCUMENT_TYPE_EXTERNAL (no versions/documents allowed)', async () => {
+      await documentTypes.save(aDocumentTypeDef({ id: 'dt-signed', key: 'signed-offer', name: 'Signed offer', external: true }));
+      await expectCode(
+        service.create({ type: 'signed-offer', audience: 'customer', name: 'Signed offer — Customers' }),
+        'DOCUMENT_TYPE_EXTERNAL',
+      );
+    });
+
     it('unknown audience key → DomainError UNKNOWN_AUDIENCE', async () => {
       await expectCode(
         service.create({ type: 'dpa', audience: 'reseller', name: 'DPA — Resellers' }),

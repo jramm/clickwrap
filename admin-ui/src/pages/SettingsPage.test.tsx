@@ -118,6 +118,40 @@ describe('SettingsPage — category CRUD', () => {
     expect(patched).toMatchObject({ notificationTemplateId: 'tpl-custom' });
   });
 
+  it('offers the "external signed document type" checkbox only under document types', async () => {
+    renderWithProviders(<SettingsPage />);
+    await screen.findByText('Data Processing Agreement');
+
+    // One checkbox — in the document-types section, not the audiences section.
+    const checkboxes = screen.getAllByRole('checkbox', { name: 'External signed document type' });
+    expect(checkboxes).toHaveLength(1);
+  });
+
+  it('creates an external document type (external: true in the POST body)', async () => {
+    let posted: Record<string, unknown> | null = null;
+    server.use(
+      http.post(`${BASE}/admin/document-types`, async ({ request }) => {
+        posted = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(
+          { id: 'dt-new', key: 'signed-nda', name: 'Signed NDA', external: true },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderWithProviders(<SettingsPage />);
+    await screen.findByText('Data Processing Agreement');
+
+    // The document-types section is the second one → index [1] of the create fields/buttons.
+    await user.type(screen.getAllByLabelText('Key')[1], 'signed-nda');
+    await user.type(screen.getAllByLabelText('Name')[1], 'Signed NDA');
+    await user.click(screen.getByRole('checkbox', { name: 'External signed document type' }));
+    await user.click(screen.getAllByRole('button', { name: 'Add' })[1]);
+
+    await waitFor(() => expect(posted).toMatchObject({ key: 'signed-nda', name: 'Signed NDA', external: true }));
+  });
+
   it('surfaces the 422 "still in use" error on delete', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     server.use(

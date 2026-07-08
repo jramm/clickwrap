@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "sd-8a71…" },
+    "documentTypeKey": { "type": "string", "example": "signed-offer" },
+    "audience": { "type": "string", "example": "customer" },
+    "fileName": { "type": "string", "example": "signed-offer.pdf" },
+    "contentHash": { "type": "string", "example": "sha256:…" },
+    "fileSize": { "type": "number", "example": 20480 },
+    "signedAt": { "type": "string", "format": "date-time" },
+    "signerName": { "type": "string", "example": "Jane Doe" },
+    "reference": { "type": "string", "example": "HubSpot deal 12345 / signed offer" },
+    "note": { "type": "string" },
+    "uploadedBy": { "type": "string", "example": "u-42" },
+    "uploadedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "id",
+    "documentTypeKey",
+    "fileName",
+    "contentHash",
+    "fileSize",
+    "signedAt",
+    "uploadedBy",
+    "uploadedAt"
+  ],
+  "x-readme-ref-name": "HistorySignedDocumentModel"
+}

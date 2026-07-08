@@ -16,7 +16,9 @@ import {
   InMemoryCustomerVersionStateRepo,
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
+  InMemorySignedDocumentRepo,
 } from '../persistence/inmemory';
+import { aSignedDocument } from '../domain/testing/fixtures';
 import { HistoryService } from './history.service';
 
 describe('HistoryService', () => {
@@ -27,6 +29,7 @@ describe('HistoryService', () => {
   let acceptances: InMemoryAcceptanceRepo;
   let objections: InMemoryObjectionRepo;
   let notifications: InMemoryNotificationEventRepo;
+  let signedDocuments: InMemorySignedDocumentRepo;
   let service: HistoryService;
 
   beforeEach(async () => {
@@ -37,7 +40,17 @@ describe('HistoryService', () => {
     acceptances = new InMemoryAcceptanceRepo();
     objections = new InMemoryObjectionRepo();
     notifications = new InMemoryNotificationEventRepo();
-    service = new HistoryService(customers, acceptances, objections, notifications, states, versions, documents);
+    signedDocuments = new InMemorySignedDocumentRepo();
+    service = new HistoryService(
+      customers,
+      acceptances,
+      objections,
+      notifications,
+      states,
+      versions,
+      documents,
+      signedDocuments,
+    );
 
     await documents.save({ id: 'doc-dpa-customer', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
     await versions.save(aVersion({ id: 'v-1', documentId: 'doc-dpa-customer' }));
@@ -127,5 +140,30 @@ describe('HistoryService', () => {
       state: 'NOTIFIED',
       remindersSent: 1,
     });
+  });
+
+  it('includes externally-signed documents (newest first), without leaking the storageKey', async () => {
+    await signedDocuments.append(
+      aSignedDocument({ id: 'sd-old', customerId: 'c-123', uploadedAt: new Date('2026-07-01T09:00:00Z') }),
+    );
+    await signedDocuments.append(
+      aSignedDocument({ id: 'sd-new', customerId: 'c-123', uploadedAt: new Date('2026-07-05T09:00:00Z') }),
+    );
+    await signedDocuments.append(aSignedDocument({ id: 'sd-other', customerId: 'c-999' }));
+
+    const history = await service.history('c-123');
+
+    expect(history.signedDocuments.map((d) => d.id)).toEqual(['sd-new', 'sd-old']);
+    expect(history.signedDocuments[0]).toMatchObject({
+      id: 'sd-new',
+      documentTypeKey: 'signed-offer',
+      contentHash: 'sha256:deadbeef',
+    });
+    expect(history.signedDocuments[0]).not.toHaveProperty('storageKey');
+  });
+
+  it('returns an empty signedDocuments array when the customer has none', async () => {
+    const history = await service.history('c-123');
+    expect(history.signedDocuments).toEqual([]);
   });
 });

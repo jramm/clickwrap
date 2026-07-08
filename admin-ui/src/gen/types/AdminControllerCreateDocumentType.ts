@@ -3,11 +3,11 @@
  * Do not edit manually.
  */
 
-import type { CreateNamedEntityBodyModel } from './CreateNamedEntityBodyModel.ts';
+import type { CreateDocumentTypeBodyModel } from './CreateDocumentTypeBodyModel.ts';
+import type { DocumentTypeModel } from './DocumentTypeModel.ts';
 import type { ErrorResponseDto } from './ErrorResponseDto.ts';
-import type { NamedEntityModel } from './NamedEntityModel.ts';
 
-export type AdminControllerCreateDocumentType201 = NamedEntityModel;
+export type AdminControllerCreateDocumentType201 = DocumentTypeModel;
 
 /**
  * @description Missing/invalid admin authentication.
@@ -19,7 +19,7 @@ export type AdminControllerCreateDocumentType401 = ErrorResponseDto;
  */
 export type AdminControllerCreateDocumentType422 = ErrorResponseDto;
 
-export type AdminControllerCreateDocumentTypeMutationRequest = CreateNamedEntityBodyModel;
+export type AdminControllerCreateDocumentTypeMutationRequest = CreateDocumentTypeBodyModel;
 
 export type AdminControllerCreateDocumentTypeMutationResponse =
   AdminControllerCreateDocumentType201;

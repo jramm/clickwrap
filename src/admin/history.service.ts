@@ -10,6 +10,7 @@ import type {
   CustomerVersionStateRepo,
   NotificationEventRepo,
   ObjectionRepo,
+  SignedDocumentRepo,
 } from '../domain/ports';
 import type {
   AcceptanceChannel,
@@ -17,6 +18,7 @@ import type {
   CustomerVersionState,
   NotificationChannel,
   Objection,
+  SignedDocument,
 } from '../domain/types';
 
 export interface HistoryAcceptance {
@@ -60,11 +62,33 @@ export interface HistoryState {
   carryOverBlocking?: boolean;
 }
 
+/**
+ * Externally-signed document in the customer history (evidence archive). The internal storageKey
+ * is never exposed; the PDF is fetched via GET /admin/signed-documents/:id/pdf. NOT part of the
+ * compliance gate.
+ */
+export interface HistorySignedDocument {
+  id: string;
+  documentTypeKey: string;
+  audience?: string;
+  fileName: string;
+  contentHash: string;
+  fileSize: number;
+  signedAt: Date;
+  signerName?: string;
+  reference?: string;
+  note?: string;
+  uploadedBy: string;
+  uploadedAt: Date;
+}
+
 export interface CustomerHistory {
   acceptances: HistoryAcceptance[];
   objections: Objection[];
   notifications: HistoryNotification[];
   states: HistoryState[];
+  /** Externally-signed documents (newest first) — pure evidence, never part of the compliance gate. */
+  signedDocuments: HistorySignedDocument[];
 }
 
 /** Complete history of a customer including evidence data (legal admins only). */
@@ -78,6 +102,7 @@ export class HistoryService {
     @Inject(TOKENS.CustomerVersionStateRepo) private readonly states: CustomerVersionStateRepo,
     @Inject(TOKENS.AgreementVersionRepo) private readonly versions: AgreementVersionRepo,
     @Inject(TOKENS.AgreementDocumentRepo) private readonly documents: AgreementDocumentRepo,
+    @Inject(TOKENS.SignedDocumentRepo) private readonly signedDocuments: SignedDocumentRepo,
   ) {}
 
   async history(customerId: string): Promise<CustomerHistory> {
@@ -139,6 +164,24 @@ export class HistoryService {
       });
     }
 
-    return { acceptances, objections, notifications, states: historyStates };
+    const rawSignedDocuments = await this.signedDocuments.findByCustomer(customerId);
+    const signedDocuments: HistorySignedDocument[] = rawSignedDocuments.map(toHistorySignedDocument);
+
+    return { acceptances, objections, notifications, states: historyStates, signedDocuments };
   }
 }
+
+const toHistorySignedDocument = (document: SignedDocument): HistorySignedDocument => ({
+  id: document.id,
+  documentTypeKey: document.documentTypeKey,
+  audience: document.audience,
+  fileName: document.fileName,
+  contentHash: document.contentHash,
+  fileSize: document.fileSize,
+  signedAt: document.signedAt,
+  signerName: document.signerName,
+  reference: document.reference,
+  note: document.note,
+  uploadedBy: document.uploadedBy,
+  uploadedAt: document.uploadedAt,
+});

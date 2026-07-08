@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string",
+      "format": "binary",
+      "description": "The signed PDF (multipart field `file`)."
+    },
+    "fileName": {
+      "type": "string",
+      "description": "Fallback: PDF file name (only with the base64 `file` fallback)."
+    },
+    "documentTypeKey": {
+      "type": "string",
+      "example": "signed-offer",
+      "description": "DocumentTypeDef key — MUST be an external type."
+    },
+    "signedAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-15T00:00:00Z",
+      "description": "Signature date (backdatable)."
+    },
+    "signerName": { "type": "string", "example": "Jane Doe" },
+    "reference": { "type": "string", "example": "HubSpot deal 12345 / signed offer" },
+    "audience": {
+      "type": "string",
+      "example": "customer",
+      "description": "Audience key (validated to exist when given)."
+    },
+    "note": { "type": "string", "example": "Counter-signed on 2026-06-15." }
+  },
+  "required": ["documentTypeKey", "signedAt"],
+  "x-readme-ref-name": "SignedDocumentUploadBodyModel"
+}

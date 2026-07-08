@@ -11,5 +11,6 @@ export const TOKENS = {
   ObjectionRepo: Symbol('ObjectionRepo'),
   NotificationEventRepo: Symbol('NotificationEventRepo'),
   AcceptanceLinkRepo: Symbol('AcceptanceLinkRepo'),
+  SignedDocumentRepo: Symbol('SignedDocumentRepo'),
   Clock: Symbol('Clock'),
 } as const;

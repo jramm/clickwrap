@@ -8,6 +8,11 @@
       "description": "URL-safe slug, immutable after creation."
     },
     "name": { "type": "string", "example": "Data Processing Agreement" },
+    "external": {
+      "type": "boolean",
+      "example": false,
+      "description": "true = externally-signed document type (SignedDocument flow, no versions/publish/gate); false = clickwrap type. Set at creation only, immutable afterwards."
+    },
     "notificationTemplateId": {
       "type": "string",
       "example": "tpl-1",
@@ -24,6 +29,6 @@
       "description": "Assigned ACCEPTANCE_CONFIRMATION template id."
     }
   },
-  "required": ["id", "key", "name"],
+  "required": ["id", "key", "name", "external"],
   "x-readme-ref-name": "DocumentTypeModel"
 }

@@ -21,4 +21,5 @@ export const resetDatabase = async (prisma: PrismaService): Promise<void> => {
   await prisma.documentTypeDef.deleteMany();
   await prisma.adminAuditLog.deleteMany();
   await prisma.acceptanceLink.deleteMany();
+  await prisma.signedDocument.deleteMany();
 };

@@ -1,6 +1,8 @@
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
+import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -112,8 +114,10 @@ function CategorySection({ kind, titleKey }: { kind: CategoryKind; titleKey: str
 
   const [key, setKey] = useState('');
   const [name, setName] = useState('');
+  const [external, setExternal] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(null);
 
+  const isDocumentTypes = kind === 'document-types';
   const slugInvalid = key.length > 0 && !SLUG_PATTERN.test(key);
 
   const handleCreate = () => {
@@ -123,12 +127,13 @@ function CategorySection({ kind, titleKey }: { kind: CategoryKind; titleKey: str
     if (!name.trim()) return setFieldError(t('settings.validationName'));
 
     create.mutate(
-      { key: key.trim(), name: name.trim() },
+      { key: key.trim(), name: name.trim(), external: isDocumentTypes ? external : undefined },
       {
         onSuccess: () => {
           toast.success(t('settings.created'));
           setKey('');
           setName('');
+          setExternal(false);
         },
         onError: (err) =>
           toast.error(err instanceof ApiError ? t(errorMessageKey(err)) : t('settings.createFailed')),
@@ -191,6 +196,26 @@ function CategorySection({ kind, titleKey }: { kind: CategoryKind; titleKey: str
             {t('settings.add')}
           </Button>
         </Stack>
+        {isDocumentTypes && (
+          <FormControlLabel
+            sx={{ mt: 1 }}
+            control={
+              <Checkbox
+                checked={external}
+                onChange={(event) => setExternal(event.target.checked)}
+                inputProps={{ 'aria-label': t('settings.externalLabel') }}
+              />
+            }
+            label={
+              <Box>
+                <Typography variant="body2">{t('settings.externalLabel')}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {t('settings.externalHint')}
+                </Typography>
+              </Box>
+            }
+          />
+        )}
         {fieldError && (
           <Typography color="error" variant="body2" sx={{ mt: 1 }}>
             {fieldError}
@@ -243,7 +268,12 @@ function CategoryRow({ kind, item }: { kind: CategoryKind; item: Category }) {
     <Fragment>
     <TableRow>
       <TableCell>
-        <Chip size="small" label={item.key} title={t('settings.keyImmutable')} />
+        <Stack direction="row" spacing={0.5} alignItems="center">
+          <Chip size="small" label={item.key} title={t('settings.keyImmutable')} />
+          {kind === 'document-types' && (item as unknown as DocumentType).external && (
+            <Chip size="small" color="secondary" variant="outlined" label={t('customerDetail.signedDocuments')} />
+          )}
+        </Stack>
       </TableCell>
       <TableCell>
         {editing ? (
@@ -292,7 +322,7 @@ function CategoryRow({ kind, item }: { kind: CategoryKind; item: Category }) {
         </Stack>
       </TableCell>
     </TableRow>
-      {kind === 'document-types' && (
+      {kind === 'document-types' && !(item as unknown as DocumentType).external && (
         <TableRow>
           <TableCell colSpan={3} sx={{ pt: 0, borderBottom: 0 }}>
             <DocumentTypeTemplateControls documentType={item as unknown as DocumentType} />

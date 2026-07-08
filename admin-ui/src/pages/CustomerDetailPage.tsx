@@ -6,14 +6,16 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
-import { useCustomer, useCustomerHistory, useRemind } from '../api/hooks';
-import type { Acceptance, HistoryState } from '../api/hooks';
+import { useCustomer, useCustomerHistory, useRemind, useSignedDocuments } from '../api/hooks';
+import type { Acceptance, HistoryState, SignedDocument } from '../api/hooks';
 import { ManualAcceptanceDialog } from '../components/ManualAcceptanceDialog';
+import { SignedDocumentUploadDialog } from '../components/SignedDocumentUploadDialog';
 import { StateActionDialog } from '../components/StateActionDialog';
 import { useTranslation } from '../i18n';
 import { customerDisplayName } from '../lib/customerDisplayName';
@@ -38,6 +40,7 @@ export function CustomerDetailPage() {
   const { data: customer } = useCustomer(id);
   const toast = useToast();
   const [manualOpen, setManualOpen] = useState(false);
+  const [signedUploadOpen, setSignedUploadOpen] = useState(false);
 
   const displayName = customer ? customerDisplayName(customer) : '';
   const headerTitle = displayName || `${t('overview.customer')} ${id}`;
@@ -103,6 +106,9 @@ export function CustomerDetailPage() {
         <Stack spacing={3}>
           <OpenStatesSection customerId={id} states={data.states} />
 
+          <SignedDocumentsSection customerId={id} onUpload={() => setSignedUploadOpen(true)} />
+
+
           <Card title={t('customerDetail.acceptances')} disableContentPadding>
             {data.acceptances.length === 0 ? (
               <Typography sx={{ p: 3 }} color="text.secondary">
@@ -164,7 +170,62 @@ export function CustomerDetailPage() {
         open={manualOpen}
         onClose={() => setManualOpen(false)}
       />
+      <SignedDocumentUploadDialog
+        customerId={id}
+        open={signedUploadOpen}
+        onClose={() => setSignedUploadOpen(false)}
+      />
     </Box>
+  );
+}
+
+function SignedDocumentsSection({ customerId, onUpload }: { customerId: string; onUpload: () => void }) {
+  const { t, language } = useTranslation();
+  const { data: documents = [] } = useSignedDocuments(customerId);
+
+  return (
+    <Card
+      title={t('customerDetail.signedDocuments')}
+      action={
+        <Button size="small" variant="outlined" onClick={onUpload}>
+          {t('customerDetail.uploadSignedDocument')}
+        </Button>
+      }
+    >
+      {documents.length === 0 ? (
+        <Typography color="text.secondary">{t('customerDetail.noSignedDocuments')}</Typography>
+      ) : (
+        <Stack spacing={1.5} divider={<Divider />}>
+          {documents.map((document: SignedDocument) => (
+            <Stack
+              key={document.id}
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={{ xs: 0.5, sm: 2 }}
+              justifyContent="space-between"
+              alignItems={{ sm: 'center' }}
+            >
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap', rowGap: 0.5 }}>
+                  <Chip size="small" label={document.documentTypeKey} />
+                  <Typography variant="body1">{document.fileName}</Typography>
+                </Stack>
+                <Typography variant="body2" color="text.secondary">
+                  {t('customerDetail.signedAt')}: {fmt(document.signedAt, language)}
+                  {document.signerName ? ` · ${t('customerDetail.signer')}: ${document.signerName}` : ''}
+                  {document.reference ? ` · ${t('customerDetail.reference')}: ${document.reference}` : ''}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {t('customerDetail.uploadedBy')}: {document.uploadedBy} · {fmt(document.uploadedAt, language)}
+                </Typography>
+              </Box>
+              <Link href={document.pdfUrl} target="_blank" rel="noopener noreferrer" variant="body2">
+                {t('common.download')}
+              </Link>
+            </Stack>
+          ))}
+        </Stack>
+      )}
+    </Card>
   );
 }
 

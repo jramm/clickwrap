@@ -22,6 +22,51 @@ export interface DocumentTypeDef {
   notificationTemplateId?: string;
   reminderTemplateId?: string;
   acceptanceConfirmationTemplateId?: string;
+  /**
+   * Splits the two document worlds this service supports (see {@link SignedDocument}):
+   *  - `false` (default) → the CLICKWRAP flow: versions/publish/acceptance/compliance gate. The
+   *    admin authors versioned PDFs, customers accept them, and non-acceptance can block.
+   *  - `true` → EXTERNALLY-SIGNED documents: no versions, no publish, no gate. Signed PDFs (e.g.
+   *    counter-signed offers) are uploaded per customer as immutable evidence
+   *    ({@link SignedDocument}). Version/document creation is rejected for external types.
+   *
+   * SETTABLE AT CREATION ONLY — immutable afterwards (the PATCH admin endpoint never reads it).
+   */
+  external?: boolean;
+}
+
+/**
+ * Externally-signed document uploaded per customer — the evidence archive of the "legal signed
+ * document service". Only for a DocumentTypeDef with `external=true` (the counterpart of the
+ * clickwrap version flow). Append-only and immutable: corrections are a fresh upload, never an
+ * edit or delete. The PDF lives in the FileStorage plugin under `storageKey`; `contentHash`
+ * (`sha256:<hex>`) is computed HOST-side over the buffer (never trusted from a plugin).
+ *
+ * NOT part of the compliance gate: signed documents never affect `compliant`, pending agreements,
+ * deadlines or dashboards — they are a pure evidence store.
+ */
+export interface SignedDocument {
+  id: string;
+  customerId: string;
+  /** DocumentTypeDef key (must reference an `external=true` type). */
+  documentTypeKey: string;
+  /** Optional audience key this document belongs to (must exist when given). */
+  audience?: string;
+  fileName: string;
+  /** FileStorage plugin key — internal, never exposed on the API. */
+  storageKey: string;
+  /** `sha256:<hex>` over the PDF buffer — computed host-side, ties the evidence to the content. */
+  contentHash: string;
+  fileSize: number;
+  /** When the document was signed. Backdatable (the signature predates the upload). */
+  signedAt: Date;
+  signerName?: string;
+  /** Free-text reference, e.g. "HubSpot deal 12345 / signed offer". */
+  reference?: string;
+  note?: string;
+  /** Actor who uploaded it — from the auth context, never the body. */
+  uploadedBy: string;
+  uploadedAt: Date;
 }
 
 /**

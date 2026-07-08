@@ -14,6 +14,7 @@ import {
   namedEntityModelSchema,
   overviewResponseModelSchema,
   publishResponseModelSchema,
+  signedDocumentListResponseModelSchema,
   versionCustomersResponseModelSchema,
   versionListResponseModelSchema,
   versionModelSchema,
@@ -33,8 +34,15 @@ export const audiencesFixture = z.array(namedEntityModelSchema).parse([
 ]);
 
 export const documentTypesFixture = z.array(documentTypeModelSchema).parse([
-  { id: 'dt-terms', key: 'terms', name: 'Terms of Service' },
-  { id: 'dt-dpa', key: 'dpa', name: 'Data Processing Agreement', notificationTemplateId: 'tpl-default-notification' },
+  { id: 'dt-terms', key: 'terms', name: 'Terms of Service', external: false },
+  {
+    id: 'dt-dpa',
+    key: 'dpa',
+    name: 'Data Processing Agreement',
+    external: false,
+    notificationTemplateId: 'tpl-default-notification',
+  },
+  { id: 'dt-offer', key: 'signed-offer', name: 'Signed offer', external: true },
 ]);
 
 export const emailTemplatesFixture = z.array(emailTemplateModelSchema).parse([
@@ -271,6 +279,21 @@ export const historyFixture = customerHistoryResponseModelSchema.parse({
   ],
   objections: [],
   notifications: [{ versionId: 'v-7f3a', channel: 'EMAIL', deliveredAt: '2026-07-07T09:05:11Z' }],
+  signedDocuments: [
+    {
+      id: 'sd-1',
+      documentTypeKey: 'signed-offer',
+      audience: 'operator',
+      fileName: 'signed-offer.pdf',
+      contentHash: 'sha256:deadbeef',
+      fileSize: 20480,
+      signedAt: '2026-06-15T00:00:00Z',
+      signerName: 'Jane Doe',
+      reference: 'HubSpot deal 12345',
+      uploadedBy: 'u-42',
+      uploadedAt: '2026-07-01T09:00:00Z',
+    },
+  ],
   states: [
     {
       id: 'cvs-1',
@@ -406,6 +429,26 @@ export const versionCustomersByVersion = {
 
 export const versionCustomersFixture = versionCustomersByVersion['v-100'];
 
+export const signedDocumentsFixture = signedDocumentListResponseModelSchema.parse({
+  items: [
+    {
+      id: 'sd-1',
+      customerId: 'c-123',
+      documentTypeKey: 'signed-offer',
+      audience: 'operator',
+      fileName: 'signed-offer.pdf',
+      contentHash: 'sha256:deadbeef',
+      fileSize: 20480,
+      signedAt: '2026-06-15T00:00:00Z',
+      signerName: 'Jane Doe',
+      reference: 'HubSpot deal 12345',
+      uploadedBy: 'u-42',
+      uploadedAt: '2026-07-01T09:00:00Z',
+      pdfUrl: 'https://example.test/sd-1.pdf',
+    },
+  ],
+});
+
 export const publishFixture = publishResponseModelSchema.parse({
   versionId: 'v-200',
   status: 'PUBLISHED',
@@ -465,6 +508,10 @@ export const handlers = [
   http.get(`${BASE}/admin/documents/:id/versions`, () => HttpResponse.json(versionsFixture)),
   http.get(`${BASE}/admin/customers`, () => HttpResponse.json(customersFixture)),
   http.get(`${BASE}/admin/customers/:id/history`, () => HttpResponse.json(historyFixture)),
+  http.get(`${BASE}/admin/customers/:id/signed-documents`, () => HttpResponse.json(signedDocumentsFixture)),
+  http.post(`${BASE}/admin/customers/:id/signed-documents`, () =>
+    HttpResponse.json(signedDocumentsFixture.items[0], { status: 201 }),
+  ),
   http.get(`${BASE}/admin/customers/:id`, () => HttpResponse.json(customerFixture)),
   http.post(`${BASE}/admin/customers`, () => HttpResponse.json(createdCustomerFixture, { status: 201 })),
   http.post(`${BASE}/admin/versions/:id/publish`, () => HttpResponse.json(publishFixture, { status: 201 })),

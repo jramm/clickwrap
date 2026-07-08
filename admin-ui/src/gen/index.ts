@@ -47,6 +47,11 @@ export type { AgreementsAdminControllerListVersionsSuspenseQueryKey } from './ho
 export type { AgreementsAdminControllerPatchVersionMutationKey } from './hooks/useAgreementsAdminControllerPatchVersion.ts';
 export type { AuthMethodsControllerMethodsQueryKey } from './hooks/useAuthMethodsControllerMethods.ts';
 export type { AuthMethodsControllerMethodsSuspenseQueryKey } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
+export type { SignedDocumentsAdminControllerListQueryKey } from './hooks/useSignedDocumentsAdminControllerList.ts';
+export type { SignedDocumentsAdminControllerListSuspenseQueryKey } from './hooks/useSignedDocumentsAdminControllerListSuspense.ts';
+export type { SignedDocumentsAdminControllerPdfQueryKey } from './hooks/useSignedDocumentsAdminControllerPdf.ts';
+export type { SignedDocumentsAdminControllerPdfSuspenseQueryKey } from './hooks/useSignedDocumentsAdminControllerPdfSuspense.ts';
+export type { SignedDocumentsAdminControllerUploadMutationKey } from './hooks/useSignedDocumentsAdminControllerUpload.ts';
 export type { AcceptedByChannelModel } from './types/AcceptedByChannelModel.ts';
 export type { AcceptedByMethodModel } from './types/AcceptedByMethodModel.ts';
 export type { AcceptedVersionImportModel } from './types/AcceptedVersionImportModel.ts';
@@ -355,6 +360,7 @@ export type { CreateAcceptanceLinkResponseModel } from './types/CreateAcceptance
 export type { CreateCustomerBodyModel } from './types/CreateCustomerBodyModel.ts';
 export type { CreateCustomerResponseModel } from './types/CreateCustomerResponseModel.ts';
 export type { CreateDocumentBodyModel } from './types/CreateDocumentBodyModel.ts';
+export type { CreateDocumentTypeBodyModel } from './types/CreateDocumentTypeBodyModel.ts';
 export type {
   CreateEmailTemplateBodyModel,
   CreateEmailTemplateBodyModelKindEnum,
@@ -399,6 +405,7 @@ export type {
   HistoryObjectionModelChannelEnum,
   HistoryObjectionModelResolutionEnum,
 } from './types/HistoryObjectionModel.ts';
+export type { HistorySignedDocumentModel } from './types/HistorySignedDocumentModel.ts';
 export type { HistoryStateModel, HistoryStateModelStateEnum } from './types/HistoryStateModel.ts';
 export type { ImportedAcceptanceModel } from './types/ImportedAcceptanceModel.ts';
 export type { LoginMethodModel, LoginMethodModelFlowEnum } from './types/LoginMethodModel.ts';
@@ -427,6 +434,35 @@ export type {
   PublishResponseModel,
   PublishResponseModelStatusEnum,
 } from './types/PublishResponseModel.ts';
+export type { SignedDocumentListResponseModel } from './types/SignedDocumentListResponseModel.ts';
+export type { SignedDocumentModel } from './types/SignedDocumentModel.ts';
+export type { SignedDocumentUploadBodyModel } from './types/SignedDocumentUploadBodyModel.ts';
+export type {
+  SignedDocumentsAdminControllerList200,
+  SignedDocumentsAdminControllerList401,
+  SignedDocumentsAdminControllerListPathParams,
+  SignedDocumentsAdminControllerListQuery,
+  SignedDocumentsAdminControllerListQueryResponse,
+} from './types/SignedDocumentsAdminControllerList.ts';
+export type {
+  SignedDocumentsAdminControllerPdf302,
+  SignedDocumentsAdminControllerPdf401,
+  SignedDocumentsAdminControllerPdf404,
+  SignedDocumentsAdminControllerPdfPathParams,
+  SignedDocumentsAdminControllerPdfQuery,
+  SignedDocumentsAdminControllerPdfQueryResponse,
+} from './types/SignedDocumentsAdminControllerPdf.ts';
+export type {
+  SignedDocumentsAdminControllerUpload201,
+  SignedDocumentsAdminControllerUpload400,
+  SignedDocumentsAdminControllerUpload401,
+  SignedDocumentsAdminControllerUpload404,
+  SignedDocumentsAdminControllerUpload422,
+  SignedDocumentsAdminControllerUploadMutation,
+  SignedDocumentsAdminControllerUploadMutationRequest,
+  SignedDocumentsAdminControllerUploadMutationResponse,
+  SignedDocumentsAdminControllerUploadPathParams,
+} from './types/SignedDocumentsAdminControllerUpload.ts';
 export type { UpdateCustomerBodyModel } from './types/UpdateCustomerBodyModel.ts';
 export type { UpdateDocumentTypeBodyModel } from './types/UpdateDocumentTypeBodyModel.ts';
 export type {
@@ -648,6 +684,26 @@ export { authMethodsControllerMethodsSuspense } from './hooks/useAuthMethodsCont
 export { authMethodsControllerMethodsSuspenseQueryKey } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
 export { authMethodsControllerMethodsSuspenseQueryOptions } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
 export { useAuthMethodsControllerMethodsSuspense } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
+export { signedDocumentsAdminControllerList } from './hooks/useSignedDocumentsAdminControllerList.ts';
+export { signedDocumentsAdminControllerListQueryKey } from './hooks/useSignedDocumentsAdminControllerList.ts';
+export { signedDocumentsAdminControllerListQueryOptions } from './hooks/useSignedDocumentsAdminControllerList.ts';
+export { useSignedDocumentsAdminControllerList } from './hooks/useSignedDocumentsAdminControllerList.ts';
+export { signedDocumentsAdminControllerListSuspense } from './hooks/useSignedDocumentsAdminControllerListSuspense.ts';
+export { signedDocumentsAdminControllerListSuspenseQueryKey } from './hooks/useSignedDocumentsAdminControllerListSuspense.ts';
+export { signedDocumentsAdminControllerListSuspenseQueryOptions } from './hooks/useSignedDocumentsAdminControllerListSuspense.ts';
+export { useSignedDocumentsAdminControllerListSuspense } from './hooks/useSignedDocumentsAdminControllerListSuspense.ts';
+export { signedDocumentsAdminControllerPdf } from './hooks/useSignedDocumentsAdminControllerPdf.ts';
+export { signedDocumentsAdminControllerPdfQueryKey } from './hooks/useSignedDocumentsAdminControllerPdf.ts';
+export { signedDocumentsAdminControllerPdfQueryOptions } from './hooks/useSignedDocumentsAdminControllerPdf.ts';
+export { useSignedDocumentsAdminControllerPdf } from './hooks/useSignedDocumentsAdminControllerPdf.ts';
+export { signedDocumentsAdminControllerPdfSuspense } from './hooks/useSignedDocumentsAdminControllerPdfSuspense.ts';
+export { signedDocumentsAdminControllerPdfSuspenseQueryKey } from './hooks/useSignedDocumentsAdminControllerPdfSuspense.ts';
+export { signedDocumentsAdminControllerPdfSuspenseQueryOptions } from './hooks/useSignedDocumentsAdminControllerPdfSuspense.ts';
+export { useSignedDocumentsAdminControllerPdfSuspense } from './hooks/useSignedDocumentsAdminControllerPdfSuspense.ts';
+export { signedDocumentsAdminControllerUpload } from './hooks/useSignedDocumentsAdminControllerUpload.ts';
+export { signedDocumentsAdminControllerUploadMutationKey } from './hooks/useSignedDocumentsAdminControllerUpload.ts';
+export { signedDocumentsAdminControllerUploadMutationOptions } from './hooks/useSignedDocumentsAdminControllerUpload.ts';
+export { useSignedDocumentsAdminControllerUpload } from './hooks/useSignedDocumentsAdminControllerUpload.ts';
 export { acceptedByChannelModelSchema } from './zod/acceptedByChannelModelSchema.ts';
 export { acceptedByMethodModelSchema } from './zod/acceptedByMethodModelSchema.ts';
 export { acceptedVersionImportModelSchema } from './zod/acceptedVersionImportModelSchema.ts';
@@ -919,6 +975,7 @@ export { createAcceptanceLinkResponseModelSchema } from './zod/createAcceptanceL
 export { createCustomerBodyModelSchema } from './zod/createCustomerBodyModelSchema.ts';
 export { createCustomerResponseModelSchema } from './zod/createCustomerResponseModelSchema.ts';
 export { createDocumentBodyModelSchema } from './zod/createDocumentBodyModelSchema.ts';
+export { createDocumentTypeBodyModelSchema } from './zod/createDocumentTypeBodyModelSchema.ts';
 export { createEmailTemplateBodyModelSchema } from './zod/createEmailTemplateBodyModelSchema.ts';
 export { createNamedEntityBodyModelSchema } from './zod/createNamedEntityBodyModelSchema.ts';
 export { createVersionBodyModelSchema } from './zod/createVersionBodyModelSchema.ts';
@@ -940,6 +997,7 @@ export { historyAcceptanceModelSchema } from './zod/historyAcceptanceModelSchema
 export { historyEvidenceModelSchema } from './zod/historyEvidenceModelSchema.ts';
 export { historyNotificationModelSchema } from './zod/historyNotificationModelSchema.ts';
 export { historyObjectionModelSchema } from './zod/historyObjectionModelSchema.ts';
+export { historySignedDocumentModelSchema } from './zod/historySignedDocumentModelSchema.ts';
 export { historyStateModelSchema } from './zod/historyStateModelSchema.ts';
 export { importedAcceptanceModelSchema } from './zod/importedAcceptanceModelSchema.ts';
 export { loginMethodModelSchema } from './zod/loginMethodModelSchema.ts';
@@ -952,6 +1010,32 @@ export { overviewRowModelSchema } from './zod/overviewRowModelSchema.ts';
 export { patchStateBodyModelSchema } from './zod/patchStateBodyModelSchema.ts';
 export { patchVersionBodyModelSchema } from './zod/patchVersionBodyModelSchema.ts';
 export { publishResponseModelSchema } from './zod/publishResponseModelSchema.ts';
+export { signedDocumentListResponseModelSchema } from './zod/signedDocumentListResponseModelSchema.ts';
+export { signedDocumentModelSchema } from './zod/signedDocumentModelSchema.ts';
+export { signedDocumentUploadBodyModelSchema } from './zod/signedDocumentUploadBodyModelSchema.ts';
+export {
+  signedDocumentsAdminControllerList200Schema,
+  signedDocumentsAdminControllerList401Schema,
+  signedDocumentsAdminControllerListPathParamsSchema,
+  signedDocumentsAdminControllerListQueryResponseSchema,
+} from './zod/signedDocumentsAdminControllerListSchema.ts';
+export {
+  signedDocumentsAdminControllerPdf302Schema,
+  signedDocumentsAdminControllerPdf401Schema,
+  signedDocumentsAdminControllerPdf404Schema,
+  signedDocumentsAdminControllerPdfPathParamsSchema,
+  signedDocumentsAdminControllerPdfQueryResponseSchema,
+} from './zod/signedDocumentsAdminControllerPdfSchema.ts';
+export {
+  signedDocumentsAdminControllerUpload201Schema,
+  signedDocumentsAdminControllerUpload400Schema,
+  signedDocumentsAdminControllerUpload401Schema,
+  signedDocumentsAdminControllerUpload404Schema,
+  signedDocumentsAdminControllerUpload422Schema,
+  signedDocumentsAdminControllerUploadMutationRequestSchema,
+  signedDocumentsAdminControllerUploadMutationResponseSchema,
+  signedDocumentsAdminControllerUploadPathParamsSchema,
+} from './zod/signedDocumentsAdminControllerUploadSchema.ts';
 export { updateCustomerBodyModelSchema } from './zod/updateCustomerBodyModelSchema.ts';
 export { updateDocumentTypeBodyModelSchema } from './zod/updateDocumentTypeBodyModelSchema.ts';
 export { updateEmailTemplateBodyModelSchema } from './zod/updateEmailTemplateBodyModelSchema.ts';

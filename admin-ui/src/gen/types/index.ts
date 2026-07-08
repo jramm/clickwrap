@@ -306,6 +306,7 @@ export type { CreateAcceptanceLinkResponseModel } from './CreateAcceptanceLinkRe
 export type { CreateCustomerBodyModel } from './CreateCustomerBodyModel.ts';
 export type { CreateCustomerResponseModel } from './CreateCustomerResponseModel.ts';
 export type { CreateDocumentBodyModel } from './CreateDocumentBodyModel.ts';
+export type { CreateDocumentTypeBodyModel } from './CreateDocumentTypeBodyModel.ts';
 export type {
   CreateEmailTemplateBodyModel,
   CreateEmailTemplateBodyModelKindEnum,
@@ -350,6 +351,7 @@ export type {
   HistoryObjectionModelChannelEnum,
   HistoryObjectionModelResolutionEnum,
 } from './HistoryObjectionModel.ts';
+export type { HistorySignedDocumentModel } from './HistorySignedDocumentModel.ts';
 export type { HistoryStateModel, HistoryStateModelStateEnum } from './HistoryStateModel.ts';
 export type { ImportedAcceptanceModel } from './ImportedAcceptanceModel.ts';
 export type { LoginMethodModel, LoginMethodModelFlowEnum } from './LoginMethodModel.ts';
@@ -378,6 +380,35 @@ export type {
   PublishResponseModel,
   PublishResponseModelStatusEnum,
 } from './PublishResponseModel.ts';
+export type { SignedDocumentListResponseModel } from './SignedDocumentListResponseModel.ts';
+export type { SignedDocumentModel } from './SignedDocumentModel.ts';
+export type { SignedDocumentUploadBodyModel } from './SignedDocumentUploadBodyModel.ts';
+export type {
+  SignedDocumentsAdminControllerList200,
+  SignedDocumentsAdminControllerList401,
+  SignedDocumentsAdminControllerListPathParams,
+  SignedDocumentsAdminControllerListQuery,
+  SignedDocumentsAdminControllerListQueryResponse,
+} from './SignedDocumentsAdminControllerList.ts';
+export type {
+  SignedDocumentsAdminControllerPdf302,
+  SignedDocumentsAdminControllerPdf401,
+  SignedDocumentsAdminControllerPdf404,
+  SignedDocumentsAdminControllerPdfPathParams,
+  SignedDocumentsAdminControllerPdfQuery,
+  SignedDocumentsAdminControllerPdfQueryResponse,
+} from './SignedDocumentsAdminControllerPdf.ts';
+export type {
+  SignedDocumentsAdminControllerUpload201,
+  SignedDocumentsAdminControllerUpload400,
+  SignedDocumentsAdminControllerUpload401,
+  SignedDocumentsAdminControllerUpload404,
+  SignedDocumentsAdminControllerUpload422,
+  SignedDocumentsAdminControllerUploadMutation,
+  SignedDocumentsAdminControllerUploadMutationRequest,
+  SignedDocumentsAdminControllerUploadMutationResponse,
+  SignedDocumentsAdminControllerUploadPathParams,
+} from './SignedDocumentsAdminControllerUpload.ts';
 export type { UpdateCustomerBodyModel } from './UpdateCustomerBodyModel.ts';
 export type { UpdateDocumentTypeBodyModel } from './UpdateDocumentTypeBodyModel.ts';
 export type {

@@ -37,6 +37,7 @@ import {
 } from '../customers/openapi.models';
 import { PublishResponseModel } from '../agreements/openapi.models';
 import {
+  CreateDocumentTypeBodyModel,
   CreateEmailTemplateBodyModel,
   CreateNamedEntityBodyModel,
   CustomerHistoryResponseModel,
@@ -432,9 +433,14 @@ export class AdminController {
   }
 
   @Post('document-types')
-  @ApiOperation({ summary: 'Create a document type' })
-  @ApiBody({ type: CreateNamedEntityBodyModel })
-  @ApiCreatedResponse({ type: NamedEntityModel })
+  @ApiOperation({
+    summary: 'Create a document type',
+    description:
+      'Set `external: true` to create an externally-signed document type (SignedDocument flow — no ' +
+      'versions/publish/gate). `external` is settable only here and immutable afterwards.',
+  })
+  @ApiBody({ type: CreateDocumentTypeBodyModel })
+  @ApiCreatedResponse({ type: DocumentTypeModel })
   @ApiErrorResponses({ 422: 'INVALID_STATE (invalid slug, duplicate key, missing name)' })
   async createDocumentType(@Body() body: CreateDocumentTypeInput, @Req() req: AdminRequest) {
     return this.documentTypeAdminService.create(body, adminUserId(req));

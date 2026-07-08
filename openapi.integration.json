@@ -524,6 +524,142 @@
         ]
       }
     },
+    "/customers/{id}/signed-documents": {
+      "post": {
+        "description": "Archives an externally-signed PDF (e.g. a counter-signed offer) against a customer. The documentType MUST be an external type (422 DOCUMENT_TYPE_NOT_EXTERNAL otherwise — non-external types use the version/clickwrap flow). Signed documents are a pure evidence archive and NEVER affect the compliance gate.",
+        "operationId": "SignedDocumentsIntegrationController_upload",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SignedDocumentUploadBodyModel"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignedDocumentUploadBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PDF / documentTypeKey / signedAt missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_DOCUMENT_TYPE · DOCUMENT_TYPE_NOT_EXTERNAL · UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Upload an externally-signed document for a customer (integration)",
+        "tags": [
+          "integration-customers"
+        ]
+      },
+      "get": {
+        "operationId": "SignedDocumentsIntegrationController_list",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentListResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "List a customer’s signed documents (newest first)",
+        "tags": [
+          "integration-customers"
+        ]
+      }
+    },
     "/customers/{customerId}/compliance": {
       "get": {
         "description": "compliant=false ONLY for EXPIRED_BLOCKING or a not-yet-accepted carry-over state. Without `audience` the result aggregates all of the customer's roles.",
@@ -1373,6 +1509,140 @@
           "roles",
           "contactEmails",
           "importedAcceptances"
+        ]
+      },
+      "SignedDocumentUploadBodyModel": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "The signed PDF (multipart field `file`)."
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Fallback: PDF file name (only with the base64 `file` fallback)."
+          },
+          "documentTypeKey": {
+            "type": "string",
+            "example": "signed-offer",
+            "description": "DocumentTypeDef key — MUST be an external type."
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-15T00:00:00Z",
+            "description": "Signature date (backdatable)."
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "reference": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer",
+            "description": "Audience key (validated to exist when given)."
+          },
+          "note": {
+            "type": "string",
+            "example": "Counter-signed on 2026-06-15."
+          }
+        },
+        "required": [
+          "documentTypeKey",
+          "signedAt"
+        ]
+      },
+      "SignedDocumentModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "sd-8a71…"
+          },
+          "customerId": {
+            "type": "string",
+            "example": "c-123"
+          },
+          "documentTypeKey": {
+            "type": "string",
+            "example": "signed-offer"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "signed-offer.pdf"
+          },
+          "contentHash": {
+            "type": "string",
+            "example": "sha256:…",
+            "description": "SHA-256 over the PDF, computed host-side."
+          },
+          "fileSize": {
+            "type": "number",
+            "example": 20480
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "reference": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer"
+          },
+          "note": {
+            "type": "string"
+          },
+          "uploadedBy": {
+            "type": "string",
+            "example": "u-42",
+            "description": "Actor who uploaded the document."
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pdfUrl": {
+            "type": "string",
+            "description": "Time-limited (presigned) download URL of the signed PDF."
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "documentTypeKey",
+          "fileName",
+          "contentHash",
+          "fileSize",
+          "signedAt",
+          "uploadedBy",
+          "uploadedAt",
+          "pdfUrl"
+        ]
+      },
+      "SignedDocumentListResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignedDocumentModel"
+            }
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "ComplianceResponseModel": {

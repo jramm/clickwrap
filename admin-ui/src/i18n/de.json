@@ -290,7 +290,14 @@
     "copyId": "Kunden-ID kopieren",
     "copyIdPrompt": "Kunden-ID kopieren:",
     "idCopied": "Kunden-ID kopiert.",
-    "idCopiedManual": "Kunden-ID bitte manuell kopieren."
+    "idCopiedManual": "Kunden-ID bitte manuell kopieren.",
+    "signedDocuments": "Signierte Dokumente",
+    "noSignedDocuments": "Keine signierten Dokumente.",
+    "uploadSignedDocument": "Signiertes Dokument hochladen",
+    "signedAt": "Signiert",
+    "signer": "Unterzeichner",
+    "reference": "Referenz",
+    "uploadedBy": "Hochgeladen von"
   },
   "customers": {
     "title": "Kunden",
@@ -389,6 +396,25 @@
     "deleted": "Gelöscht.",
     "deleteFailed": "Eintrag konnte nicht gelöscht werden.",
     "inUse": "Dieser Eintrag ist noch in Verwendung und kann nicht gelöscht werden.",
-    "confirmDelete": "\"{{name}}\" löschen?"
+    "confirmDelete": "\"{{name}}\" löschen?",
+    "externalLabel": "Externer Typ für signierte Dokumente",
+    "externalHint": "Keine Versionen/Veröffentlichung — signierte PDFs werden je Kunde als Nachweis hochgeladen. Später nicht änderbar."
+  },
+  "signedDocumentUpload": {
+    "title": "Signiertes Dokument hochladen",
+    "documentType": "Dokumenttyp",
+    "documentTypeHint": "Nur externe (signierte) Dokumenttypen sind verfügbar.",
+    "noExternalTypes": "Es existiert noch kein externer Dokumenttyp. Legen Sie einen unter Einstellungen an.",
+    "file": "PDF-Datei",
+    "signedAt": "Signiert am",
+    "signerName": "Name des Unterzeichners",
+    "reference": "Referenz",
+    "note": "Notiz",
+    "upload": "Hochladen",
+    "uploaded": "Signiertes Dokument hochgeladen.",
+    "uploadFailed": "Signiertes Dokument konnte nicht hochgeladen werden.",
+    "fileRequired": "Eine PDF-Datei ist erforderlich.",
+    "typeRequired": "Bitte einen Dokumenttyp auswählen.",
+    "signedAtRequired": "Ein Signaturdatum ist erforderlich."
   }
 }

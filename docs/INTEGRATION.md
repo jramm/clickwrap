@@ -110,6 +110,36 @@ that means for integrators:
   deadline is `max(notifiedAt + objection/grace period, validFrom)` — recipients always get the
   full window, and nothing can block or be tacitly accepted before the version is in force.
 
+## 4b. Externally-signed documents — clickwrap vs. signed-document types
+
+The service supports two kinds of document, distinguished by the document type's `external` flag
+(set once at creation, admin API):
+
+- **Clickwrap types (`external: false`, default).** Versioned PDFs the customer must *accept*
+  (active consent or tacit) — the flow described in §3–§5, driving the compliance gate.
+- **Externally-signed types (`external: true`).** Documents that were signed *outside* the system
+  (e.g. a counter-signed offer, a wet-ink contract). There is no acceptance flow — you simply
+  **upload the signed PDF** as immutable evidence. These are a pure archive: they **never** affect
+  `GET /compliance`, the pending popup or deadlines.
+
+### Upload a signed document — `POST /customers/:id/signed-documents` → 201
+
+Auth: the shared `x-service-token` (no `x-customer-id` needed — the customer is in the path). The
+uploader is taken from the forwarded `x-actor-*` headers (recorded as `uploadedBy`), never the body.
+
+`multipart/form-data` (field `file`) or base64 JSON (`file` + `fileName`) — same convention as the
+admin version upload. Metadata: `documentTypeKey` (required, **must be an external type** — a
+non-external type → `422 DOCUMENT_TYPE_NOT_EXTERNAL`), `signedAt` (required, ISO — backdatable to
+the real signature date), `signerName?`, `reference?` (e.g. `"HubSpot deal 12345"`), `audience?`,
+`note?`. Unknown customer → `404 CUSTOMER_NOT_FOUND`; unknown type → `422 UNKNOWN_DOCUMENT_TYPE`.
+
+201 returns the created record with a presigned `pdfUrl` and a host-computed `contentHash`
+(`sha256:…`). The record is append-only — a correction is a new upload, not an edit.
+
+### List — `GET /customers/:id/signed-documents`
+
+`{ items: [...] }`, newest first (each with a fresh presigned `pdfUrl`).
+
 ## 5. Report display & record consent
 
 1. `POST /customers/:id/notifications` `{ "versionId", "channel": "PORTAL" }` → 200 — proof the

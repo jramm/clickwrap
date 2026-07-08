@@ -26,6 +26,7 @@ export type AdminControllerCreateDocumentTypeMutationKey = ReturnType<
 >;
 
 /**
+ * @description Set `external: true` to create an externally-signed document type (SignedDocument flow — no versions/publish/gate). `external` is settable only here and immutable afterwards.
  * @summary Create a document type
  * {@link /admin/document-types}
  */
@@ -71,6 +72,7 @@ export function adminControllerCreateDocumentTypeMutationOptions<TContext = unkn
 }
 
 /**
+ * @description Set `external: true` to create an externally-signed document type (SignedDocument flow — no versions/publish/gate). `external` is settable only here and immutable afterwards.
  * @summary Create a document type
  * {@link /admin/document-types}
  */

@@ -12,6 +12,8 @@ export type DomainErrorCode =
   | 'CONSENT_TEXT_REQUIRED'
   | 'UNKNOWN_AUDIENCE'
   | 'UNKNOWN_DOCUMENT_TYPE'
+  | 'DOCUMENT_TYPE_EXTERNAL'
+  | 'DOCUMENT_TYPE_NOT_EXTERNAL'
   | 'ROLE_MISMATCH'
   | 'CONSENT_TEXT_MISMATCH'
   | 'OBJECTION_NOT_APPLICABLE'
@@ -45,6 +47,10 @@ export const HTTP_STATUS_BY_CODE: Record<DomainErrorCode, number> = {
   CONSENT_TEXT_REQUIRED: 422,
   UNKNOWN_AUDIENCE: 422,
   UNKNOWN_DOCUMENT_TYPE: 422,
+  // A version/document operation targeted an external document type (use the signed-documents flow).
+  DOCUMENT_TYPE_EXTERNAL: 422,
+  // A signed-document upload targeted a non-external document type (use the version/clickwrap flow).
+  DOCUMENT_TYPE_NOT_EXTERNAL: 422,
   ROLE_MISMATCH: 422,
   CONSENT_TEXT_MISMATCH: 422,
   OBJECTION_NOT_APPLICABLE: 422,

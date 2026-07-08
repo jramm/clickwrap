@@ -11,6 +11,11 @@ export const documentTypeModelSchema = z.object({
   id: z.string(),
   key: z.string().describe('URL-safe slug, immutable after creation.'),
   name: z.string(),
+  external: z
+    .boolean()
+    .describe(
+      'true = externally-signed document type (SignedDocument flow, no versions/publish/gate); false = clickwrap type. Set at creation only, immutable afterwards.',
+    ),
   notificationTemplateId: z.optional(
     z.string().describe('Assigned VERSION_NOTIFICATION template id.'),
   ),

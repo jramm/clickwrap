@@ -12,12 +12,12 @@ import type {
   AdminControllerCreateDocumentTypeMutationRequest,
   AdminControllerCreateDocumentTypeMutationResponse,
 } from '../types/AdminControllerCreateDocumentType.ts';
-import { createNamedEntityBodyModelSchema } from './createNamedEntityBodyModelSchema.ts';
+import { createDocumentTypeBodyModelSchema } from './createDocumentTypeBodyModelSchema.ts';
+import { documentTypeModelSchema } from './documentTypeModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
-import { namedEntityModelSchema } from './namedEntityModelSchema.ts';
 
 export const adminControllerCreateDocumentType201Schema = z.lazy(
-  () => namedEntityModelSchema,
+  () => documentTypeModelSchema,
 ) as unknown as ToZod<AdminControllerCreateDocumentType201>;
 
 /**
@@ -35,7 +35,7 @@ export const adminControllerCreateDocumentType422Schema = z.lazy(
 ) as unknown as ToZod<AdminControllerCreateDocumentType422>;
 
 export const adminControllerCreateDocumentTypeMutationRequestSchema = z.lazy(
-  () => createNamedEntityBodyModelSchema,
+  () => createDocumentTypeBodyModelSchema,
 ) as unknown as ToZod<AdminControllerCreateDocumentTypeMutationRequest>;
 
 export const adminControllerCreateDocumentTypeMutationResponseSchema = z.lazy(

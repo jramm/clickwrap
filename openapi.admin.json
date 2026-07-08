@@ -1754,6 +1754,7 @@
         ]
       },
       "post": {
+        "description": "Set `external: true` to create an externally-signed document type (SignedDocument flow — no versions/publish/gate). `external` is settable only here and immutable afterwards.",
         "operationId": "AdminController_createDocumentType",
         "parameters": [],
         "requestBody": {
@@ -1761,7 +1762,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateNamedEntityBodyModel"
+                "$ref": "#/components/schemas/CreateDocumentTypeBodyModel"
               }
             }
           }
@@ -1772,7 +1773,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NamedEntityModel"
+                  "$ref": "#/components/schemas/DocumentTypeModel"
                 }
               }
             }
@@ -2266,6 +2267,199 @@
           }
         ],
         "summary": "Render a template with realistic sample values (subject/html/text)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/customers/{id}/signed-documents": {
+      "post": {
+        "operationId": "SignedDocumentsAdminController_upload",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SignedDocumentUploadBodyModel"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignedDocumentUploadBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PDF / documentTypeKey / signedAt missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_DOCUMENT_TYPE · DOCUMENT_TYPE_NOT_EXTERNAL · UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Upload an externally-signed document for a customer (multipart; base64 JSON fallback)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "get": {
+        "operationId": "SignedDocumentsAdminController_list",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentListResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "List a customer’s signed documents (newest first)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/signed-documents/{id}/pdf": {
+      "get": {
+        "operationId": "SignedDocumentsAdminController_pdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to a fresh presigned PDF URL (time-limited)."
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND (unknown signed document id)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "Download a signed document PDF (302 → presigned URL)",
         "tags": [
           "admin"
         ]
@@ -3660,6 +3854,68 @@
           "remindersSent"
         ]
       },
+      "HistorySignedDocumentModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "sd-8a71…"
+          },
+          "documentTypeKey": {
+            "type": "string",
+            "example": "signed-offer"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "signed-offer.pdf"
+          },
+          "contentHash": {
+            "type": "string",
+            "example": "sha256:…"
+          },
+          "fileSize": {
+            "type": "number",
+            "example": 20480
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "reference": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer"
+          },
+          "note": {
+            "type": "string"
+          },
+          "uploadedBy": {
+            "type": "string",
+            "example": "u-42"
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "documentTypeKey",
+          "fileName",
+          "contentHash",
+          "fileSize",
+          "signedAt",
+          "uploadedBy",
+          "uploadedAt"
+        ]
+      },
       "CustomerHistoryResponseModel": {
         "type": "object",
         "properties": {
@@ -3686,13 +3942,21 @@
             "items": {
               "$ref": "#/components/schemas/HistoryStateModel"
             }
+          },
+          "signedDocuments": {
+            "description": "Externally-signed documents (evidence archive) — never part of the compliance gate.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistorySignedDocumentModel"
+            }
           }
         },
         "required": [
           "acceptances",
           "objections",
           "notifications",
-          "states"
+          "states",
+          "signedDocuments"
         ]
       },
       "ManualAcceptanceBodyModel": {
@@ -3890,6 +4154,11 @@
             "type": "string",
             "example": "Data Processing Agreement"
           },
+          "external": {
+            "type": "boolean",
+            "example": false,
+            "description": "true = externally-signed document type (SignedDocument flow, no versions/publish/gate); false = clickwrap type. Set at creation only, immutable afterwards."
+          },
           "notificationTemplateId": {
             "type": "string",
             "example": "tpl-1",
@@ -3908,6 +4177,30 @@
         },
         "required": [
           "id",
+          "key",
+          "name",
+          "external"
+        ]
+      },
+      "CreateDocumentTypeBodyModel": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "signed-offer",
+            "description": "URL-safe slug [a-z0-9-]{2,32}."
+          },
+          "name": {
+            "type": "string",
+            "example": "Signed offer"
+          },
+          "external": {
+            "type": "boolean",
+            "example": false,
+            "description": "true = externally-signed document type (SignedDocument flow, no versions/publish/gate). Default false (clickwrap). Immutable after creation."
+          }
+        },
+        "required": [
           "key",
           "name"
         ]
@@ -4087,6 +4380,140 @@
           "subject",
           "html",
           "text"
+        ]
+      },
+      "SignedDocumentUploadBodyModel": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "The signed PDF (multipart field `file`)."
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Fallback: PDF file name (only with the base64 `file` fallback)."
+          },
+          "documentTypeKey": {
+            "type": "string",
+            "example": "signed-offer",
+            "description": "DocumentTypeDef key — MUST be an external type."
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-15T00:00:00Z",
+            "description": "Signature date (backdatable)."
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "reference": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer",
+            "description": "Audience key (validated to exist when given)."
+          },
+          "note": {
+            "type": "string",
+            "example": "Counter-signed on 2026-06-15."
+          }
+        },
+        "required": [
+          "documentTypeKey",
+          "signedAt"
+        ]
+      },
+      "SignedDocumentModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "sd-8a71…"
+          },
+          "customerId": {
+            "type": "string",
+            "example": "c-123"
+          },
+          "documentTypeKey": {
+            "type": "string",
+            "example": "signed-offer"
+          },
+          "audience": {
+            "type": "string",
+            "example": "customer"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "signed-offer.pdf"
+          },
+          "contentHash": {
+            "type": "string",
+            "example": "sha256:…",
+            "description": "SHA-256 over the PDF, computed host-side."
+          },
+          "fileSize": {
+            "type": "number",
+            "example": 20480
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "reference": {
+            "type": "string",
+            "example": "HubSpot deal 12345 / signed offer"
+          },
+          "note": {
+            "type": "string"
+          },
+          "uploadedBy": {
+            "type": "string",
+            "example": "u-42",
+            "description": "Actor who uploaded the document."
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pdfUrl": {
+            "type": "string",
+            "description": "Time-limited (presigned) download URL of the signed PDF."
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "documentTypeKey",
+          "fileName",
+          "contentHash",
+          "fileSize",
+          "signedAt",
+          "uploadedBy",
+          "uploadedAt",
+          "pdfUrl"
+        ]
+      },
+      "SignedDocumentListResponseModel": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignedDocumentModel"
+            }
+          }
+        },
+        "required": [
+          "items"
         ]
       }
     }

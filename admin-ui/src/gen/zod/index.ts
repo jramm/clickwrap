@@ -269,6 +269,7 @@ export { createAcceptanceLinkResponseModelSchema } from './createAcceptanceLinkR
 export { createCustomerBodyModelSchema } from './createCustomerBodyModelSchema.ts';
 export { createCustomerResponseModelSchema } from './createCustomerResponseModelSchema.ts';
 export { createDocumentBodyModelSchema } from './createDocumentBodyModelSchema.ts';
+export { createDocumentTypeBodyModelSchema } from './createDocumentTypeBodyModelSchema.ts';
 export { createEmailTemplateBodyModelSchema } from './createEmailTemplateBodyModelSchema.ts';
 export { createNamedEntityBodyModelSchema } from './createNamedEntityBodyModelSchema.ts';
 export { createVersionBodyModelSchema } from './createVersionBodyModelSchema.ts';
@@ -290,6 +291,7 @@ export { historyAcceptanceModelSchema } from './historyAcceptanceModelSchema.ts'
 export { historyEvidenceModelSchema } from './historyEvidenceModelSchema.ts';
 export { historyNotificationModelSchema } from './historyNotificationModelSchema.ts';
 export { historyObjectionModelSchema } from './historyObjectionModelSchema.ts';
+export { historySignedDocumentModelSchema } from './historySignedDocumentModelSchema.ts';
 export { historyStateModelSchema } from './historyStateModelSchema.ts';
 export { importedAcceptanceModelSchema } from './importedAcceptanceModelSchema.ts';
 export { loginMethodModelSchema } from './loginMethodModelSchema.ts';
@@ -302,6 +304,32 @@ export { overviewRowModelSchema } from './overviewRowModelSchema.ts';
 export { patchStateBodyModelSchema } from './patchStateBodyModelSchema.ts';
 export { patchVersionBodyModelSchema } from './patchVersionBodyModelSchema.ts';
 export { publishResponseModelSchema } from './publishResponseModelSchema.ts';
+export { signedDocumentListResponseModelSchema } from './signedDocumentListResponseModelSchema.ts';
+export { signedDocumentModelSchema } from './signedDocumentModelSchema.ts';
+export { signedDocumentUploadBodyModelSchema } from './signedDocumentUploadBodyModelSchema.ts';
+export {
+  signedDocumentsAdminControllerList200Schema,
+  signedDocumentsAdminControllerList401Schema,
+  signedDocumentsAdminControllerListPathParamsSchema,
+  signedDocumentsAdminControllerListQueryResponseSchema,
+} from './signedDocumentsAdminControllerListSchema.ts';
+export {
+  signedDocumentsAdminControllerPdf302Schema,
+  signedDocumentsAdminControllerPdf401Schema,
+  signedDocumentsAdminControllerPdf404Schema,
+  signedDocumentsAdminControllerPdfPathParamsSchema,
+  signedDocumentsAdminControllerPdfQueryResponseSchema,
+} from './signedDocumentsAdminControllerPdfSchema.ts';
+export {
+  signedDocumentsAdminControllerUpload201Schema,
+  signedDocumentsAdminControllerUpload400Schema,
+  signedDocumentsAdminControllerUpload401Schema,
+  signedDocumentsAdminControllerUpload404Schema,
+  signedDocumentsAdminControllerUpload422Schema,
+  signedDocumentsAdminControllerUploadMutationRequestSchema,
+  signedDocumentsAdminControllerUploadMutationResponseSchema,
+  signedDocumentsAdminControllerUploadPathParamsSchema,
+} from './signedDocumentsAdminControllerUploadSchema.ts';
 export { updateCustomerBodyModelSchema } from './updateCustomerBodyModelSchema.ts';
 export { updateDocumentTypeBodyModelSchema } from './updateDocumentTypeBodyModelSchema.ts';
 export { updateEmailTemplateBodyModelSchema } from './updateEmailTemplateBodyModelSchema.ts';

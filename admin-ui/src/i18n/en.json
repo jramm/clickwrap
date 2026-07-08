@@ -290,7 +290,14 @@
     "copyId": "Copy customer ID",
     "copyIdPrompt": "Copy the customer ID:",
     "idCopied": "Customer ID copied.",
-    "idCopiedManual": "Copy the customer ID manually."
+    "idCopiedManual": "Copy the customer ID manually.",
+    "signedDocuments": "Signed documents",
+    "noSignedDocuments": "No signed documents.",
+    "uploadSignedDocument": "Upload signed document",
+    "signedAt": "Signed",
+    "signer": "Signer",
+    "reference": "Reference",
+    "uploadedBy": "Uploaded by"
   },
   "customers": {
     "title": "Customers",
@@ -389,6 +396,25 @@
     "deleted": "Deleted.",
     "deleteFailed": "Could not delete the entry.",
     "inUse": "This entry is still in use and cannot be deleted.",
-    "confirmDelete": "Delete \"{{name}}\"?"
+    "confirmDelete": "Delete \"{{name}}\"?",
+    "externalLabel": "External signed document type",
+    "externalHint": "No versions/publish — signed PDFs are uploaded per customer as evidence. Cannot be changed later."
+  },
+  "signedDocumentUpload": {
+    "title": "Upload signed document",
+    "documentType": "Document type",
+    "documentTypeHint": "Only external (signed) document types are available.",
+    "noExternalTypes": "No external document types exist yet. Create one under Settings.",
+    "file": "PDF file",
+    "signedAt": "Signed on",
+    "signerName": "Signer name",
+    "reference": "Reference",
+    "note": "Note",
+    "upload": "Upload",
+    "uploaded": "Signed document uploaded.",
+    "uploadFailed": "Could not upload the signed document.",
+    "fileRequired": "A PDF file is required.",
+    "typeRequired": "Select a document type.",
+    "signedAtRequired": "A signature date is required."
   }
 }

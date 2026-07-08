@@ -16,6 +16,7 @@ import type {
   NotificationEvent,
   Objection,
   ObjectionResolution,
+  SignedDocument,
 } from './types';
 
 /**
@@ -204,4 +205,15 @@ export interface NotificationEventRepo {
   findByState(customerVersionStateId: string): Promise<NotificationEvent[]>;
   /** Correlates Postmark webhook events via the MessageID. */
   findByProviderRef(providerRef: string): Promise<NotificationEvent | undefined>;
+}
+
+/**
+ * Externally-signed documents (evidence archive). Append-only — corrections are a new upload,
+ * never an update/delete (no such methods in the MVP, mirroring the append-only Acceptance store).
+ */
+export interface SignedDocumentRepo {
+  append(document: SignedDocument): Promise<SignedDocument>;
+  findById(id: string): Promise<SignedDocument | undefined>;
+  /** All signed documents of a customer, NEWEST FIRST (by uploadedAt desc). */
+  findByCustomer(customerId: string): Promise<SignedDocument[]>;
 }

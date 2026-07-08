@@ -6,6 +6,7 @@
 import type { HistoryAcceptanceModel } from './HistoryAcceptanceModel.ts';
 import type { HistoryNotificationModel } from './HistoryNotificationModel.ts';
 import type { HistoryObjectionModel } from './HistoryObjectionModel.ts';
+import type { HistorySignedDocumentModel } from './HistorySignedDocumentModel.ts';
 import type { HistoryStateModel } from './HistoryStateModel.ts';
 
 export type CustomerHistoryResponseModel = {
@@ -25,4 +26,9 @@ export type CustomerHistoryResponseModel = {
    * @type array
    */
   states: HistoryStateModel[];
+  /**
+   * @description Externally-signed documents (evidence archive) — never part of the compliance gate.
+   * @type array
+   */
+  signedDocuments: HistorySignedDocumentModel[];
 };

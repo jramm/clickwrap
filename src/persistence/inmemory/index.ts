@@ -9,3 +9,4 @@ export { InMemoryDocumentTypeRepo } from './document-type.repo';
 export { InMemoryEmailTemplateRepo } from './email-template.repo';
 export { InMemoryNotificationEventRepo } from './notification-event.repo';
 export { InMemoryObjectionRepo } from './objection.repo';
+export { InMemorySignedDocumentRepo } from './signed-document.repo';

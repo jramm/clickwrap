@@ -60,8 +60,17 @@ export class DocumentService {
    * UNKNOWN_AUDIENCE (both 422).
    */
   async create(input: CreateDocumentInput): Promise<AgreementDocument> {
-    if (!(await this.documentTypes.findByKey(input.type))) {
+    const documentType = await this.documentTypes.findByKey(input.type);
+    if (!documentType) {
       throw new DomainError('UNKNOWN_DOCUMENT_TYPE', `Unknown document type: ${input.type}`);
+    }
+    // External document types carry no versions/documents — they use the signed-documents flow.
+    // This guard also transitively blocks version creation (a version requires a document).
+    if (documentType.external === true) {
+      throw new DomainError(
+        'DOCUMENT_TYPE_EXTERNAL',
+        `Document type "${input.type}" is external (signed-document flow) — it has no versions/documents`,
+      );
     }
     if (!(await this.audiences.findByKey(input.audience))) {
       throw new DomainError('UNKNOWN_AUDIENCE', `Unknown audience: ${input.audience}`);

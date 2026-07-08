@@ -18,6 +18,11 @@ export type DocumentTypeModel = {
    */
   name: string;
   /**
+   * @description true = externally-signed document type (SignedDocument flow, no versions/publish/gate); false = clickwrap type. Set at creation only, immutable afterwards.
+   * @type boolean
+   */
+  external: boolean;
+  /**
    * @description Assigned VERSION_NOTIFICATION template id.
    * @type string | undefined
    */

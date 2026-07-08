@@ -6,6 +6,8 @@
  */
 import { Module } from '@nestjs/common';
 import { CustomerServiceModule } from '../customers/customer-service.module';
+import { SignedDocumentsModule } from '../signed-documents/signed-documents.module';
+import { SignedDocumentsIntegrationController } from '../signed-documents/signed-documents-integration.controller';
 import { AcceptanceService } from './acceptance.service';
 import { ConsentController } from './consent.controller';
 import { CustomerOnboardingController } from './customer-onboarding.controller';
@@ -15,8 +17,8 @@ import { ObjectionService } from './objection.service';
 import { CONSENT_TOKENS } from './ports';
 
 @Module({
-  imports: [CustomerServiceModule],
-  controllers: [ConsentController, CustomerOnboardingController],
+  imports: [CustomerServiceModule, SignedDocumentsModule],
+  controllers: [ConsentController, CustomerOnboardingController, SignedDocumentsIntegrationController],
   providers: [
     AcceptanceService,
     ObjectionService,

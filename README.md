@@ -2,11 +2,12 @@
 
 [![CI](https://github.com/jramm/clickwrap/actions/workflows/ci.yml/badge.svg)](https://github.com/jramm/clickwrap/actions/workflows/ci.yml)
 
-A self-hosted service for **provable acceptance of versioned agreements** — terms of service,
-data processing agreements, privacy policies, or any contract document you need your users to
-accept and you need to prove they did.
+A self-hosted **legal signed document service** — for provable acceptance of versioned agreements
+(terms of service, data processing agreements, privacy policies, or any contract document you need
+your users to accept and you need to prove they did) **and** for archiving documents that were
+signed externally (e.g. counter-signed offers) as immutable per-customer evidence.
 
-It supports two acceptance modes side by side:
+For the acceptance side it supports two modes side by side:
 
 - **Active click-consent** — the user explicitly checks a box / clicks "I agree". The exact
   consent text shown is versioned and stored as part of the evidence.
@@ -21,7 +22,9 @@ which exact consent text and document hash).
 
 Document types (e.g. `terms`, `dpa`) and audiences (e.g. `customer`, `partner`) are **dynamic
 categories** managed at runtime, so the service is not tied to any particular set of agreement
-kinds. E-mail delivery, file storage and admin auth are **plugins** discovered from installed npm
+kinds. A document type can be marked **external** at creation: external types skip the whole
+clickwrap machinery and instead accept **externally-signed PDFs uploaded per customer** — a pure
+evidence archive that never touches the compliance gate. E-mail delivery, file storage and admin auth are **plugins** discovered from installed npm
 packages (Postmark/SMTP/no-op, in-memory/local-disk storage, Google SSO/static token/SuperTokens
 built in — see [`docs/PLUGINS.md`](docs/PLUGINS.md)), and an **admin web UI** is included for
 legal/operations staff.
@@ -37,6 +40,11 @@ License: **Apache-2.0**.
   change summary, a content hash, and — for active mode — the exact consent text.
 - **Two acceptance modes** — `ACTIVE` (click-consent, optional grace period until hard block) and
   `PASSIVE` (tacit acceptance with an objection period).
+- **Externally-signed documents** — document types flagged `external` skip versions/publish/gate;
+  instead already-signed PDFs (e.g. counter-signed offers) are uploaded per customer via the admin
+  or integration API as immutable, append-only evidence (with a host-computed content hash, signer,
+  reference and signature date). They appear in the customer history but are **never** part of the
+  compliance gate.
 - **Deadlines start on provable access only** — an objection/grace period begins when access is
   proven (e-mail `Delivery` webhook, delivery polling, or a confirmed popup display), not when a
   version is published.

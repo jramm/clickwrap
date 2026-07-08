@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { AcceptModule } from '../accept/accept.module';
 import { AgreementsModule } from '../agreements/agreements.module';
 import { CustomerServiceModule } from '../customers/customer-service.module';
+import { SignedDocumentsModule } from '../signed-documents/signed-documents.module';
+import { SignedDocumentsAdminController } from '../signed-documents/signed-documents-admin.controller';
 import { AdminController } from './admin.controller';
 import { AudienceAdminService } from './audience-admin.service';
 import { CustomerVersionStateAdminService } from './customer-version-state-admin.service';
@@ -22,8 +24,8 @@ import { VersionCustomersService } from './version-customers.service';
  * AdminAuditRepo). Domain repositories/clock are provided globally by the integration agent.
  */
 @Module({
-  imports: [AgreementsModule, CustomerServiceModule, AcceptModule],
-  controllers: [AdminController],
+  imports: [AgreementsModule, CustomerServiceModule, AcceptModule, SignedDocumentsModule],
+  controllers: [AdminController, SignedDocumentsAdminController],
   providers: [
     OverviewService,
     DashboardService,

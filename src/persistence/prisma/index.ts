@@ -12,5 +12,6 @@ export { PrismaIdempotencyStore } from './idempotency-store.repo';
 export { PrismaNotificationEventRepo } from './notification-event.repo';
 export { PrismaObjectionRepo } from './objection.repo';
 export { PrismaOutboundEmailRepo } from './outbound-email.repo';
+export { PrismaSignedDocumentRepo } from './signed-document.repo';
 export { PersistenceModule } from './persistence.module';
 export { PrismaService } from './prisma.service';

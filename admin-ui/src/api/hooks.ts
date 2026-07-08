@@ -39,6 +39,9 @@ import {
   agreementsAdminControllerListVersionsQueryKey,
   agreementsAdminControllerListVersionsQueryOptions,
   createVersionResponseModelSchema,
+  signedDocumentModelSchema,
+  signedDocumentsAdminControllerListQueryKey,
+  signedDocumentsAdminControllerListQueryOptions,
 } from '../gen';
 import type {
   AdminControllerOverviewQueryParams,
@@ -50,6 +53,7 @@ import type {
   CreateNamedEntityBodyModel,
   CreateVersionResponseModel,
   ManualAcceptanceBodyModel,
+  SignedDocumentModel,
   UpdateCustomerBodyModel,
   UpdateEmailTemplateBodyModel,
 } from '../gen';
@@ -76,6 +80,7 @@ export type {
   HistoryObjectionModel as Objection,
   HistoryStateModel as HistoryState,
   NamedEntityModel as Category,
+  SignedDocumentModel as SignedDocument,
   OverviewCellModel as OverviewCell,
   OverviewCellModelStateEnum as CellState,
   OverviewRowModel as OverviewItem,
@@ -116,13 +121,21 @@ function categoryKey(kind: CategoryKind) {
     : adminControllerListDocumentTypesQueryKey();
 }
 
+/** Create input: audiences take key+name; document types additionally take the immutable `external` flag. */
+export interface CreateCategoryInput extends CreateNamedEntityBodyModel {
+  /** Document types only: mark as an externally-signed document type (SignedDocument flow). */
+  external?: boolean;
+}
+
 export function useCreateCategory(kind: CategoryKind) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: CreateNamedEntityBodyModel) =>
+    mutationFn: (input: CreateCategoryInput) =>
       kind === 'audiences'
-        ? adminControllerCreateAudience({ data: input })
-        : adminControllerCreateDocumentType({ data: input }),
+        ? adminControllerCreateAudience({ data: { key: input.key, name: input.name } })
+        : adminControllerCreateDocumentType({
+            data: { key: input.key, name: input.name, external: input.external ?? false },
+          }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: categoryKey(kind) }),
   });
 }
@@ -235,6 +248,58 @@ export function useCustomer(customerId: string) {
   return useQuery({
     ...adminControllerGetCustomerQueryOptions({ id: customerId }),
     enabled: Boolean(customerId),
+  });
+}
+
+// --- Signed documents (externally-signed evidence archive) ----------------
+/** A customer's externally-signed documents (`GET /admin/customers/:id/signed-documents`), newest first. */
+export function useSignedDocuments(customerId: string) {
+  return useQuery({
+    ...signedDocumentsAdminControllerListQueryOptions({ id: customerId }),
+    enabled: Boolean(customerId),
+    select: (data) => data.items,
+  });
+}
+
+export interface UploadSignedDocumentInput {
+  customerId: string;
+  file: File;
+  documentTypeKey: string;
+  /** ISO date-time string. */
+  signedAt: string;
+  signerName?: string;
+  reference?: string;
+  audience?: string;
+  note?: string;
+}
+
+/**
+ * Uploads an externally-signed document (multipart, field `file`). Like the version upload, this
+ * bypasses the generated hook (kubb models FormData awkwardly) and uses the shared fetcher with
+ * the generated response schema.
+ */
+export function useUploadSignedDocument() {
+  const qc = useQueryClient();
+  return useMutation<SignedDocumentModel, unknown, UploadSignedDocumentInput>({
+    mutationFn: (input) => {
+      const form = new FormData();
+      form.set('file', input.file);
+      form.set('documentTypeKey', input.documentTypeKey);
+      form.set('signedAt', input.signedAt);
+      if (input.signerName) form.set('signerName', input.signerName);
+      if (input.reference) form.set('reference', input.reference);
+      if (input.audience) form.set('audience', input.audience);
+      if (input.note) form.set('note', input.note);
+      return apiRequest(`/admin/customers/${input.customerId}/signed-documents`, {
+        method: 'POST',
+        form,
+        schema: signedDocumentModelSchema,
+      });
+    },
+    onSuccess: (_data, input) => {
+      void qc.invalidateQueries({ queryKey: signedDocumentsAdminControllerListQueryKey({ id: input.customerId }) });
+      void qc.invalidateQueries({ queryKey: adminControllerHistoryQueryKey({ id: input.customerId }) });
+    },
   });
 }
 

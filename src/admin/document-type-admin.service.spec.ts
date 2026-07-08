@@ -71,6 +71,19 @@ describe('DocumentTypeAdminService', () => {
         code: 'INVALID_STATE',
       });
     });
+
+    it('defaults external to false when omitted', async () => {
+      const created = await service.create({ key: 'dpa', name: 'DPA' }, 'admin-1');
+      expect(created.external).toBe(false);
+    });
+
+    it('creates an external document type when external: true and records it in the audit metadata', async () => {
+      const created = await service.create({ key: 'signed-offer', name: 'Signed offer', external: true }, 'admin-1');
+
+      expect(created.external).toBe(true);
+      const logs = await audit.findByTarget('DocumentType', created.id);
+      expect(logs[0].metadata).toMatchObject({ external: true });
+    });
   });
 
   describe('update', () => {
@@ -79,7 +92,7 @@ describe('DocumentTypeAdminService', () => {
 
       const updated = await service.update(created.id, { name: 'Data Processing Agreement' }, 'admin-2');
 
-      expect(updated).toEqual({ id: created.id, key: 'dpa', name: 'Data Processing Agreement' });
+      expect(updated).toEqual({ id: created.id, key: 'dpa', name: 'Data Processing Agreement', external: false });
       expect(
         (await audit.findByTarget('DocumentType', created.id)).some((l) => l.action === 'DOCUMENT_TYPE_UPDATE'),
       ).toBe(true);
@@ -96,6 +109,21 @@ describe('DocumentTypeAdminService', () => {
 
     it('throws NotFoundException for an unknown id', async () => {
       await expect(service.update('dt-ghost', { name: 'x' }, 'admin-1')).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('rejects a body containing external with INVALID_STATE (external is immutable)', async () => {
+      const created = await service.create({ key: 'signed-offer', name: 'Signed offer', external: true }, 'admin-1');
+
+      await expect(service.update(created.id, { external: false, name: 'x' }, 'admin-1')).rejects.toMatchObject({
+        code: 'INVALID_STATE',
+        message: 'external is immutable (set it only at creation)',
+      });
+    });
+
+    it('preserves external across a rename (never flips it)', async () => {
+      const created = await service.create({ key: 'signed-offer', name: 'Signed offer', external: true }, 'admin-1');
+      const renamed = await service.update(created.id, { name: 'Signed offers' }, 'admin-1');
+      expect(renamed.external).toBe(true);
     });
 
     it('assigns notification + reminder templates after validating existence and kind', async () => {

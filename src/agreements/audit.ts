@@ -21,7 +21,8 @@ export type AdminAuditAction =
   | 'ACCEPTANCE_LINK_CREATE'
   | 'EMAIL_TEMPLATE_CREATE'
   | 'EMAIL_TEMPLATE_UPDATE'
-  | 'EMAIL_TEMPLATE_DELETE';
+  | 'EMAIL_TEMPLATE_DELETE'
+  | 'SIGNED_DOCUMENT_UPLOAD';
 
 export interface AdminAuditLog {
   id: string;

@@ -11,6 +11,7 @@ import type {
   DocumentTypeDef,
   NotificationEvent,
   Objection,
+  SignedDocument,
 } from '../types';
 
 export const testActor = (overrides: Partial<Actor> = {}): Actor => ({
@@ -121,6 +122,24 @@ export const anAcceptanceLink = (overrides: Partial<AcceptanceLink> = {}): Accep
   createdBy: 'admin-1',
   createdAt: new Date('2026-07-01T09:00:00Z'),
   expiresAt: new Date('2026-07-31T09:00:00Z'),
+  ...overrides,
+});
+
+export const aSignedDocument = (overrides: Partial<SignedDocument> = {}): SignedDocument => ({
+  id: 'sd-1',
+  customerId: 'c-123',
+  documentTypeKey: 'signed-offer',
+  audience: 'customer',
+  fileName: 'signed-offer.pdf',
+  storageKey: 's3://bucket/sd-1.pdf',
+  contentHash: 'sha256:deadbeef',
+  fileSize: 2048,
+  signedAt: new Date('2026-06-15T00:00:00Z'),
+  signerName: 'Jane Doe',
+  reference: 'HubSpot deal 12345',
+  note: 'Counter-signed offer.',
+  uploadedBy: 'admin-1',
+  uploadedAt: new Date('2026-07-01T09:00:00Z'),
   ...overrides,
 });
 

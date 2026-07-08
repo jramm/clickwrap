@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "sd-8a71…" },
+    "customerId": { "type": "string", "example": "c-123" },
+    "documentTypeKey": { "type": "string", "example": "signed-offer" },
+    "audience": { "type": "string", "example": "customer" },
+    "fileName": { "type": "string", "example": "signed-offer.pdf" },
+    "contentHash": {
+      "type": "string",
+      "example": "sha256:…",
+      "description": "SHA-256 over the PDF, computed host-side."
+    },
+    "fileSize": { "type": "number", "example": 20480 },
+    "signedAt": { "type": "string", "format": "date-time" },
+    "signerName": { "type": "string", "example": "Jane Doe" },
+    "reference": { "type": "string", "example": "HubSpot deal 12345 / signed offer" },
+    "note": { "type": "string" },
+    "uploadedBy": {
+      "type": "string",
+      "example": "u-42",
+      "description": "Actor who uploaded the document."
+    },
+    "uploadedAt": { "type": "string", "format": "date-time" },
+    "pdfUrl": {
+      "type": "string",
+      "description": "Time-limited (presigned) download URL of the signed PDF."
+    }
+  },
+  "required": [
+    "id",
+    "customerId",
+    "documentTypeKey",
+    "fileName",
+    "contentHash",
+    "fileSize",
+    "signedAt",
+    "uploadedBy",
+    "uploadedAt",
+    "pdfUrl"
+  ],
+  "x-readme-ref-name": "SignedDocumentModel"
+}
