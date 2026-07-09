@@ -3,6 +3,7 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
 import { useAudiences, useCustomers } from '../api/hooks';
 import type { CustomerRow } from '../api/hooks';
@@ -13,8 +14,8 @@ import { Button, Card, DataTable, PageHeader, SearchField, useDebouncedValue, us
 import type { GridColDef } from '../ui';
 
 /**
- * Customers list with pagination and create/edit dialogs. On desktop a DataGrid;
- * on phones/tablets a tappable card list. Row/card click opens the edit dialog.
+ * Customers list with pagination and a create dialog (edit lives on the detail page). On desktop a DataGrid;
+ * on phones/tablets a tappable card list. Row/card click navigates to the customer detail page; edit is a button there.
  */
 const PAGE_SIZE = 50;
 
@@ -25,7 +26,7 @@ export function CustomersPage() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editing, setEditing] = useState<CustomerRow | null>(null);
+  const navigate = useNavigate();
 
   // A new search term always resets to the first page (the old page may not exist in the result).
   useEffect(() => {
@@ -111,7 +112,7 @@ export function CustomersPage() {
             rows={rows}
             audienceName={audienceName}
             loading={isLoading}
-            onOpen={(customer) => setEditing(customer)}
+            onOpen={(customer) => navigate(`/customers/${customer.id}`)}
           />
         ) : (
           <Card disableContentPadding>
@@ -119,10 +120,7 @@ export function CustomersPage() {
               rows={rows}
               columns={columns}
               loading={isLoading}
-              onRowClick={(rowParams) => {
-                const customer = rows.find((row) => row.id === rowParams.id);
-                if (customer) setEditing(customer);
-              }}
+              onRowClick={(rowParams) => navigate(`/customers/${rowParams.id}`)}
               getRowId={(row: CustomerRow) => row.id}
             />
           </Card>
@@ -158,12 +156,6 @@ export function CustomersPage() {
       </Stack>
 
       <CustomerFormDialog mode="create" open={createOpen} onClose={() => setCreateOpen(false)} />
-      <CustomerFormDialog
-        mode="edit"
-        customer={editing ?? undefined}
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-      />
     </Box>
   );
 }

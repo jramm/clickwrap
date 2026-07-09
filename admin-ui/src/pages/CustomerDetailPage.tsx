@@ -14,6 +14,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
 import { useCustomer, useCustomerHistory, useRemind, useSignedDocuments } from '../api/hooks';
 import type { Acceptance, HistoryState, SignedDocument } from '../api/hooks';
+import { CustomerFormDialog } from '../components/CustomerFormDialog';
 import { ManualAcceptanceDialog } from '../components/ManualAcceptanceDialog';
 import { SignedDocumentUploadDialog } from '../components/SignedDocumentUploadDialog';
 import { StateActionDialog } from '../components/StateActionDialog';
@@ -41,6 +42,7 @@ export function CustomerDetailPage() {
   const toast = useToast();
   const [manualOpen, setManualOpen] = useState(false);
   const [signedUploadOpen, setSignedUploadOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const displayName = customer ? customerDisplayName(customer) : '';
   const headerTitle = displayName || `${t('overview.customer')} ${id}`;
@@ -64,7 +66,16 @@ export function CustomerDetailPage() {
       </Button>
       <PageHeader
         title={headerTitle}
-        actions={<Button onClick={() => setManualOpen(true)}>{t('manualAcceptance.trigger')}</Button>}
+        actions={
+          <>
+            {customer && (
+              <Button variant="outlined" onClick={() => setEditOpen(true)}>
+                {t('customers.editCustomer')}
+              </Button>
+            )}
+            <Button onClick={() => setManualOpen(true)}>{t('manualAcceptance.trigger')}</Button>
+          </>
+        }
       />
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
@@ -175,6 +186,14 @@ export function CustomerDetailPage() {
         open={signedUploadOpen}
         onClose={() => setSignedUploadOpen(false)}
       />
+      {customer && (
+        <CustomerFormDialog
+          mode="edit"
+          customer={customer}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
     </Box>
   );
 }
