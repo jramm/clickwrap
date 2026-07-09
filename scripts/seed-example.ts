@@ -77,7 +77,9 @@ async function main(): Promise<void> {
     headers: ADMIN_HEADERS,
     body: JSON.stringify({
       externalRef: 'demo-company',
-      name: 'Demo Company GmbH',
+      firstName: 'Dana',
+      lastName: 'Müller',
+      companyName: 'Demo Company GmbH',
       roles: ['customer'],
       contactEmails: ['legal@demo.example'],
     }),
