@@ -16,5 +16,8 @@ export const patchVersionBodyModelSchema = z.object({
   consentText: z.optional(z.string()),
   objectionPeriodDays: z.optional(z.number()),
   gracePeriodDays: z.optional(z.number()),
+  hardDeadlineAt: z.optional(
+    z.string().describe('ACTIVE only: absolute acceptance deadline (ISO date-time, >= validFrom).'),
+  ),
   validFrom: z.optional(z.string()),
 }) as unknown as ToZod<PatchVersionBodyModel>;

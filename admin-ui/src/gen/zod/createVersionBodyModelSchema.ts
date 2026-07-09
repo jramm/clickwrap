@@ -14,8 +14,17 @@ export const createVersionBodyModelSchema = z.object({
   changeSummary: z.string(),
   acceptanceMode: z.enum(['ACTIVE', 'PASSIVE']),
   consentText: z.optional(z.string()),
-  objectionPeriodDays: z.optional(z.number()),
-  gracePeriodDays: z.optional(z.number()),
+  objectionPeriodDays: z.optional(z.number().describe('PASSIVE only: objection period in days.')),
+  gracePeriodDays: z.optional(
+    z.number().describe('Deprecated: no longer drives ACTIVE blocking (legacy rows only).'),
+  ),
+  hardDeadlineAt: z.optional(
+    z
+      .string()
+      .describe(
+        'ACTIVE only: absolute acceptance deadline as a full ISO date-time. Required to publish an ACTIVE version and must be >= validFrom; every customer must accept by then or is blocked.',
+      ),
+  ),
   validFrom: z
     .string()
     .describe(

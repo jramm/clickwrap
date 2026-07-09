@@ -3,7 +3,7 @@ import { EventRecorder } from '../events/event-recorder';
 import { DomainError } from '../common/errors';
 import { validateForPublish } from '../domain/consent-rules';
 import { customerDisplayName } from '../domain/customer';
-import { supersede } from '../domain/state-machine';
+import { rolloutDeadlineFor, supersede } from '../domain/state-machine';
 import { TOKENS } from '../persistence/tokens';
 import type { Clock } from '../domain/clock';
 import type {
@@ -114,6 +114,9 @@ export class PublishService {
         customerId: customer.id,
         versionId: version.id,
         state: 'PENDING_NOTIFICATION',
+        // ACTIVE: stamp the absolute hard deadline immediately (blocks even never-accessed
+        // customers at that date). PASSIVE: undefined — the objection period starts at access.
+        deadlineAt: rolloutDeadlineFor(version),
         remindersSent: 0,
         carryOverBlocking: carryOverBlocking ? true : undefined,
       };

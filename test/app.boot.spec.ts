@@ -97,7 +97,7 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
       .field('changeSummary', 'New sub-processor for e-mail delivery.')
       .field('acceptanceMode', 'ACTIVE')
       .field('consentText', CONSENT_TEXT)
-      .field('gracePeriodDays', '14')
+      .field('hardDeadlineAt', '2026-02-01T00:00:00.000Z')
       .field('validFrom', '2026-01-01')
       .attach('file', Buffer.from('%PDF-1.7 boot-test'), 'dpa-2026-06.pdf')
       .expect(201);

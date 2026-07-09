@@ -97,15 +97,15 @@ describe('AgreementsAdminController', () => {
       .field('changeSummary', 'New')
       .field('acceptanceMode', 'ACTIVE')
       .field('consentText', 'I agree.')
-      .field('gracePeriodDays', '14')
+      .field('hardDeadlineAt', '2026-08-01T00:00:00.000Z')
       .field('validFrom', '2026-07-01')
       .attach('file', Buffer.from('%PDF-1.7 multipart'), 'dpa-multipart.pdf')
       .expect(201);
     expect(res.body).toMatchObject({ status: 'DRAFT', fileName: 'dpa-multipart.pdf' });
     expect(res.body.contentHash).toMatch(/^sha256:/);
-    // gracePeriodDays arrived as a multipart string and must be stored as a number.
+    // hardDeadlineAt arrived as a multipart ISO string and must be parsed to a Date (ACTIVE only).
     const stored = await versions.findById(res.body.versionId);
-    expect(stored?.gracePeriodDays).toBe(14);
+    expect(stored?.hardDeadlineAt).toEqual(new Date('2026-08-01T00:00:00.000Z'));
   });
 
   it('POST /admin/documents/:id/versions (base64 fallback) creates a DRAFT version and returns contentHash', async () => {

@@ -16,8 +16,9 @@ const isSweeperEnabled = (): boolean => process.env.SWEEPER_ENABLED !== 'false';
 /**
  * Deadline sweeper (runs hourly here, though the spec calls for a daily run):
  * PASSIVE + deadline reached → Acceptance(method=TACIT, channel=SYSTEM) + state ACCEPTED.
- * ACTIVE + grace period reached → state EXPIRED_BLOCKING. Everything else (especially SUPERSEDED)
- * is left untouched — the transition logic itself decides in `state-machine.sweep()`, never the caller.
+ * ACTIVE + absolute hard deadline reached → state EXPIRED_BLOCKING, for both NOTIFIED and
+ * never-accessed PENDING_NOTIFICATION customers. Everything else (especially SUPERSEDED) is left
+ * untouched — the transition logic itself decides in `state-machine.sweep()`, never the caller.
  */
 @Injectable()
 export class DeadlineSweeperService {
@@ -59,11 +60,12 @@ export class DeadlineSweeperService {
       // In particular SUPERSEDED: never record a TACIT acceptance for a superseded version.
       return;
     }
-    // Conditional transition ONLY from NOTIFIED: if the state changed between findDue and
-    // processing (e.g. an active acceptance → ACCEPTED, or a publish → SUPERSEDED), the UPDATE has
-    // no effect — and then NO TACIT acceptance may be recorded either. The transition is therefore
-    // deliberately placed BEFORE the acceptance append.
-    const transitioned = await this.stateRepo.transition(state.id, 'NOTIFIED', { state: result.state.state });
+    // Conditional transition from the OBSERVED state (PENDING_NOTIFICATION for a never-accessed
+    // ACTIVE customer, NOTIFIED otherwise): if the state changed between findDue and processing
+    // (e.g. an active acceptance → ACCEPTED, or a publish → SUPERSEDED), the UPDATE has no effect
+    // — and then NO event may be recorded either. The transition is therefore deliberately placed
+    // BEFORE the acceptance append / event emission.
+    const transitioned = await this.stateRepo.transition(state.id, state.state, { state: result.state.state });
     if (!transitioned) {
       // NOOP / already-changed / SUPERSEDED: NEITHER a DEADLINE_EXPIRED nor a TACIT acceptance
       // event is emitted — the automatic transition did not actually apply.

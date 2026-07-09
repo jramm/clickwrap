@@ -18,6 +18,8 @@ export interface VersionDto {
   consentText?: string;
   objectionPeriodDays?: number;
   gracePeriodDays?: number;
+  /** ACTIVE only: absolute calendar acceptance deadline (every customer must accept by then). */
+  hardDeadlineAt?: Date;
   validFrom: Date;
   publishedAt?: Date;
   contentHash: string;
@@ -37,6 +39,7 @@ export const toVersionDto = (version: AgreementVersion, pdfUrl: string): Version
   consentText: version.consentText,
   objectionPeriodDays: version.objectionPeriodDays,
   gracePeriodDays: version.gracePeriodDays,
+  hardDeadlineAt: version.hardDeadlineAt,
   validFrom: version.validFrom,
   publishedAt: version.publishedAt,
   contentHash: version.contentHash,

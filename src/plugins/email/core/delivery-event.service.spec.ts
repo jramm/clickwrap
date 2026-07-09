@@ -1,6 +1,6 @@
 import { FixedClock } from '../../../domain/clock';
 import type { AgreementVersionRepo } from '../../../domain/ports';
-import { aState, aVersion, anActiveVersion } from '../../../domain/testing/fixtures';
+import { aState, aVersion } from '../../../domain/testing/fixtures';
 import type { AgreementVersion } from '../../../domain/types';
 import { InMemoryEscalationLog } from '../../../common/escalation/escalation-log.inmemory';
 import { InMemoryCustomerVersionStateRepo } from '../../../persistence/inmemory/customer-version-state.repo';
@@ -150,8 +150,8 @@ describe('DeliveryEventService', () => {
       });
     });
 
-    it('respects block carry-over: deadlineAt = notifiedAt when carryOverBlocking is set', async () => {
-      const version = anActiveVersion({ id: 'v-1', gracePeriodDays: 14 });
+    it('respects block carry-over (PASSIVE): deadlineAt = notifiedAt when carryOverBlocking is set', async () => {
+      const version = aVersion({ id: 'v-1', objectionPeriodDays: 14 });
       versions.seed(version);
       await outboundEmails.save(anOutboundEmail());
       await states.save(

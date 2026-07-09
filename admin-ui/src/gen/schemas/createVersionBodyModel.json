@@ -11,8 +11,21 @@
     "changeSummary": { "type": "string", "example": "New sub-processor for e-mail delivery." },
     "acceptanceMode": { "type": "string", "enum": ["ACTIVE", "PASSIVE"] },
     "consentText": { "type": "string" },
-    "objectionPeriodDays": { "type": "number", "example": 14 },
-    "gracePeriodDays": { "type": "number", "example": 14 },
+    "objectionPeriodDays": {
+      "type": "number",
+      "example": 14,
+      "description": "PASSIVE only: objection period in days."
+    },
+    "gracePeriodDays": {
+      "type": "number",
+      "example": 14,
+      "description": "Deprecated: no longer drives ACTIVE blocking (legacy rows only)."
+    },
+    "hardDeadlineAt": {
+      "type": "string",
+      "example": "2026-08-01T00:00:00.000Z",
+      "description": "ACTIVE only: absolute acceptance deadline as a full ISO date-time. Required to publish an ACTIVE version and must be >= validFrom; every customer must accept by then or is blocked."
+    },
     "validFrom": {
       "type": "string",
       "example": "2026-07-01",

@@ -173,6 +173,27 @@ describe('PublishService', () => {
       );
     });
 
+    it('ACTIVE rollout stamps the absolute hard deadline on each created state (before any access)', async () => {
+      const HARD = new Date('2026-07-21T09:00:00Z');
+      await customers.save(aCustomer({ id: 'c-1', roles: ['customer'] }));
+      await versions.save(anActiveVersion({ id: 'v-active', documentId: 'doc-dpa-customer', status: 'DRAFT', hardDeadlineAt: HARD }));
+
+      await service.publish('v-active', 'admin-1');
+
+      const state = await states.findByCustomerAndVersion('c-1', 'v-active');
+      expect(state).toMatchObject({ state: 'PENDING_NOTIFICATION' });
+      expect(state?.deadlineAt).toEqual(HARD);
+    });
+
+    it('PASSIVE rollout leaves deadlineAt undefined (starts only at provable access)', async () => {
+      await customers.save(aCustomer({ id: 'c-1', roles: ['customer'] }));
+      await versions.save(aVersion({ id: 'v-1', status: 'DRAFT', objectionPeriodDays: 14 }));
+
+      await service.publish('v-1', 'admin-1');
+
+      expect((await states.findByCustomerAndVersion('c-1', 'v-1'))?.deadlineAt).toBeUndefined();
+    });
+
     it('rollout only targets matching roles — a partner-only customer gets no state', async () => {
       await customers.save(aCustomer({ id: 'c-customer', roles: ['customer'] }));
       await customers.save(aCustomer({ id: 'c-partner', roles: ['partner'] }));

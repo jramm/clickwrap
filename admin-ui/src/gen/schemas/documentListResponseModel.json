@@ -39,7 +39,12 @@
                   "gracePeriodDays": {
                     "type": "number",
                     "example": 14,
-                    "description": "ACTIVE only: grace period until hard block."
+                    "description": "Deprecated: no longer drives ACTIVE blocking (legacy rows only)."
+                  },
+                  "hardDeadlineAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ACTIVE only: absolute acceptance deadline. Every customer must accept by then or is blocked, independent of access."
                   },
                   "validFrom": { "type": "string", "format": "date-time" },
                   "publishedAt": { "type": "string", "format": "date-time" },
@@ -97,7 +102,12 @@
                 "gracePeriodDays": {
                   "type": "number",
                   "example": 14,
-                  "description": "ACTIVE only: grace period until hard block."
+                  "description": "Deprecated: no longer drives ACTIVE blocking (legacy rows only)."
+                },
+                "hardDeadlineAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "ACTIVE only: absolute acceptance deadline. Every customer must accept by then or is blocked, independent of access."
                 },
                 "validFrom": { "type": "string", "format": "date-time" },
                 "publishedAt": { "type": "string", "format": "date-time" },

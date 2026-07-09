@@ -72,8 +72,11 @@ export class PrismaCustomerVersionStateRepo implements CustomerVersionStateRepo 
   }
 
   async findDueForSweep(now: Date): Promise<CustomerVersionState[]> {
+    // PENDING_NOTIFICATION with a due deadlineAt = an ACTIVE customer under the absolute hard
+    // deadline (stamped at rollout, before any access); PASSIVE PENDING have deadlineAt IS NULL and
+    // are excluded by the `lte` filter. Covered by @@index([state, deadlineAt]).
     const rows = await this.prisma.customerVersionState.findMany({
-      where: { state: 'NOTIFIED', deadlineAt: { lte: now } },
+      where: { state: { in: ['PENDING_NOTIFICATION', 'NOTIFIED'] }, deadlineAt: { lte: now } },
     });
     return rows.map(toDomain);
   }

@@ -10,6 +10,9 @@ const OPEN_STATES: readonly CustomerVersionState['state'][] = [
   'EXPIRED_BLOCKING',
 ];
 
+/** States a due deadlineAt can be swept from (PASSIVE tacit from NOTIFIED, ACTIVE hard block from both). */
+const SWEEPABLE_STATES: readonly CustomerVersionState['state'][] = ['PENDING_NOTIFICATION', 'NOTIFIED'];
+
 export class InMemoryCustomerVersionStateRepo implements CustomerVersionStateRepo {
   private readonly states = new Map<string, CustomerVersionState>();
 
@@ -44,9 +47,14 @@ export class InMemoryCustomerVersionStateRepo implements CustomerVersionStateRep
   }
 
   async findDueForSweep(now: Date): Promise<CustomerVersionState[]> {
+    // PENDING_NOTIFICATION with a deadlineAt = an ACTIVE customer under the absolute hard deadline
+    // (stamped at rollout, before any access). PASSIVE PENDING have no deadlineAt → excluded.
     return deepCopy(
       [...this.states.values()].filter(
-        (s) => s.state === 'NOTIFIED' && s.deadlineAt !== undefined && s.deadlineAt.getTime() <= now.getTime(),
+        (s) =>
+          SWEEPABLE_STATES.includes(s.state) &&
+          s.deadlineAt !== undefined &&
+          s.deadlineAt.getTime() <= now.getTime(),
       ),
     );
   }

@@ -43,10 +43,15 @@ export type VersionModel = {
    */
   objectionPeriodDays?: number;
   /**
-   * @description ACTIVE only: grace period until hard block.
+   * @description Deprecated: no longer drives ACTIVE blocking (legacy rows only).
    * @type number | undefined
    */
   gracePeriodDays?: number;
+  /**
+   * @description ACTIVE only: absolute acceptance deadline. Every customer must accept by then or is blocked, independent of access.
+   * @type string | undefined, date-time
+   */
+  hardDeadlineAt?: string;
   /**
    * @type string, date-time
    */

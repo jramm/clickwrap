@@ -173,7 +173,7 @@
     "modeActive": "ACTIVE (explicit consent)",
     "modePassive": "PASSIVE (tacit, with objection window)",
     "consentText": "Consent text (checkbox label, versioned)",
-    "gracePeriodDays": "Grace period days (until hard block)",
+    "hardDeadlineAt": "Acceptance deadline (all customers must accept by then)",
     "objectionPeriodDays": "Objection period days",
     "validFrom": "Valid from",
     "createDraft": "Create draft",
@@ -182,6 +182,7 @@
     "validationSummary": "Change summary is required.",
     "validationValidFrom": "Valid from is required.",
     "validationConsent": "Consent text is required for ACTIVE mode.",
+    "validationHardDeadline": "Acceptance deadline is required for ACTIVE mode.",
     "created": "Draft version created.",
     "createFailed": "Could not create the version."
   },

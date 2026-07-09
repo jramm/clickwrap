@@ -9,6 +9,11 @@
     "consentText": { "type": "string" },
     "objectionPeriodDays": { "type": "number" },
     "gracePeriodDays": { "type": "number" },
+    "hardDeadlineAt": {
+      "type": "string",
+      "example": "2026-08-01T00:00:00.000Z",
+      "description": "ACTIVE only: absolute acceptance deadline (ISO date-time, >= validFrom)."
+    },
     "validFrom": { "type": "string", "example": "2026-07-01" }
   },
   "x-readme-ref-name": "PatchVersionBodyModel"

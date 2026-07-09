@@ -40,6 +40,11 @@ export type PatchVersionBodyModel = {
    */
   gracePeriodDays?: number;
   /**
+   * @description ACTIVE only: absolute acceptance deadline (ISO date-time, >= validFrom).
+   * @type string | undefined
+   */
+  hardDeadlineAt?: string;
+  /**
    * @type string | undefined
    */
   validFrom?: string;

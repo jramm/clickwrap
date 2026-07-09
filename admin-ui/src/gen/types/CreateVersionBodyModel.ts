@@ -33,13 +33,20 @@ export type CreateVersionBodyModel = {
    */
   consentText?: string;
   /**
+   * @description PASSIVE only: objection period in days.
    * @type number | undefined
    */
   objectionPeriodDays?: number;
   /**
+   * @description Deprecated: no longer drives ACTIVE blocking (legacy rows only).
    * @type number | undefined
    */
   gracePeriodDays?: number;
+  /**
+   * @description ACTIVE only: absolute acceptance deadline as a full ISO date-time. Required to publish an ACTIVE version and must be >= validFrom; every customer must accept by then or is blocked.
+   * @type string | undefined
+   */
+  hardDeadlineAt?: string;
   /**
    * @description ISO date from which the revision applies. May lie in the FUTURE (scheduled effectiveness): publishing rolls out immediately for advance acceptance, while the previous version stays the compliance baseline until this date.
    * @type string

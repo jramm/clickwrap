@@ -9,8 +9,8 @@ import { Button, Dialog, Select, TextField, useToast } from '../ui';
 
 /**
  * Dialog "New version": PDF upload (multipart field `file`) + metadata.
- * consentText is required for ACTIVE, objectionPeriodDays for PASSIVE,
- * gracePeriodDays for ACTIVE (default 14). The result is a DRAFT version.
+ * ACTIVE requires consentText + an absolute "Acceptance deadline" (hardDeadlineAt); PASSIVE
+ * requires an objection period (days). The result is a DRAFT version.
  */
 interface Props {
   document: AgreementDocument;
@@ -29,7 +29,7 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
   const [acceptanceMode, setAcceptanceMode] = useState<'ACTIVE' | 'PASSIVE'>('ACTIVE');
   const [consentText, setConsentText] = useState('');
   const [objectionPeriodDays, setObjectionPeriodDays] = useState('14');
-  const [gracePeriodDays, setGracePeriodDays] = useState('14');
+  const [hardDeadlineAt, setHardDeadlineAt] = useState('');
   const [validFrom, setValidFrom] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
 
@@ -40,7 +40,7 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
     setAcceptanceMode('ACTIVE');
     setConsentText('');
     setObjectionPeriodDays('14');
-    setGracePeriodDays('14');
+    setHardDeadlineAt('');
     setValidFrom('');
     setFieldError(null);
   };
@@ -58,6 +58,8 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
     if (!validFrom) return setFieldError(t('newVersion.validationValidFrom'));
     if (acceptanceMode === 'ACTIVE' && !consentText.trim())
       return setFieldError(t('newVersion.validationConsent'));
+    if (acceptanceMode === 'ACTIVE' && !hardDeadlineAt)
+      return setFieldError(t('newVersion.validationHardDeadline'));
 
     createVersion.mutate(
       {
@@ -70,7 +72,10 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
         consentText: acceptanceMode === 'ACTIVE' ? consentText.trim() : undefined,
         objectionPeriodDays:
           acceptanceMode === 'PASSIVE' ? Number(objectionPeriodDays) : undefined,
-        gracePeriodDays: acceptanceMode === 'ACTIVE' ? Number(gracePeriodDays) : undefined,
+        // <input type="date"> yields a date-only string ("YYYY-MM-DD"); the API contract validates
+        // with z.string().datetime() — widen to a full ISO date-time (UTC midnight) before sending.
+        hardDeadlineAt:
+          acceptanceMode === 'ACTIVE' ? new Date(hardDeadlineAt).toISOString() : undefined,
       },
       {
         onSuccess: () => {
@@ -150,10 +155,12 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
               required
             />
             <TextField
-              label={t('newVersion.gracePeriodDays')}
-              type="number"
-              value={gracePeriodDays}
-              onChange={(event) => setGracePeriodDays(event.target.value)}
+              label={t('newVersion.hardDeadlineAt')}
+              type="date"
+              value={hardDeadlineAt}
+              onChange={(event) => setHardDeadlineAt(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+              required
             />
           </>
         ) : (

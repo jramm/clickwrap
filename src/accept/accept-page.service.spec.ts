@@ -159,14 +159,19 @@ describe('AcceptPageService', () => {
       expect(await events.findByState('cvs-1')).toHaveLength(1);
     });
 
-    it('carry-over block: the page shows blocking and the deadline starts immediately', async () => {
-      await states.save(aState({ id: 'cvs-1', versionId: 'v-1', state: 'PENDING_NOTIFICATION', carryOverBlocking: true }));
+    it('carry-over block (ACTIVE): the page shows blocking; access never moves the absolute hard deadline', async () => {
+      const HARD = new Date('2026-07-15T00:00:00Z');
+      await states.save(
+        aState({ id: 'cvs-1', versionId: 'v-1', state: 'PENDING_NOTIFICATION', carryOverBlocking: true, deadlineAt: HARD }),
+      );
       await seedLink();
 
       const view = await service.loadPage(TOKEN);
 
       expect(view?.items[0].blocking).toBe(true);
-      expect(view?.items[0].deadlineAt).toEqual(NOW); // deadlineAt = notifiedAt (no new grace period)
+      // ACTIVE: the deadline is the version's absolute hard deadline, stamped at rollout — access
+      // records evidence (notifiedAt) but never recomputes it.
+      expect(view?.items[0].deadlineAt).toEqual(HARD);
     });
 
     it('audience scope: a scoped link only shows documents of that audience', async () => {
@@ -201,12 +206,14 @@ describe('AcceptPageService', () => {
       expect((await states.findByCustomerAndVersion('c-123', 'v-1'))?.state).toBe('NOTIFIED');
     });
 
-    it('scheduled publish: current and upcoming version are both listed — the upcoming one flagged with its validFrom and a deadline never before validFrom', async () => {
+    it('scheduled publish: current and upcoming version are both listed — the upcoming one flagged with its validFrom and its absolute hard deadline', async () => {
       const VALID_FROM = new Date('2026-08-01T00:00:00Z');
+      const HARD = new Date('2026-08-20T00:00:00Z');
       await versions.save(
-        anActiveVersion({ id: 'v-next', consentText: CONSENT_TEXT, validFrom: VALID_FROM, publishedAt: NOW }),
+        anActiveVersion({ id: 'v-next', consentText: CONSENT_TEXT, validFrom: VALID_FROM, hardDeadlineAt: HARD, publishedAt: NOW }),
       );
-      await states.save(aState({ id: 'cvs-next', versionId: 'v-next', state: 'PENDING_NOTIFICATION' }));
+      // ACTIVE state carries the absolute hard deadline from rollout (>= validFrom).
+      await states.save(aState({ id: 'cvs-next', versionId: 'v-next', state: 'PENDING_NOTIFICATION', deadlineAt: HARD }));
       await seedLink();
 
       const view = await service.loadPage(TOKEN);
@@ -216,8 +223,8 @@ describe('AcceptPageService', () => {
       const upcomingItem = view?.items.find((i) => i.versionId === 'v-next');
       expect(currentItem).toMatchObject({ upcoming: false });
       expect(upcomingItem).toMatchObject({ upcoming: true, validFrom: VALID_FROM });
-      // Deadline anchor: NOW + 14d grace (2026-07-22) < validFrom → the deadline is validFrom.
-      expect(upcomingItem?.deadlineAt).toEqual(VALID_FROM);
+      // ACTIVE: the deadline is the absolute hard deadline, independent of access.
+      expect(upcomingItem?.deadlineAt).toEqual(HARD);
     });
 
     it.each([

@@ -70,7 +70,10 @@ export const anActiveVersion = (overrides: Partial<AgreementVersion> = {}): Agre
   aVersion({
     acceptanceMode: 'ACTIVE',
     objectionPeriodDays: undefined,
-    gracePeriodDays: 14,
+    gracePeriodDays: undefined,
+    // ACTIVE carries an absolute hard deadline (validFrom 2026-07-01 + 14 days) — every customer
+    // must accept by then or is blocked, independent of access.
+    hardDeadlineAt: new Date('2026-07-15T00:00:00Z'),
     consentText: 'I have read the new revision and agree.',
     ...overrides,
   });

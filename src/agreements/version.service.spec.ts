@@ -16,7 +16,7 @@ const draftInput = (overrides: Partial<CreateDraftInput> = {}): CreateDraftInput
   changeSummary: 'New sub-processor.',
   acceptanceMode: 'ACTIVE',
   consentText: 'I agree.',
-  gracePeriodDays: 14,
+  hardDeadlineAt: new Date('2026-07-15T00:00:00Z'),
   validFrom: new Date('2026-07-01T00:00:00Z'),
   file: { buffer: Buffer.from('%PDF-1.7 test'), fileName: 'dpa.pdf' },
   ...overrides,

@@ -97,16 +97,19 @@ describe('InMemoryCustomerVersionStateRepo', () => {
   });
 
   describe('findDueForSweep', () => {
-    it('returns only NOTIFIED with deadlineAt <= now (boundary inclusive)', async () => {
+    it('returns NOTIFIED and (ACTIVE) PENDING_NOTIFICATION with a due deadlineAt; excludes PASSIVE PENDING (no deadlineAt) and terminal states', async () => {
       await repo.save(aState({ id: 'due', state: 'NOTIFIED', notifiedAt: T0, deadlineAt: DEADLINE }));
       await repo.save(aState({ id: 'exact', customerId: 'c-2', state: 'NOTIFIED', notifiedAt: T0, deadlineAt: new Date('2026-07-22T00:00:00Z') }));
       await repo.save(aState({ id: 'future', customerId: 'c-3', state: 'NOTIFIED', notifiedAt: T0, deadlineAt: new Date('2026-08-01T00:00:00Z') }));
       await repo.save(aState({ id: 'superseded', customerId: 'c-4', state: 'SUPERSEDED', notifiedAt: T0, deadlineAt: DEADLINE }));
-      await repo.save(aState({ id: 'pending', customerId: 'c-5', state: 'PENDING_NOTIFICATION' }));
+      // ACTIVE PENDING (never accessed): the absolute hard deadline was stamped at rollout → picked up.
+      await repo.save(aState({ id: 'active-pending-due', customerId: 'c-5', state: 'PENDING_NOTIFICATION', notifiedAt: undefined, deadlineAt: DEADLINE }));
+      // PASSIVE PENDING (never accessed): no deadlineAt → naturally excluded.
+      await repo.save(aState({ id: 'passive-pending', customerId: 'c-7', state: 'PENDING_NOTIFICATION' }));
       await repo.save(aState({ id: 'accepted', customerId: 'c-6', state: 'ACCEPTED', notifiedAt: T0, deadlineAt: DEADLINE }));
 
       const due = await repo.findDueForSweep(new Date('2026-07-22T00:00:00Z'));
-      expect(due.map((s) => s.id).sort()).toEqual(['due', 'exact']);
+      expect(due.map((s) => s.id).sort()).toEqual(['active-pending-due', 'due', 'exact']);
     });
   });
 

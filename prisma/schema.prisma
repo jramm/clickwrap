@@ -211,7 +211,8 @@ model AgreementVersion {
 
   acceptanceMode      AcceptanceMode
   objectionPeriodDays Int? // PASSIVE only, e.g. 14
-  gracePeriodDays     Int? // ACTIVE only, default 14 (application layer), overridable per version
+  gracePeriodDays     Int? // deprecated: no longer drives ACTIVE blocking (legacy rows only)
+  hardDeadlineAt      DateTime? // ACTIVE only: absolute acceptance deadline (every customer must accept by then)
 
   changeSummary String // required — short description for the portal popup
   consentText   String? // required for ACTIVE — exact consent text, immutable after publish
@@ -276,8 +277,8 @@ model CustomerVersionState {
 
   state RolloutState @default(PENDING_NOTIFICATION)
 
-  notifiedAt DateTime? // first provable delivery — starts the deadline
-  deadlineAt DateTime? // notifiedAt + objectionPeriodDays or + gracePeriodDays
+  notifiedAt DateTime? // first provable delivery — evidence; starts the PASSIVE objection period
+  deadlineAt DateTime? // PASSIVE: notifiedAt + objectionPeriodDays; ACTIVE: version.hardDeadlineAt (set at rollout)
 
   remindersSent  Int       @default(0) // counter
   lastReminderAt DateTime? // timestamp of the last reminder — without it the reminder job
@@ -315,12 +316,12 @@ model Acceptance {
   method  AcceptanceMethod
   channel AcceptanceChannel
 
-  isEffective              Boolean     @default(true)
+  isEffective              Boolean @default(true)
   /// Audit pointer to the correcting acceptance. Deliberately NOT a foreign key: the
   /// correction protocol writes supersede(old, new) BEFORE appending the new row (required
   /// by the partial unique index on effective acceptances), so the successor does not exist
   /// yet at write time. Verified by the Prisma integration suite against real Postgres.
-  supersededByAcceptanceId String?     @unique
+  supersededByAcceptanceId String? @unique
 
   acceptedAt DateTime // server-side, never from a client payload (CONVENTIONS.md)
 
@@ -528,7 +529,7 @@ model EscalationEntry {
 /// Fields are stored denormalized (customerName, versionLabel, documentType, …) so the read side is a
 /// trivial query and each row stays historically accurate. Port: src/domain/ports.ts::EventRepo.
 model Event {
-  id         String        @id
+  id         String   @id
   type       String // EventType union (src/domain/types.ts), stored as text
   category   String // EventCategory union
   occurredAt DateTime // set by the service/EventRecorder (Clock), not a DB default

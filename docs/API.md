@@ -199,7 +199,7 @@ as `GET /admin/versions/:id`:
 ```json
 { "items": [{ "id": "v-…", "documentId": "doc-…", "versionLabel": "2026-06", "status": "DRAFT",
               "acceptanceMode": "ACTIVE", "changeSummary": "…", "consentText": "…",
-              "objectionPeriodDays": null, "gracePeriodDays": 14, "validFrom": "…",
+              "objectionPeriodDays": null, "hardDeadlineAt": "2026-08-01T00:00:00Z", "validFrom": "…",
               "publishedAt": null, "contentHash": "sha256:…", "fileName": "dpa.pdf",
               "pdfUrl": "https://… (presigned, 15-minute TTL)" }] }
 ```
@@ -217,7 +217,7 @@ The internal `storageKey` is never exposed; `pdfUrl` is always a freshly resolve
 | `acceptanceMode` | ✔ | `ACTIVE` \| `PASSIVE` |
 | `consentText` | if ACTIVE | exact checkbox consent text — versioned server-side, basis of the evidence (`CONSENT_TEXT_REQUIRED`) |
 | `objectionPeriodDays` | if PASSIVE | objection period, e.g. 14 |
-| `gracePeriodDays` | if ACTIVE | grace period until hard block (default 14) |
+| `hardDeadlineAt` | if ACTIVE | **absolute** acceptance deadline (full ISO date-time, must be `>= validFrom`): every customer must have accepted by then or is blocked, **independent of access** (incl. never-accessed customers). `gracePeriodDays` is deprecated and no longer drives ACTIVE blocking. |
 | `validFrom` | ✔ | ISO date from which the revision applies; **may lie in the future** (scheduled effectiveness — see publish below) |
 
 **201:** `{ "versionId": "…", "status": "DRAFT", "contentHash": "sha256:…", "fileName": "…" }`
@@ -236,7 +236,18 @@ via the configured provider, and an audit-log entry.
 { "versionId": "…", "status": "PUBLISHED", "rolloutCustomers": 921, "publishedAt": "2026-07-07T09:00:00Z" }
 ```
 Missing change summary → `422 CHANGE_SUMMARY_REQUIRED`; ACTIVE version without consent text →
-`422 CONSENT_TEXT_REQUIRED`.
+`422 CONSENT_TEXT_REQUIRED`; ACTIVE version without `hardDeadlineAt`, or with `hardDeadlineAt <
+validFrom`, or a PASSIVE version that sets `hardDeadlineAt` → `422 INVALID_STATE`.
+
+**Deadline model (ACTIVE vs PASSIVE).** ACTIVE versions carry an **absolute** `hardDeadlineAt`: on
+rollout every customer's `PENDING_NOTIFICATION` state is stamped with `deadlineAt = hardDeadlineAt`
+immediately (before any access), and at that date every customer still in
+`PENDING_NOTIFICATION`/`NOTIFIED` — **including customers who never accessed** — is flipped to
+`EXPIRED_BLOCKING` by the deadline sweeper. Provable access records evidence (`notifiedAt`) but never
+moves the deadline. PASSIVE is unchanged and stays per-customer from delivery: `deadlineAt` is set
+only at provable access (`= max(notifiedAt + objectionPeriodDays, validFrom)`), tacit-accepted at
+that date; a PASSIVE customer who never accessed stays `PENDING_NOTIFICATION` forever (never
+tacit-booked).
 
 **Scheduled effectiveness (future `validFrom`):** the rollout still happens immediately — states
 are created and rollout mails are sent, so acceptance can be collected in advance (the popup and
@@ -245,10 +256,11 @@ open states are **not** superseded at publish: it remains the compliance baselin
 (`findCurrentPublished` = newest PUBLISHED with `validFrom <= now`) until the flip. At `validFrom`
 the hourly **activation sweep** retires the predecessor, supersedes its open states (never tacit
 afterwards) and carries an `EXPIRED_BLOCKING` block over to the new version's state
-(`carryOverBlocking=true`). Deadlines of a not-yet-effective version are anchored:
-`deadlineAt = max(notifiedAt + period, validFrom)` (carry-over: `max(notifiedAt, validFrom)`) —
-the recipient always gets the full objection/grace window AND nothing can block or be tacitly
-booked before `validFrom`.
+(`carryOverBlocking=true`). For a not-yet-effective PASSIVE version the objection deadline is
+anchored: `deadlineAt = max(notifiedAt + objectionPeriodDays, validFrom)` (carry-over:
+`max(notifiedAt, validFrom)`) — the recipient always gets the full objection window AND nothing is
+tacitly booked before `validFrom`. For ACTIVE the absolute `hardDeadlineAt` (validated `>= validFrom`)
+already governs, independent of access.
 
 ---
 
@@ -561,8 +573,8 @@ Every state-changing action produces exactly one event, so the log is a complete
 - `OBJECTION_RAISED` (CUSTOMER) — an objection to a PASSIVE version.
 - `MANUAL_ACCEPTANCE` (ADMIN) — an admin recorded an acceptance manually.
 - `DEADLINE_EXTENDED` (ADMIN) — an admin extended a deadline.
-- `DEADLINE_EXPIRED` (SYSTEM) — **cron**: an ACTIVE version's grace period lapsed → EXPIRED_BLOCKING
-  (deadline sweeper).
+- `DEADLINE_EXPIRED` (SYSTEM) — **cron**: an ACTIVE version's absolute hard deadline was reached →
+  EXPIRED_BLOCKING (deadline sweeper; applies to never-accessed `PENDING_NOTIFICATION` customers too).
 - `BLOCK_SUSPENDED` (ADMIN) — an admin lifted/suspended a block.
 - `BLOCK_CARRIED_OVER` (SYSTEM) — **cron**: an EXPIRED_BLOCKING predecessor block was carried onto the
   successor version's state (activation sweeper).

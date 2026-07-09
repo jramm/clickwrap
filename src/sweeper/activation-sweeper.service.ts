@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type { Clock } from '../domain/clock';
 import type { AgreementDocumentRepo, AgreementVersionRepo, CustomerVersionStateRepo } from '../domain/ports';
-import { supersede } from '../domain/state-machine';
+import { rolloutDeadlineFor, supersede } from '../domain/state-machine';
 import type { AgreementDocument, AgreementVersion } from '../domain/types';
 import { EventRecorder } from '../events/event-recorder';
 import { TOKENS } from '../persistence/tokens';
@@ -126,6 +126,8 @@ export class ActivationSweeperService {
         customerId,
         versionId: current.id,
         state: 'PENDING_NOTIFICATION',
+        // ACTIVE: absolute hard deadline stamped at rollout; PASSIVE: undefined (starts at access).
+        deadlineAt: rolloutDeadlineFor(current),
         remindersSent: 0,
         carryOverBlocking: true,
       });

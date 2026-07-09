@@ -25,15 +25,19 @@ describe('recordAccess', () => {
     expect(result.deadlineAt).toEqual(new Date('2026-07-21T09:00:00Z'));
   });
 
-  it('PENDING_NOTIFICATION → NOTIFIED (ACTIVE): deadlineAt = +gracePeriodDays', () => {
-    const result = recordAccess(aState(), clockAt(T0), anActiveVersion({ gracePeriodDays: 7 }));
+  it('PENDING_NOTIFICATION → NOTIFIED (ACTIVE): sets notifiedAt but keeps the absolute hard deadline (access never moves it)', () => {
+    const HARD = new Date('2026-07-15T00:00:00Z');
+    const result = recordAccess(aState({ deadlineAt: HARD }), clockAt(T0), anActiveVersion({ hardDeadlineAt: HARD }));
     expect(result.state).toBe('NOTIFIED');
-    expect(result.deadlineAt).toEqual(new Date('2026-07-14T09:00:00Z'));
+    expect(result.notifiedAt).toEqual(T0);
+    expect(result.deadlineAt).toEqual(HARD);
   });
 
-  it('ACTIVE without gracePeriodDays: default 14 days', () => {
-    const result = recordAccess(aState(), clockAt(T0), anActiveVersion({ gracePeriodDays: undefined }));
-    expect(result.deadlineAt).toEqual(new Date('2026-07-21T09:00:00Z'));
+  it('ACTIVE: a never-accessed PENDING with no deadline stamped stays without a deadline after access (rollout stamps it, not access)', () => {
+    const result = recordAccess(aState({ deadlineAt: undefined }), clockAt(T0), anActiveVersion());
+    expect(result.state).toBe('NOTIFIED');
+    expect(result.notifiedAt).toEqual(T0);
+    expect(result.deadlineAt).toBeUndefined();
   });
 
   it('PASSIVE without objectionPeriodDays: DomainError INVALID_STATE (deadline would be indeterminable)', () => {
@@ -49,8 +53,8 @@ describe('recordAccess', () => {
     expect(second).toEqual(first);
   });
 
-  it('block carry-over: predecessorWasBlocking → deadlineAt = notifiedAt (blocking immediately)', () => {
-    const result = recordAccess(aState(), clockAt(T0), anActiveVersion(), true);
+  it('block carry-over (PASSIVE): predecessorWasBlocking → deadlineAt = notifiedAt (blocking immediately)', () => {
+    const result = recordAccess(aState(), clockAt(T0), aVersion(), true);
     expect(result.state).toBe('NOTIFIED');
     expect(result.notifiedAt).toEqual(T0);
     expect(result.deadlineAt).toEqual(T0);
@@ -95,8 +99,8 @@ describe('recordAccess', () => {
       expect(result.deadlineAt).toEqual(new Date('2026-08-16T00:00:00Z'));
     });
 
-    it('carry-over before validFrom: deadlineAt = max(notifiedAt, validFrom) — never blocks or expires before validFrom', () => {
-      const result = recordAccess(aState(), clockAt(T0), upcoming({ acceptanceMode: 'ACTIVE', objectionPeriodDays: undefined, gracePeriodDays: 14, consentText: 'I agree.' }), true);
+    it('carry-over before validFrom (PASSIVE): deadlineAt = max(notifiedAt, validFrom) — never blocks or expires before validFrom', () => {
+      const result = recordAccess(aState(), clockAt(T0), upcoming(), true);
       expect(result.notifiedAt).toEqual(T0);
       expect(result.deadlineAt).toEqual(FUTURE_VALID_FROM);
     });
@@ -203,50 +207,88 @@ describe('object', () => {
 });
 
 describe('sweep', () => {
-  const dueState = aState({ state: 'NOTIFIED', notifiedAt: T0, deadlineAt: new Date('2026-07-21T09:00:00Z') });
+  const HARD = new Date('2026-07-21T09:00:00Z');
+  const dueState = aState({ state: 'NOTIFIED', notifiedAt: T0, deadlineAt: HARD });
 
-  it('PASSIVE + deadlineAt reached → ACCEPTED with outcome TACIT_ACCEPTED', () => {
-    const result = sweep(dueState, aVersion(), clockAt('2026-07-22T00:00:00Z'));
-    expect(result.outcome).toBe('TACIT_ACCEPTED');
-    expect(result.state.state).toBe('ACCEPTED');
+  describe('PASSIVE (tacit acceptance only from NOTIFIED)', () => {
+    it('NOTIFIED + deadlineAt reached → ACCEPTED with outcome TACIT_ACCEPTED', () => {
+      const result = sweep(dueState, aVersion(), clockAt('2026-07-22T00:00:00Z'));
+      expect(result.outcome).toBe('TACIT_ACCEPTED');
+      expect(result.state.state).toBe('ACCEPTED');
+    });
+
+    it('exactly at deadlineAt the period has been reached', () => {
+      const result = sweep(dueState, aVersion(), clockAt('2026-07-21T09:00:00Z'));
+      expect(result.outcome).toBe('TACIT_ACCEPTED');
+    });
+
+    it('before deadlineAt: no-op', () => {
+      const result = sweep(dueState, aVersion(), clockAt('2026-07-20T09:00:00Z'));
+      expect(result.outcome).toBe('NOOP');
+      expect(result.state).toEqual(dueState);
+    });
+
+    it('PENDING_NOTIFICATION (never accessed, no deadline) is never swept → no-op (PASSIVE never tacit-books a non-accessor)', () => {
+      const input = aState({ state: 'PENDING_NOTIFICATION', deadlineAt: undefined });
+      expect(sweep(input, aVersion(), clockAt('2026-08-01T00:00:00Z')).outcome).toBe('NOOP');
+    });
+
+    it('NOTIFIED without deadlineAt (defensive): no-op — the period never runs without access', () => {
+      const input = aState({ state: 'NOTIFIED', notifiedAt: T0, deadlineAt: undefined });
+      expect(sweep(input, aVersion(), clockAt('2026-08-01T00:00:00Z')).outcome).toBe('NOOP');
+    });
+
+    it.each<CustomerVersionStateValue>(['ACCEPTED', 'OBJECTED', 'EXPIRED_BLOCKING', 'SUPERSEDED'])(
+      'from %s: no-op',
+      (state) => {
+        const input = aState({ state, notifiedAt: T0, deadlineAt: HARD });
+        expect(sweep(input, aVersion(), clockAt('2026-08-01T00:00:00Z')).outcome).toBe('NOOP');
+      },
+    );
   });
 
-  it('ACTIVE + deadlineAt reached → EXPIRED_BLOCKING', () => {
-    const result = sweep(dueState, anActiveVersion(), clockAt('2026-07-22T00:00:00Z'));
-    expect(result.outcome).toBe('EXPIRED_BLOCKING');
-    expect(result.state.state).toBe('EXPIRED_BLOCKING');
-    expect(isBlocking(result.state)).toBe(true);
-  });
+  describe('ACTIVE (absolute hard deadline → EXPIRED_BLOCKING, incl. never-accessed PENDING)', () => {
+    const active = anActiveVersion({ hardDeadlineAt: HARD });
 
-  it('exactly at deadlineAt the period has been reached', () => {
-    const result = sweep(dueState, aVersion(), clockAt('2026-07-21T09:00:00Z'));
-    expect(result.outcome).toBe('TACIT_ACCEPTED');
-  });
+    it('NOTIFIED + hard deadline reached → EXPIRED_BLOCKING', () => {
+      const result = sweep(dueState, active, clockAt('2026-07-22T00:00:00Z'));
+      expect(result.outcome).toBe('EXPIRED_BLOCKING');
+      expect(result.state.state).toBe('EXPIRED_BLOCKING');
+      expect(isBlocking(result.state)).toBe(true);
+    });
 
-  it('before deadlineAt: no-op', () => {
-    const result = sweep(dueState, aVersion(), clockAt('2026-07-20T09:00:00Z'));
-    expect(result.outcome).toBe('NOOP');
-    expect(result.state).toEqual(dueState);
+    it('PENDING_NOTIFICATION (never accessed) + hard deadline reached → EXPIRED_BLOCKING (notifiedAt stays undefined)', () => {
+      const pending = aState({ state: 'PENDING_NOTIFICATION', notifiedAt: undefined, deadlineAt: HARD });
+      const result = sweep(pending, active, clockAt('2026-07-22T00:00:00Z'));
+      expect(result.outcome).toBe('EXPIRED_BLOCKING');
+      expect(result.state.state).toBe('EXPIRED_BLOCKING');
+      expect(result.state.notifiedAt).toBeUndefined();
+    });
+
+    it('exactly at the hard deadline the block applies', () => {
+      const result = sweep(dueState, active, clockAt('2026-07-21T09:00:00Z'));
+      expect(result.outcome).toBe('EXPIRED_BLOCKING');
+    });
+
+    it('before the hard deadline: no-op (compliant until the date)', () => {
+      const result = sweep(dueState, active, clockAt('2026-07-20T09:00:00Z'));
+      expect(result.outcome).toBe('NOOP');
+    });
+
+    it.each<CustomerVersionStateValue>(['ACCEPTED', 'OBJECTED', 'EXPIRED_BLOCKING', 'SUPERSEDED'])(
+      'from %s: no-op (never re-blocks a decided/terminal state)',
+      (state) => {
+        const input = aState({ state, notifiedAt: T0, deadlineAt: HARD });
+        expect(sweep(input, active, clockAt('2026-08-01T00:00:00Z')).outcome).toBe('NOOP');
+      },
+    );
   });
 
   it('SUPERSEDED is ignored — never TACIT for a superseded version', () => {
-    const superseded = aState({ state: 'SUPERSEDED', notifiedAt: T0, deadlineAt: new Date('2026-07-21T09:00:00Z') });
+    const superseded = aState({ state: 'SUPERSEDED', notifiedAt: T0, deadlineAt: HARD });
     const result = sweep(superseded, aVersion(), clockAt('2026-08-01T00:00:00Z'));
     expect(result.outcome).toBe('NOOP');
     expect(result.state).toEqual(superseded);
-  });
-
-  it.each<CustomerVersionStateValue>(['PENDING_NOTIFICATION', 'ACCEPTED', 'OBJECTED', 'EXPIRED_BLOCKING'])(
-    'from %s: no-op',
-    (state) => {
-      const input = aState({ state, notifiedAt: T0, deadlineAt: new Date('2026-07-21T09:00:00Z') });
-      expect(sweep(input, aVersion(), clockAt('2026-08-01T00:00:00Z')).outcome).toBe('NOOP');
-    },
-  );
-
-  it('NOTIFIED without deadlineAt (defensive): no-op — the period never runs without access', () => {
-    const input = aState({ state: 'NOTIFIED', notifiedAt: T0, deadlineAt: undefined });
-    expect(sweep(input, aVersion(), clockAt('2026-08-01T00:00:00Z')).outcome).toBe('NOOP');
   });
 });
 

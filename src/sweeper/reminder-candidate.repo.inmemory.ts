@@ -10,11 +10,11 @@ import type { ReminderCandidate, ReminderCandidateRepo } from './ports';
 
 /**
  * Reference implementation built solely on existing domain ports (no new port needed): iterates all
- * customers, collects their NOTIFIED states with deadlineAt <= before, and resolves the recipient via
- * the state's most recently recorded NotificationEvent. Correct, but O(customers × states) —
- * unindexed. NEEDED (integration/persistence): replace with an indexed Prisma query for production
- * scale (`WHERE state = 'NOTIFIED' AND deadlineAt <= :before`, joined with the latest
- * NotificationEvent) — see the final report.
+ * customers, collects their NOTIFIED and PENDING_NOTIFICATION states with deadlineAt <= before, and
+ * resolves the recipient via the state's most recently recorded NotificationEvent. Correct, but
+ * O(customers × states) — unindexed. NEEDED (integration/persistence): replace with an indexed
+ * Prisma query for production scale (`WHERE state IN ('NOTIFIED','PENDING_NOTIFICATION') AND
+ * deadlineAt <= :before`, joined with the latest NotificationEvent) — see the final report.
  */
 @Injectable()
 export class InMemoryReminderCandidateRepo implements ReminderCandidateRepo {
@@ -31,7 +31,12 @@ export class InMemoryReminderCandidateRepo implements ReminderCandidateRepo {
     for (const customer of customers) {
       const states = await this.stateRepo.findByCustomer(customer.id);
       for (const state of states) {
-        if (state.state !== 'NOTIFIED' || state.deadlineAt === undefined || state.deadlineAt.getTime() > before.getTime()) {
+        if (
+          (state.state !== 'NOTIFIED' && state.state !== 'PENDING_NOTIFICATION') ||
+          state.deadlineAt === undefined ||
+          state.deadlineAt.getTime() > before.getTime()
+        ) {
+          // PASSIVE never-accessed PENDING states carry no deadlineAt and are excluded here.
           continue;
         }
         const version = await this.versionRepo.findById(state.versionId);

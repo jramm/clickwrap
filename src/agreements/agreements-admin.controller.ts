@@ -69,13 +69,17 @@ interface CreateVersionBody {
   consentText?: string;
   objectionPeriodDays?: number | string;
   gracePeriodDays?: number | string;
+  /** ACTIVE only: absolute acceptance deadline as a full ISO date-time (must be >= validFrom). */
+  hardDeadlineAt?: string;
   validFrom: string;
 }
 
-interface PatchVersionBody extends Omit<PatchDraftInput, 'validFrom' | 'objectionPeriodDays' | 'gracePeriodDays'> {
+interface PatchVersionBody
+  extends Omit<PatchDraftInput, 'validFrom' | 'objectionPeriodDays' | 'gracePeriodDays' | 'hardDeadlineAt'> {
   validFrom?: string;
   objectionPeriodDays?: number | string;
   gracePeriodDays?: number | string;
+  hardDeadlineAt?: string;
   /** Fallback: replacement PDF as base64 string (only without a multipart `file`). */
   file?: string;
   fileName?: string;
@@ -182,6 +186,9 @@ export class AgreementsAdminController {
         consentText: body.consentText,
         objectionPeriodDays: toOptionalNumber(body.objectionPeriodDays),
         gracePeriodDays: toOptionalNumber(body.gracePeriodDays),
+        hardDeadlineAt: body.hardDeadlineAt !== undefined && body.hardDeadlineAt !== ''
+          ? new Date(body.hardDeadlineAt)
+          : undefined,
         validFrom: new Date(body.validFrom),
         file: upload,
       },
@@ -216,12 +223,15 @@ export class AgreementsAdminController {
     @Req() req: AdminRequest,
     @UploadedFile() multipartFile?: Express.Multer.File,
   ) {
-    const { file, fileName, validFrom, objectionPeriodDays, gracePeriodDays, ...rest } = body;
+    const { file, fileName, validFrom, objectionPeriodDays, gracePeriodDays, hardDeadlineAt, ...rest } = body;
     const patch: PatchDraftInput = {
       ...rest,
       ...(validFrom !== undefined ? { validFrom: new Date(validFrom) } : {}),
       ...(objectionPeriodDays !== undefined ? { objectionPeriodDays: toOptionalNumber(objectionPeriodDays) } : {}),
       ...(gracePeriodDays !== undefined ? { gracePeriodDays: toOptionalNumber(gracePeriodDays) } : {}),
+      ...(hardDeadlineAt !== undefined
+        ? { hardDeadlineAt: hardDeadlineAt === '' ? undefined : new Date(hardDeadlineAt) }
+        : {}),
     };
     const upload = resolveUpload(multipartFile, typeof file === 'string' ? file : undefined, fileName);
     return this.versionService.patchDraft(versionId, patch, upload, adminUserId(req));

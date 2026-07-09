@@ -31,8 +31,15 @@ export class VersionModel {
   @ApiPropertyOptional({ example: 14, description: 'PASSIVE only: objection period in days.' })
   objectionPeriodDays?: number;
 
-  @ApiPropertyOptional({ example: 14, description: 'ACTIVE only: grace period until hard block.' })
+  @ApiPropertyOptional({ example: 14, description: 'Deprecated: no longer drives ACTIVE blocking (legacy rows only).' })
   gracePeriodDays?: number;
+
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    description: 'ACTIVE only: absolute acceptance deadline. Every customer must accept by then or is blocked, independent of access.',
+  })
+  hardDeadlineAt?: Date;
 
   @ApiProperty({ type: String, format: 'date-time' })
   validFrom!: Date;
@@ -144,11 +151,19 @@ export class CreateVersionBodyModel {
   @ApiPropertyOptional()
   consentText?: string;
 
-  @ApiPropertyOptional({ example: 14 })
+  @ApiPropertyOptional({ example: 14, description: 'PASSIVE only: objection period in days.' })
   objectionPeriodDays?: number;
 
-  @ApiPropertyOptional({ example: 14 })
+  @ApiPropertyOptional({ example: 14, description: 'Deprecated: no longer drives ACTIVE blocking (legacy rows only).' })
   gracePeriodDays?: number;
+
+  @ApiPropertyOptional({
+    example: '2026-08-01T00:00:00.000Z',
+    description:
+      'ACTIVE only: absolute acceptance deadline as a full ISO date-time. Required to publish an ' +
+      'ACTIVE version and must be >= validFrom; every customer must accept by then or is blocked.',
+  })
+  hardDeadlineAt?: string;
 
   @ApiProperty({
     example: '2026-07-01',
@@ -184,6 +199,9 @@ export class PatchVersionBodyModel {
 
   @ApiPropertyOptional()
   gracePeriodDays?: number;
+
+  @ApiPropertyOptional({ example: '2026-08-01T00:00:00.000Z', description: 'ACTIVE only: absolute acceptance deadline (ISO date-time, >= validFrom).' })
+  hardDeadlineAt?: string;
 
   @ApiPropertyOptional({ example: '2026-07-01' })
   validFrom?: string;

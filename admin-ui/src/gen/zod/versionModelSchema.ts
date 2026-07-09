@@ -16,7 +16,17 @@ export const versionModelSchema = z.object({
   changeSummary: z.string(),
   consentText: z.optional(z.string().describe('Exact checkbox consent text (ACTIVE only).')),
   objectionPeriodDays: z.optional(z.number().describe('PASSIVE only: objection period in days.')),
-  gracePeriodDays: z.optional(z.number().describe('ACTIVE only: grace period until hard block.')),
+  gracePeriodDays: z.optional(
+    z.number().describe('Deprecated: no longer drives ACTIVE blocking (legacy rows only).'),
+  ),
+  hardDeadlineAt: z.optional(
+    z
+      .string()
+      .datetime()
+      .describe(
+        'ACTIVE only: absolute acceptance deadline. Every customer must accept by then or is blocked, independent of access.',
+      ),
+  ),
   validFrom: z.string().datetime(),
   publishedAt: z.optional(z.string().datetime()),
   contentHash: z.string().describe('SHA-256 of the PDF content.'),

@@ -9,9 +9,9 @@ import 'dotenv/config';
  *   - audiences:      "customer" (Customers), "partner" (Partners)
  *   - document types: "terms" (Terms of Service), "dpa" (Data Processing Agreement)
  *   - documents (each with a published version → an onboarding rollout happens):
- *       · terms/customer  — ACTIVE  (consent + 14-day grace period)
+ *       · terms/customer  — ACTIVE  (consent + absolute ~30-day hard deadline)
  *       · dpa/customer    — PASSIVE (14-day objection period)
- *       · terms/partner   — ACTIVE  (consent + 14-day grace period)
+ *       · terms/partner   — ACTIVE  (consent + absolute ~30-day hard deadline)
  *     → documentType=terms spans customer+partner, documentType=dpa is customer-only, and
  *       audience=partner is partner-only — so the list filters visibly NARROW the rows.
  *   - customers (created AFTER publishing so compliance + audience filters differ):
@@ -71,7 +71,7 @@ interface PublishedDocument {
 
 /**
  * Creates a document, uploads a DRAFT version (base64 PDF fallback) and publishes it so a rollout
- * happens. ACTIVE documents get a consent text + grace period, PASSIVE ones an objection period.
+ * happens. ACTIVE documents get a consent text + absolute hard deadline, PASSIVE ones an objection period.
  * Returns the (published) versionId so it can be imported as an accepted version on a customer.
  */
 async function createPublishedDocument(
@@ -83,9 +83,13 @@ async function createPublishedDocument(
     audience: spec.audience,
     name: spec.name,
   });
+  // ACTIVE now uses an absolute hard deadline (~30 days out); PASSIVE keeps its objection period.
   const modeFields =
     spec.acceptanceMode === 'ACTIVE'
-      ? { consentText: 'I have read and accept this document.', gracePeriodDays: 14 }
+      ? {
+          consentText: 'I have read and accept this document.',
+          hardDeadlineAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        }
       : { objectionPeriodDays: 14 };
   const version = await postJson<{ versionId: string }>(baseUrl, `/admin/documents/${document.id}/versions`, {
     file: MINIMAL_PDF_BASE64,

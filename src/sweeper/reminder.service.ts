@@ -10,16 +10,18 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const REMINDER_THRESHOLDS_DAYS: readonly number[] = [7, 2];
 
 /**
- * Reminder job (runs daily): NOTIFIED states with a deadlineAt 7 or 2 days out receive a reminder
- * e-mail.
+ * Reminder job (runs daily): NOTIFIED and PENDING_NOTIFICATION states with a deadlineAt 7 or 2 days
+ * out receive a reminder e-mail. PENDING_NOTIFICATION with a deadlineAt is the ACTIVE hard-deadline
+ * case — the customer was never accessed but the deadline still applies, so we remind toward it.
+ * (PASSIVE never-accessed PENDING states carry no deadlineAt and never become candidates.)
  *
  * Idempotency decision: `remindersSent` counts how many of the (ascending-sorted) thresholds have
  * already been sent — index `remindersSent` is always the next still-open threshold. This is the
  * simplest correct approach with the existing field: an additional `lastReminderAt` would be
  * redundant, because the thresholds are strictly monotonically decreasing (7 days before 2 days) and
- * a state, as long as it stays NOTIFIED, can never cross the same threshold twice. A missed run (e.g.
- * an outage) is caught up on the next run: the while loop sends all thresholds that are by then due
- * and still open, in one pass.
+ * a state, as long as it keeps its state value, can never cross the same threshold twice. A missed
+ * run (e.g. an outage) is caught up on the next run: the while loop sends all thresholds that are by
+ * then due and still open, in one pass.
  */
 @Injectable()
 export class ReminderService {
@@ -53,11 +55,13 @@ export class ReminderService {
       remindersSent += 1;
     }
     if (remindersSent !== state.remindersSent) {
-      // Conditional ONLY while the state is still NOTIFIED: if the customer accepted during the
-      // mail send (or the version was superseded), the counter update must not overwrite the new
-      // state via a full-row save. Precondition not met → no-op (worst case a repeated reminder,
-      // but never a lost state).
-      await this.stateRepo.transition(state.id, 'NOTIFIED', { state: 'NOTIFIED', remindersSent });
+      // Conditional ONLY while the state is unchanged since findDue: if the customer accepted during
+      // the mail send (or the version was superseded), the counter update must not overwrite the new
+      // state via a full-row save. Precondition not met → no-op (worst case a repeated reminder, but
+      // never a lost state). We use the OBSERVED state value as both precondition and target, so a
+      // PENDING_NOTIFICATION reminder keeps the state PENDING (sending a reminder is NOT provable
+      // access — notifiedAt stays untouched) and a NOTIFIED one stays NOTIFIED. deadlineAt unchanged.
+      await this.stateRepo.transition(state.id, state.state, { state: state.state, remindersSent });
     }
   }
 

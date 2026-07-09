@@ -2711,7 +2711,12 @@
           "gracePeriodDays": {
             "type": "number",
             "example": 14,
-            "description": "ACTIVE only: grace period until hard block."
+            "description": "Deprecated: no longer drives ACTIVE blocking (legacy rows only)."
+          },
+          "hardDeadlineAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ACTIVE only: absolute acceptance deadline. Every customer must accept by then or is blocked, independent of access."
           },
           "validFrom": {
             "type": "string",
@@ -2861,11 +2866,18 @@
           },
           "objectionPeriodDays": {
             "type": "number",
-            "example": 14
+            "example": 14,
+            "description": "PASSIVE only: objection period in days."
           },
           "gracePeriodDays": {
             "type": "number",
-            "example": 14
+            "example": 14,
+            "description": "Deprecated: no longer drives ACTIVE blocking (legacy rows only)."
+          },
+          "hardDeadlineAt": {
+            "type": "string",
+            "example": "2026-08-01T00:00:00.000Z",
+            "description": "ACTIVE only: absolute acceptance deadline as a full ISO date-time. Required to publish an ACTIVE version and must be >= validFrom; every customer must accept by then or is blocked."
           },
           "validFrom": {
             "type": "string",
@@ -2942,6 +2954,11 @@
           },
           "gracePeriodDays": {
             "type": "number"
+          },
+          "hardDeadlineAt": {
+            "type": "string",
+            "example": "2026-08-01T00:00:00.000Z",
+            "description": "ACTIVE only: absolute acceptance deadline (ISO date-time, >= validFrom)."
           },
           "validFrom": {
             "type": "string",

@@ -38,16 +38,18 @@ License: **Apache-2.0**.
 - **Versioned agreement documents** — one document per (type × audience), with an immutable
   version history (DRAFT → PUBLISHED → RETIRED). Each version carries a PDF, a `versionLabel`, a
   change summary, a content hash, and — for active mode — the exact consent text.
-- **Two acceptance modes** — `ACTIVE` (click-consent, optional grace period until hard block) and
-  `PASSIVE` (tacit acceptance with an objection period).
+- **Two acceptance modes** — `ACTIVE` (click-consent with an **absolute** acceptance deadline
+  `hardDeadlineAt`: every customer must accept by that calendar date or is blocked, independent of
+  access) and `PASSIVE` (tacit acceptance with a per-customer objection period from delivery).
 - **Externally-signed documents** — document types flagged `external` skip versions/publish/gate;
   instead already-signed PDFs (e.g. counter-signed offers) are uploaded per customer via the admin
   or integration API as immutable, append-only evidence (with a host-computed content hash, signer,
   reference and signature date). They appear in the customer history but are **never** part of the
   compliance gate.
-- **Deadlines start on provable access only** — an objection/grace period begins when access is
+- **PASSIVE deadlines start on provable access only** — the objection period begins when access is
   proven (e-mail `Delivery` webhook, delivery polling, or a confirmed popup display), not when a
-  version is published.
+  version is published; a PASSIVE customer who never accessed is never tacit-booked. **ACTIVE uses
+  an absolute hard deadline** stamped at rollout — it applies to all customers regardless of access.
 - **Compliance-gate API** — `GET /customers/:id/compliance` returns a single boolean plus
   per-document detail; the intended integration point for portals and tools.
 - **Append-only evidence chain** — acceptances, objections and notification events are immutable
@@ -268,8 +270,9 @@ implement the SDK interface, `pnpm add` it, set the env var. The full author gui
 [`src/plugin-sdk/`](src/plugin-sdk/README.md).
 
 E-mail providers without delivery tracking (`smtp`, `noop`) can send but not confirm delivery; in
-those modes objection/grace deadlines start exclusively via the in-app popup access confirmation
-(`POST /customers/:id/notifications`).
+those modes the PASSIVE objection period starts exclusively via the in-app popup access confirmation
+(`POST /customers/:id/notifications`). ACTIVE blocking is unaffected — its hard deadline is absolute
+and independent of access.
 
 ---
 

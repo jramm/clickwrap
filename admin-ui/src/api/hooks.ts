@@ -344,7 +344,8 @@ export interface CreateVersionInput {
   validFrom: string;
   consentText?: string;
   objectionPeriodDays?: number;
-  gracePeriodDays?: number;
+  /** ACTIVE only: absolute acceptance deadline as a full ISO date-time (>= validFrom). */
+  hardDeadlineAt?: string;
 }
 
 function invalidateDocsAndVersions(qc: ReturnType<typeof useQueryClient>, documentId: string) {
@@ -367,8 +368,7 @@ export function useCreateVersion() {
       if (input.consentText) form.set('consentText', input.consentText);
       if (input.objectionPeriodDays !== undefined)
         form.set('objectionPeriodDays', String(input.objectionPeriodDays));
-      if (input.gracePeriodDays !== undefined)
-        form.set('gracePeriodDays', String(input.gracePeriodDays));
+      if (input.hardDeadlineAt !== undefined) form.set('hardDeadlineAt', input.hardDeadlineAt);
       return apiRequest(`/admin/documents/${input.documentId}/versions`, {
         method: 'POST',
         form,

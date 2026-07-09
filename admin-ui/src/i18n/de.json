@@ -173,7 +173,7 @@
     "modeActive": "ACTIVE (aktive Zustimmung)",
     "modePassive": "PASSIVE (stillschweigend, mit Widerspruchsfrist)",
     "consentText": "Einwilligungstext (Checkbox-Text, versioniert)",
-    "gracePeriodDays": "Karenz-Tage (bis Hard-Block)",
+    "hardDeadlineAt": "Zustimmungsfrist (bis dahin müssen alle Kunden zustimmen)",
     "objectionPeriodDays": "Widerspruchsfrist (Tage)",
     "validFrom": "Gültig ab",
     "createDraft": "Entwurf anlegen",
@@ -182,6 +182,7 @@
     "validationSummary": "Kurzbeschreibung ist erforderlich.",
     "validationValidFrom": "Gültig-ab-Datum ist erforderlich.",
     "validationConsent": "Einwilligungstext ist bei ACTIVE erforderlich.",
+    "validationHardDeadline": "Zustimmungsfrist ist bei ACTIVE erforderlich.",
     "created": "Entwurfsversion angelegt.",
     "createFailed": "Version konnte nicht angelegt werden."
   },

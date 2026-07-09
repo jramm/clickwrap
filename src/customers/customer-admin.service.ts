@@ -8,6 +8,7 @@ import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
 import { computeCompliance, type ComplianceResult, type CurrentVersionEntry } from '../domain/compliance';
 import { customerDisplayName } from '../domain/customer';
+import { rolloutDeadlineFor } from '../domain/state-machine';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
@@ -435,6 +436,8 @@ export class CustomerAdminService {
           customerId: customer.id,
           versionId: version.id,
           state: 'PENDING_NOTIFICATION',
+          // ACTIVE: absolute hard deadline stamped at rollout; PASSIVE: undefined (starts at access).
+          deadlineAt: rolloutDeadlineFor(version),
           remindersSent: 0,
         });
         // Authoritative "customer put under obligation" record — one per created state. Crucial

@@ -96,16 +96,35 @@ const isBlank = (value: string | undefined): boolean => value === undefined || v
 /**
  * Publish validation: only DRAFTs; changeSummary is required (popup); consentText is
  * required for ACTIVE; PASSIVE needs a determinable objection period.
+ *
+ * Deadline model:
+ *  - ACTIVE requires an absolute `hardDeadlineAt` that must be `>= validFrom` — every customer
+ *    (incl. never-accessed ones) is blocked at that date. `gracePeriodDays` no longer applies.
+ *  - PASSIVE must NOT carry a `hardDeadlineAt` — its deadline is the per-customer objection
+ *    period from provable access.
  */
 export const validateForPublish = (version: AgreementVersion): void => {
   assertDraftMutable(version);
   if (isBlank(version.changeSummary)) {
     throw new DomainError('CHANGE_SUMMARY_REQUIRED');
   }
-  if (version.acceptanceMode === 'ACTIVE' && isBlank(version.consentText)) {
-    throw new DomainError('CONSENT_TEXT_REQUIRED');
+  if (version.acceptanceMode === 'ACTIVE') {
+    if (isBlank(version.consentText)) {
+      throw new DomainError('CONSENT_TEXT_REQUIRED');
+    }
+    if (version.hardDeadlineAt === undefined) {
+      throw new DomainError('INVALID_STATE', 'ACTIVE version requires an absolute hardDeadlineAt');
+    }
+    if (version.hardDeadlineAt.getTime() < version.validFrom.getTime()) {
+      throw new DomainError('INVALID_STATE', 'hardDeadlineAt must not be earlier than validFrom');
+    }
+    return;
   }
-  if (version.acceptanceMode === 'PASSIVE' && version.objectionPeriodDays === undefined) {
+  // PASSIVE
+  if (version.objectionPeriodDays === undefined) {
     throw new DomainError('INVALID_STATE', 'PASSIVE version without objectionPeriodDays — deadline cannot be determined');
+  }
+  if (version.hardDeadlineAt !== undefined) {
+    throw new DomainError('INVALID_STATE', 'PASSIVE version must not set hardDeadlineAt');
   }
 };

@@ -139,8 +139,18 @@ export interface AgreementVersion {
   acceptanceMode: AcceptanceMode;
   /** PASSIVE only: objection period in days, starting at delivery. */
   objectionPeriodDays?: number;
-  /** ACTIVE only: grace period until hard block, starting at delivery — default DEFAULT_GRACE_PERIOD_DAYS. */
+  /**
+   * @deprecated No longer drives ACTIVE blocking — kept for backward-compat with old rows.
+   * Historically the ACTIVE grace period from delivery; ACTIVE deadlines are now the absolute
+   * {@link hardDeadlineAt}, independent of access.
+   */
   gracePeriodDays?: number;
+  /**
+   * ACTIVE only: absolute calendar deadline. Every customer of this version must have ACCEPTED by
+   * then or is blocked (EXPIRED_BLOCKING) at that date, independent of access — including
+   * never-accessed customers. Must be `>= validFrom`. Unset for PASSIVE versions.
+   */
+  hardDeadlineAt?: Date;
   /** Short description of the change — required (portal popup). */
   changeSummary: string;
   /** Exact consent text of the checkbox — required for ACTIVE, versioned server-side. */
@@ -200,7 +210,10 @@ export interface CustomerVersionState {
   state: CustomerVersionStateValue;
   /** First provable delivery — starts the deadline; ALWAYS server time. */
   notifiedAt?: Date;
-  /** = notifiedAt + objectionPeriodDays (PASSIVE) or + gracePeriodDays (ACTIVE). */
+  /**
+   * PASSIVE: notifiedAt + objectionPeriodDays (set at provable access). ACTIVE: the version's
+   * absolute {@link AgreementVersion.hardDeadlineAt}, stamped at rollout before any access.
+   */
   deadlineAt?: Date;
   remindersSent: number;
   /**

@@ -135,6 +135,60 @@ describe('InMemoryReminderCandidateRepo', () => {
     expect(await repo.findDue(BEFORE)).toHaveLength(0);
   });
 
+  it('includes a PENDING_NOTIFICATION state with a due deadlineAt (never-accessed ACTIVE hard deadline)', async () => {
+    const customers = new InMemoryCustomerRepo();
+    const states = new InMemoryCustomerVersionStateRepo();
+    const versions = new FakeAgreementVersionRepo();
+    const notifications = new InMemoryNotificationEventRepo();
+
+    await customers.save(aCustomer({ id: 'c-123' }));
+    versions.seed(aVersion({ id: 'v-1' }));
+    await states.save(
+      aState({
+        id: 'cvs-1',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        state: 'PENDING_NOTIFICATION',
+        deadlineAt: BEFORE,
+      }),
+    );
+    await notifications.append(
+      aNotification({ id: 'n-1', customerVersionStateId: 'cvs-1', recipient: 'max@customer.example', occurredAt: new Date('2026-07-07T09:00:00Z') }),
+    );
+
+    const repo = new InMemoryReminderCandidateRepo(customers, states, versions, notifications);
+    const candidates = await repo.findDue(BEFORE);
+
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].state.state).toBe('PENDING_NOTIFICATION');
+    expect(candidates[0]).toMatchObject({ recipient: 'max@customer.example' });
+  });
+
+  it('excludes a PENDING_NOTIFICATION state WITHOUT a deadlineAt (PASSIVE never-accessed)', async () => {
+    const customers = new InMemoryCustomerRepo();
+    const states = new InMemoryCustomerVersionStateRepo();
+    const versions = new FakeAgreementVersionRepo();
+    const notifications = new InMemoryNotificationEventRepo();
+
+    await customers.save(aCustomer({ id: 'c-123' }));
+    versions.seed(aVersion({ id: 'v-1' }));
+    await states.save(
+      aState({
+        id: 'cvs-1',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        state: 'PENDING_NOTIFICATION',
+        deadlineAt: undefined,
+      }),
+    );
+    await notifications.append(
+      aNotification({ id: 'n-1', customerVersionStateId: 'cvs-1', recipient: 'max@customer.example', occurredAt: new Date('2026-07-07T09:00:00Z') }),
+    );
+
+    const repo = new InMemoryReminderCandidateRepo(customers, states, versions, notifications);
+    expect(await repo.findDue(BEFORE)).toHaveLength(0);
+  });
+
   it('without a known NotificationEvent there is no candidate (no known recipient)', async () => {
     const customers = new InMemoryCustomerRepo();
     const states = new InMemoryCustomerVersionStateRepo();

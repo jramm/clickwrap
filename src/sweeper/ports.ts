@@ -1,8 +1,9 @@
 /**
  * Module-local ports of the sweeper module (not part of src/domain/ports.ts).
  * NEEDS (integration/persistence): ReminderCandidateRepo needs a concrete implementation that joins
- * CustomerVersionState (state=NOTIFIED) with Customer, AgreementVersion and the last known e-mail
- * recipient (from NotificationEvent) into a `ReminderCandidate` — see final report.
+ * CustomerVersionState (state IN (NOTIFIED, PENDING_NOTIFICATION), deadlineAt set) with Customer,
+ * AgreementVersion and the last known e-mail recipient (from NotificationEvent) into a
+ * `ReminderCandidate` — see final report.
  */
 import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types';
 
@@ -15,7 +16,13 @@ export interface ReminderCandidate {
 }
 
 export interface ReminderCandidateRepo {
-  /** All NOTIFIED states with deadlineAt <= before — a superset that ReminderService filters further. */
+  /**
+   * All NOTIFIED **and** PENDING_NOTIFICATION states with `deadlineAt <= before` — a superset that
+   * ReminderService filters further. Including PENDING_NOTIFICATION covers ACTIVE hard-deadline
+   * customers who were never accessed (their `deadlineAt` is stamped at rollout). PASSIVE
+   * never-accessed PENDING states have NO `deadlineAt` and are therefore naturally excluded by the
+   * `deadlineAt <= before` predicate.
+   */
   findDue(before: Date): Promise<ReminderCandidate[]>;
 }
 

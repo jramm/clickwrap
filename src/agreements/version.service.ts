@@ -17,6 +17,8 @@ export interface CreateDraftInput {
   consentText?: string;
   objectionPeriodDays?: number;
   gracePeriodDays?: number;
+  /** ACTIVE only: absolute calendar acceptance deadline (must be >= validFrom). */
+  hardDeadlineAt?: Date;
   validFrom: Date;
   file: PdfUpload;
 }
@@ -31,6 +33,7 @@ export type PatchDraftInput = Partial<
     | 'consentText'
     | 'objectionPeriodDays'
     | 'gracePeriodDays'
+    | 'hardDeadlineAt'
     | 'validFrom'
   >
 >;
@@ -59,6 +62,7 @@ export class VersionService {
       acceptanceMode: input.acceptanceMode,
       objectionPeriodDays: input.objectionPeriodDays,
       gracePeriodDays: input.gracePeriodDays,
+      hardDeadlineAt: input.hardDeadlineAt,
       changeSummary: input.changeSummary,
       consentText: input.consentText,
       storageKey: stored.storageKey,

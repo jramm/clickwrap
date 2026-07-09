@@ -203,6 +203,34 @@ describe('DeadlineSweeperService', () => {
     expect(await acceptanceRepo.findEffective('c-123', 'v-1')).toBeUndefined();
   });
 
+  it('ACTIVE + hard deadline reached on a NEVER-ACCESSED PENDING_NOTIFICATION → EXPIRED_BLOCKING (notifiedAt stays undefined, no acceptance)', async () => {
+    process.env.SWEEPER_ENABLED = 'true';
+    const version = anActiveVersion({ id: 'v-1', hardDeadlineAt: new Date('2026-07-21T09:00:00Z') });
+    const versionRepo = new FakeAgreementVersionRepo();
+    versionRepo.seed(version);
+    const stateRepo = new InMemoryCustomerVersionStateRepo();
+    await stateRepo.save(
+      aState({
+        id: 'cvs-1',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        state: 'PENDING_NOTIFICATION',
+        // Never accessed: notifiedAt undefined, but the absolute hard deadline was stamped at rollout.
+        notifiedAt: undefined,
+        deadlineAt: new Date('2026-07-21T09:00:00Z'),
+      }),
+    );
+    const acceptanceRepo = new InMemoryAcceptanceRepo();
+    const service = new DeadlineSweeperService(stateRepo, versionRepo, acceptanceRepo, new FixedClock(T0));
+
+    await service.run();
+
+    const state = await stateRepo.findById('cvs-1');
+    expect(state?.state).toBe('EXPIRED_BLOCKING');
+    expect(state?.notifiedAt).toBeUndefined();
+    expect(await acceptanceRepo.findEffective('c-123', 'v-1')).toBeUndefined();
+  });
+
   it('kill switch: SWEEPER_ENABLED=false → a full no-op', async () => {
     process.env.SWEEPER_ENABLED = 'false';
     const version = aVersion({ id: 'v-1', objectionPeriodDays: 14 });
@@ -368,6 +396,24 @@ describe('DeadlineSweeperService', () => {
         versionId: 'v-1',
         summary: 'Deadline expired — became blocking',
       });
+    });
+
+    it('EXPIRED_BLOCKING from a never-accessed PENDING_NOTIFICATION (ACTIVE): emits DEADLINE_EXPIRED', async () => {
+      const stateRepo = new InMemoryCustomerVersionStateRepo();
+      await stateRepo.save(
+        aState({
+          id: 'cvs-1',
+          customerId: 'c-123',
+          versionId: 'v-1',
+          state: 'PENDING_NOTIFICATION',
+          notifiedAt: undefined,
+          deadlineAt: new Date('2026-07-21T09:00:00Z'),
+        }),
+      );
+      const events = await setup(anActiveVersion({ id: 'v-1', hardDeadlineAt: new Date('2026-07-21T09:00:00Z') }), stateRepo);
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toMatchObject({ type: 'DEADLINE_EXPIRED', category: 'CONSENT', actorKind: 'SYSTEM', customerId: 'c-123' });
     });
 
     it('SUPERSEDED (no-op): emits NEITHER event', async () => {

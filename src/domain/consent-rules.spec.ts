@@ -132,10 +132,45 @@ describe('validateForPublish', () => {
     expect(() => validateForPublish(aVersion({ status: 'DRAFT', objectionPeriodDays: 14 }))).not.toThrow();
   });
 
-  it('a valid ACTIVE draft with consentText is publishable (even without gracePeriodDays — default 14)', () => {
+  it('a valid ACTIVE draft with consentText + hardDeadlineAt is publishable (gracePeriodDays no longer required)', () => {
     expect(() =>
       validateForPublish(anActiveVersion({ status: 'DRAFT', gracePeriodDays: undefined })),
     ).not.toThrow();
+  });
+
+  it('ACTIVE without hardDeadlineAt → INVALID_STATE (an absolute deadline is required)', () => {
+    expectDomainError(
+      () => validateForPublish(anActiveVersion({ status: 'DRAFT', hardDeadlineAt: undefined })),
+      'INVALID_STATE',
+    );
+  });
+
+  it('ACTIVE with hardDeadlineAt earlier than validFrom → INVALID_STATE', () => {
+    expectDomainError(
+      () =>
+        validateForPublish(
+          anActiveVersion({
+            status: 'DRAFT',
+            validFrom: new Date('2026-08-01T00:00:00Z'),
+            hardDeadlineAt: new Date('2026-07-15T00:00:00Z'),
+          }),
+        ),
+      'INVALID_STATE',
+    );
+  });
+
+  it('ACTIVE with hardDeadlineAt == validFrom is allowed (boundary)', () => {
+    const at = new Date('2026-08-01T00:00:00Z');
+    expect(() =>
+      validateForPublish(anActiveVersion({ status: 'DRAFT', validFrom: at, hardDeadlineAt: at })),
+    ).not.toThrow();
+  });
+
+  it('PASSIVE must not set hardDeadlineAt → INVALID_STATE', () => {
+    expectDomainError(
+      () => validateForPublish(aVersion({ status: 'DRAFT', objectionPeriodDays: 14, hardDeadlineAt: new Date('2026-08-01T00:00:00Z') })),
+      'INVALID_STATE',
+    );
   });
 
   it('missing changeSummary → CHANGE_SUMMARY_REQUIRED', () => {
