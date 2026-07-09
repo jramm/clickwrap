@@ -25,9 +25,9 @@ import {
 import type { GridColDef } from '../ui';
 
 /**
- * Per-version customer status page (`/versions/:id`). Reached from the dashboard cards. Unlike the
- * compliance overview — whose cells reflect the CURRENTLY EFFECTIVE version — every row here shows
- * the customer's state and acceptance FOR THIS version, so drilling into an upcoming version
+ * Per-version customer status page (`/versions/:id`). Reached from the dashboard cards. Every row
+ * shows the customer's state and acceptance FOR THIS version (rather than only the currently
+ * effective one), so drilling into an upcoming version
  * correctly shows who has (not) accepted THAT version. Desktop DataGrid / mobile card list; state
  * filter tabs + search; a row/card tap opens the customer detail page.
  */

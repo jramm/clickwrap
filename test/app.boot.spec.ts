@@ -237,10 +237,11 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
       'company-boot-2',
     ]);
 
-    // Overview rows include the customer name (known gap fixed).
-    const overviewRes = await http().get('/admin/overview').set(adminHeaders).expect(200);
-    const overviewRow = overviewRes.body.items.find((r: { customerId: string }) => r.customerId === onboardedId);
-    expect(overviewRow).toMatchObject({ customerName: 'Boot Two GmbH' });
+    // The admin customer list exposes the onboarded customer's company name.
+    const onboardedRow = customersRes.body.items.find(
+      (c: { id: string }) => c.id === onboardedId,
+    );
+    expect(onboardedRow).toMatchObject({ companyName: 'Boot Two GmbH' });
   });
 
   it('DomainErrorFilter is globally active: unknown version → 404 VERSION_NOT_FOUND', async () => {

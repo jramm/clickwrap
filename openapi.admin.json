@@ -893,97 +893,6 @@
         ]
       }
     },
-    "/admin/overview": {
-      "get": {
-        "operationId": "AdminController_overview",
-        "parameters": [
-          {
-            "name": "filter",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "non_compliant",
-                "pending",
-                "objected",
-                "unreachable",
-                "deadline_lt_7d"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "audience",
-            "required": false,
-            "in": "query",
-            "description": "Audience key.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "documentType",
-            "required": false,
-            "in": "query",
-            "description": "Document type key.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "description": "Case-insensitive substring on the customer name / externalRef / contactEmails.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OverviewResponseModel"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing/invalid admin authentication.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "google-sso": []
-          },
-          {
-            "admin-token": []
-          }
-        ],
-        "summary": "Acceptance matrix (pages of 50) — cells keyed TYPE_AUDIENCE",
-        "tags": [
-          "admin"
-        ]
-      }
-    },
     "/admin/dashboard": {
       "get": {
         "description": "One entry per RELEVANT version (the current published version and, if any, the upcoming scheduled published version of every document) with acceptance counters: totalCustomers (relevant/non-SUPERSEDED states), accepted, acceptedByChannel/Method, pending, blocked, objected and acceptanceRate.",
@@ -2468,7 +2377,7 @@
   },
   "info": {
     "title": "clickwrap-server — admin API",
-    "description": "Administration surface (`/admin/**`): documents & versions, publish/rollout, customers, operations (overview, history, manual acceptance, deadlines/reminders) and the dynamic entities (audiences, document types). Errors are always `{ code, message }` — the codes are documented in docs/API.md §7.",
+    "description": "Administration surface (`/admin/**`): documents & versions, publish/rollout, customers, operations (per-version dashboard, history, manual acceptance, deadlines/reminders) and the dynamic entities (audiences, document types). Errors are always `{ code, message }` — the codes are documented in docs/API.md §7.",
     "version": "0.1.0",
     "contact": {}
   },
@@ -3226,104 +3135,6 @@
           "status",
           "rolloutCustomers",
           "publishedAt"
-        ]
-      },
-      "OverviewCellModel": {
-        "type": "object",
-        "properties": {
-          "acceptedVersion": {
-            "type": "string",
-            "example": "April 2026 edition"
-          },
-          "method": {
-            "type": "string",
-            "enum": [
-              "ACTIVE_CONSENT",
-              "TACIT",
-              "IMPORT"
-            ]
-          },
-          "state": {
-            "type": "string",
-            "enum": [
-              "PENDING_NOTIFICATION",
-              "NOTIFIED",
-              "ACCEPTED",
-              "OBJECTED",
-              "EXPIRED_BLOCKING",
-              "SUPERSEDED"
-            ]
-          },
-          "requiredVersion": {
-            "type": "string",
-            "example": "June 2026 edition",
-            "description": "Only set while the current version is not accepted."
-          },
-          "deadlineAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "blocking": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "blocking"
-        ]
-      },
-      "OverviewRowModel": {
-        "type": "object",
-        "properties": {
-          "customerId": {
-            "type": "string",
-            "example": "c-8a71…"
-          },
-          "customerName": {
-            "type": "string",
-            "example": "Acme GmbH",
-            "description": "Derived display name: companyName if set, else the contact person's name ('' when unknown)."
-          },
-          "roles": {
-            "example": [
-              "customer"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "cells": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/OverviewCellModel"
-            },
-            "description": "One cell per TYPE_AUDIENCE detail key (e.g. DPA_CUSTOMER)."
-          }
-        },
-        "required": [
-          "customerId",
-          "customerName",
-          "roles",
-          "cells"
-        ]
-      },
-      "OverviewResponseModel": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OverviewRowModel"
-            }
-          },
-          "total": {
-            "type": "number",
-            "example": 921
-          }
-        },
-        "required": [
-          "items",
-          "total"
         ]
       },
       "AcceptedByChannelModel": {

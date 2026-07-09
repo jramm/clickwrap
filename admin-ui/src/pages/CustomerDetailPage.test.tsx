@@ -1,9 +1,14 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { HttpResponse, http } from 'msw';
 import { Route, Routes } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { acceptanceLinkFixture } from '../test/handlers';
+import { server } from '../test/server';
 import { renderWithProviders } from '../test/renderWithProviders';
 import { CustomerDetailPage } from './CustomerDetailPage';
+
+const BASE = 'http://localhost:3000';
 
 function renderAt(customerId: string) {
   return renderWithProviders(
@@ -12,6 +17,15 @@ function renderAt(customerId: string) {
     </Routes>,
     { route: `/customers/${customerId}` },
   );
+}
+
+/**
+ * jsdom has no navigator.clipboard — install a mock and return its spy.
+ * IMPORTANT: call AFTER userEvent.setup(), which installs its own clipboard stub.
+ */
+function mockClipboard(writeText = vi.fn().mockResolvedValue(undefined)) {
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+  return writeText;
 }
 
 describe('CustomerDetailPage', () => {
@@ -52,5 +66,52 @@ describe('CustomerDetailPage', () => {
     const options = await screen.findAllByRole('option');
     expect(options).toHaveLength(1);
     expect(options[0]).toHaveTextContent('Signed offer (signed-offer)');
+  });
+
+  describe('copy acceptance link (agreements section action)', () => {
+    afterEach(() => {
+      // Remove the clipboard mock so other tests see the pristine jsdom navigator.
+      delete (navigator as unknown as Record<string, unknown>).clipboard;
+    });
+
+    it('mints the customer link and copies the URL to the clipboard with an expiry toast', async () => {
+      const created: string[] = [];
+      server.use(
+        http.post(`${BASE}/admin/customers/:id/acceptance-links`, ({ params }) => {
+          created.push(String(params.id));
+          return HttpResponse.json(acceptanceLinkFixture, { status: 201 });
+        }),
+      );
+      const user = userEvent.setup();
+      const writeText = mockClipboard();
+      renderAt('c-123');
+
+      await screen.findByText('Agreements & status');
+      await user.click(screen.getByRole('button', { name: 'Copy acceptance link' }));
+
+      await waitFor(() => expect(writeText).toHaveBeenCalledWith(acceptanceLinkFixture.url));
+      // One permanent per-customer link — minted for exactly this customer.
+      expect(created).toEqual(['c-123']);
+      expect(await screen.findByText(/Acceptance link copied/)).toBeInTheDocument();
+      expect(screen.getByText(/07\/08\/2026/)).toBeInTheDocument();
+    });
+
+    it('surfaces the PUBLIC_BASE_URL configuration error verbatim', async () => {
+      server.use(
+        http.post(`${BASE}/admin/customers/:id/acceptance-links`, () =>
+          HttpResponse.json(
+            { code: 'INVALID_STATE', message: 'PUBLIC_BASE_URL is not configured — set it and retry.' },
+            { status: 422 },
+          ),
+        ),
+      );
+      const user = userEvent.setup();
+      renderAt('c-123');
+
+      await screen.findByText('Agreements & status');
+      await user.click(screen.getByRole('button', { name: 'Copy acceptance link' }));
+
+      expect(await screen.findByText(/PUBLIC_BASE_URL is not configured/)).toBeInTheDocument();
+    });
   });
 });

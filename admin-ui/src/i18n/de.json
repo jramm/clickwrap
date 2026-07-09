@@ -39,7 +39,6 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "overview": "Übersicht",
     "customers": "Kunden",
     "documents": "Dokumente",
     "emailTemplates": "E-Mail-Vorlagen",
@@ -58,8 +57,7 @@
     "pendingCount": "Ausstehend {{count}}",
     "blockedCount": "Blockiert {{count}}",
     "objectedCount": "Widersprochen {{count}}",
-    "channels": "Kanäle",
-    "openOverview": "Compliance-Übersicht öffnen"
+    "channels": "Kanäle"
   },
   "versionCustomers": {
     "title": "Version",
@@ -120,37 +118,6 @@
     "EXPIRED_BLOCKING": "Blockiert",
     "OBJECTED": "Widersprochen",
     "SUPERSEDED": "Abgelöst"
-  },
-  "overview": {
-    "title": "Übersicht",
-    "subtitleCount": "{{count}} Kunden in der Akzeptanz-Matrix",
-    "subtitleDefault": "Akzeptanz-Matrix aller Kunden",
-    "filter": "Filter",
-    "statusFilter": "Status-Filter",
-    "documentType": "Dokumenttyp",
-    "audience": "Zielgruppe",
-    "customer": "Kunde",
-    "roles": "Rollen",
-    "allTypes": "Alle Typen",
-    "allAudiences": "Alle Zielgruppen",
-    "searchLabel": "Kunden suchen",
-    "searchPlaceholder": "Nach Name, Referenz oder E-Mail suchen",
-    "searchClear": "Suche zurücksetzen",
-    "loadError": "Die Übersicht konnte nicht geladen werden.",
-    "empty": "Keine Kunden in der Akzeptanz-Matrix.",
-    "filters": {
-      "all": "Alle",
-      "non_compliant": "Nicht compliant",
-      "pending": "Offen",
-      "objected": "Widersprochen",
-      "unreachable": "Nicht erreichbar",
-      "deadline_lt_7d": "Frist < 7 Tage"
-    },
-    "copyLink": "Akzeptanz-Link kopieren",
-    "copyLinkSuccess": "Akzeptanz-Link kopiert — gültig bis {{expires}}.",
-    "copyLinkManual": "Akzeptanz-Link erstellt (gültig bis {{expires}}) — bitte aus dem Dialog kopieren.",
-    "copyLinkPrompt": "Akzeptanz-Link kopieren:",
-    "copyLinkFailed": "Der Akzeptanz-Link konnte nicht erstellt werden."
   },
   "documents": {
     "title": "Dokumente",
@@ -261,10 +228,17 @@
   },
   "customerDetail": {
     "backToOverview": "Zurück zur Übersicht",
+    "customer": "Kunde",
     "customerId": "Kunden-ID: {{id}}",
     "loadError": "Die Historie konnte nicht geladen werden.",
     "loading": "Lade Historie…",
-    "openStates": "Offene Vorgänge & Aktionen",
+    "agreements": "Vereinbarungen & Status",
+    "noAgreements": "Keine offenen Vereinbarungen.",
+    "copyLink": "Akzeptanz-Link kopieren",
+    "copyLinkSuccess": "Akzeptanz-Link kopiert — gültig bis {{expires}}.",
+    "copyLinkManual": "Akzeptanz-Link erstellt (gültig bis {{expires}}) — bitte aus dem Dialog kopieren.",
+    "copyLinkPrompt": "Akzeptanz-Link kopieren:",
+    "copyLinkFailed": "Der Akzeptanz-Link konnte nicht erstellt werden.",
     "acceptances": "Zustimmungen",
     "noAcceptances": "Keine Zustimmungen erfasst.",
     "objections": "Widersprüche",

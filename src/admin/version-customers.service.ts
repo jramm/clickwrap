@@ -63,9 +63,9 @@ export interface VersionCustomersResult {
 const PAGE_SIZE = 50;
 
 /**
- * Per-version customer status view. Unlike the compliance overview — whose cells always reflect the
- * CURRENTLY EFFECTIVE version — every row here reports the customer's state and acceptance FOR THE
- * REQUESTED version, so drilling into an upcoming version shows who has (not) accepted THAT version.
+ * Per-version customer status view. Every row reports the customer's state and acceptance FOR THE
+ * REQUESTED version, so drilling into an upcoming version shows who has (not) accepted THAT version
+ * (rather than only the currently effective one).
  */
 @Injectable()
 export class VersionCustomersService {

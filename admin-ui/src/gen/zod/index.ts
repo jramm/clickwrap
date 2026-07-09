@@ -116,12 +116,6 @@ export {
   adminControllerManualAcceptancePathParamsSchema,
 } from './adminControllerManualAcceptanceSchema.ts';
 export {
-  adminControllerOverview200Schema,
-  adminControllerOverview401Schema,
-  adminControllerOverviewQueryParamsSchema,
-  adminControllerOverviewQueryResponseSchema,
-} from './adminControllerOverviewSchema.ts';
-export {
   adminControllerPatchState200Schema,
   adminControllerPatchState401Schema,
   adminControllerPatchState404Schema,
@@ -298,9 +292,6 @@ export { loginMethodModelSchema } from './loginMethodModelSchema.ts';
 export { manualAcceptanceBodyModelSchema } from './manualAcceptanceBodyModelSchema.ts';
 export { manualAcceptanceResponseModelSchema } from './manualAcceptanceResponseModelSchema.ts';
 export { namedEntityModelSchema } from './namedEntityModelSchema.ts';
-export { overviewCellModelSchema } from './overviewCellModelSchema.ts';
-export { overviewResponseModelSchema } from './overviewResponseModelSchema.ts';
-export { overviewRowModelSchema } from './overviewRowModelSchema.ts';
 export { patchStateBodyModelSchema } from './patchStateBodyModelSchema.ts';
 export { patchVersionBodyModelSchema } from './patchVersionBodyModelSchema.ts';
 export { publishResponseModelSchema } from './publishResponseModelSchema.ts';

@@ -11,7 +11,7 @@ the running service serves Swagger UIs at `/docs/admin` and `/docs/integration`.
 
 The examples use the shipped example categories: document types `terms` / `dpa` and audiences
 `customer` / `partner`. These are just data — you create your own via the admin API (see §2). The
-per-document detail keys used in overview/compliance responses are derived as
+per-document detail keys used in compliance responses are derived as
 `<TYPE>_<AUDIENCE>` uppercased, e.g. `TERMS_CUSTOMER`, `DPA_PARTNER`.
 
 ---
@@ -315,28 +315,9 @@ The `url` is a **capability**: whoever has it can open the acceptance page (see 
 like a password. The raw token appears only in this response; the server persists just its
 SHA-256. Writes an `ACCEPTANCE_LINK_CREATE` audit entry (linkId only, never token material).
 
-### GET /admin/overview?documentType=…&audience=…&search=…&filter=non_compliant|pending|objected|unreachable|deadline_lt_7d&page=…
-Acceptance matrix (pages of 50). The optional `search` filters rows by the same case-insensitive
-substring on the customer's `name` / `externalRef` / `contactEmails` as `GET /admin/customers`
-(applied before paging; `total` reflects the filtered count). Cells live **under `cells`**, keyed
-`TYPE_AUDIENCE`:
-```json
-{
-  "items": [{
-    "customerId": "c-123",
-    "customerName": "Acme GmbH",
-    "roles": ["customer", "partner"],
-    "cells": {
-      "TERMS_CUSTOMER": { "acceptedVersion": "2026-04", "method": "TACIT",
-                          "state": "ACCEPTED", "blocking": false },
-      "DPA_CUSTOMER": { "acceptedVersion": "2025-01", "method": "ACTIVE_CONSENT",
-                        "state": "NOTIFIED", "requiredVersion": "2026-06",
-                        "deadlineAt": "2026-07-21T00:00:00Z", "blocking": false }
-    }
-  }],
-  "total": 921
-}
-```
+The admin UI exposes this as the **"Copy acceptance link"** action in the agreements section of the
+customer detail page (`/customers/:id`): one permanent, whole-account link covering all of that
+customer's outstanding agreements.
 
 ### GET /admin/dashboard · GET /admin/versions/:id/stats — per-version acceptance dashboard
 
@@ -387,8 +368,7 @@ moved off):
 
 Per-version customer status list — the drill-down target of the dashboard cards. Every row reports
 the customer's state and acceptance **for the requested version**, not for the currently effective
-one: drilling into an **upcoming** version correctly shows who has (not) accepted **that** version
-(the compliance overview, by contrast, always shows cells relative to the current version).
+one: drilling into an **upcoming** version correctly shows who has (not) accepted **that** version.
 `SUPERSEDED` states are excluded; pages of 50; `404 VERSION_NOT_FOUND` for an unknown id.
 
 - `state` — `accepted` (ACCEPTED) · `pending` (PENDING_NOTIFICATION or NOTIFIED) · `blocked`

@@ -26,7 +26,7 @@ import { useIsMobile } from '../ui';
 
 /**
  * App shell: AppBar with the configurable brand name, primary navigation
- * (Overview / Customers / Documents / Settings), a language switcher and a user
+ * (Dashboard / Customers / Documents / Settings), a language switcher and a user
  * chip (name/avatar from the Google token) with sign-out. Below the `md`
  * breakpoint the navigation collapses into a hamburger + temporary Drawer; the
  * language switcher and user chip stay reachable in the AppBar.
@@ -42,7 +42,6 @@ export function AppShell() {
 
   const nav = [
     { to: '/', label: t('nav.dashboard') },
-    { to: '/overview', label: t('nav.overview') },
     { to: '/customers', label: t('nav.customers') },
     { to: '/documents', label: t('nav.documents') },
     { to: '/email-templates', label: t('nav.emailTemplates') },

@@ -50,7 +50,6 @@ import {
   ManualAcceptanceBodyModel,
   ManualAcceptanceResponseModel,
   NamedEntityModel,
-  OverviewResponseModel,
   PatchStateBodyModel,
   UpdateDocumentTypeBodyModel,
   UpdateEmailTemplateBodyModel,
@@ -76,7 +75,6 @@ import {
 import { DashboardService } from './dashboard.service';
 import { HistoryService } from './history.service';
 import { ManualAcceptanceService } from './manual-acceptance.service';
-import { OverviewService, type OverviewFilter, type OverviewQuery } from './overview.service';
 import {
   VersionCustomersService,
   type VersionCustomerFilterState,
@@ -111,7 +109,6 @@ const adminActorOf = (req: AdminRequest): Actor => ({ userId: adminUserId(req) }
 export class AdminController {
   constructor(
     private readonly publishService: PublishService,
-    private readonly overviewService: OverviewService,
     private readonly dashboardService: DashboardService,
     private readonly versionCustomersService: VersionCustomersService,
     private readonly historyService: HistoryService,
@@ -245,35 +242,6 @@ export class AdminController {
   })
   async publish(@Param('id') versionId: string, @Req() req: AdminRequest) {
     return this.publishService.publish(versionId, adminUserId(req));
-  }
-
-  @Get('overview')
-  @ApiOperation({ summary: 'Acceptance matrix (pages of 50) — cells keyed TYPE_AUDIENCE' })
-  @ApiQuery({ name: 'filter', required: false, enum: ['non_compliant', 'pending', 'objected', 'unreachable', 'deadline_lt_7d'] })
-  @ApiQuery({ name: 'audience', required: false, description: 'Audience key.' })
-  @ApiQuery({ name: 'documentType', required: false, description: 'Document type key.' })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Case-insensitive substring on the customer name / externalRef / contactEmails.',
-  })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiOkResponse({ type: OverviewResponseModel })
-  async overview(
-    @Query('filter') filter?: OverviewFilter,
-    @Query('audience') audience?: string,
-    @Query('documentType') documentType?: string,
-    @Query('search') search?: string,
-    @Query('page') page?: string,
-  ) {
-    const query: OverviewQuery = {
-      filter,
-      audience,
-      documentType,
-      search,
-      page: page ? Number(page) : undefined,
-    };
-    return this.overviewService.overview(query);
   }
 
   @Get('dashboard')

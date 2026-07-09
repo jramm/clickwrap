@@ -7,7 +7,6 @@ import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DocumentsPage } from './pages/DocumentsPage';
 import { EmailTemplatesPage } from './pages/EmailTemplatesPage';
-import { OverviewPage } from './pages/OverviewPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VersionCustomersPage } from './pages/VersionCustomersPage';
 
@@ -22,7 +21,6 @@ export function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/overview" element={<OverviewPage />} />
           <Route path="/versions/:id" element={<VersionCustomersPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/customers/:id" element={<CustomerDetailPage />} />

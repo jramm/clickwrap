@@ -21,8 +21,6 @@ export type { AdminControllerListDocumentTypesSuspenseQueryKey } from './useAdmi
 export type { AdminControllerListEmailTemplatesQueryKey } from './useAdminControllerListEmailTemplates.ts';
 export type { AdminControllerListEmailTemplatesSuspenseQueryKey } from './useAdminControllerListEmailTemplatesSuspense.ts';
 export type { AdminControllerManualAcceptanceMutationKey } from './useAdminControllerManualAcceptance.ts';
-export type { AdminControllerOverviewQueryKey } from './useAdminControllerOverview.ts';
-export type { AdminControllerOverviewSuspenseQueryKey } from './useAdminControllerOverviewSuspense.ts';
 export type { AdminControllerPatchStateMutationKey } from './useAdminControllerPatchState.ts';
 export type { AdminControllerPreviewEmailTemplateMutationKey } from './useAdminControllerPreviewEmailTemplate.ts';
 export type { AdminControllerPublishMutationKey } from './useAdminControllerPublish.ts';
@@ -144,14 +142,6 @@ export { adminControllerManualAcceptance } from './useAdminControllerManualAccep
 export { adminControllerManualAcceptanceMutationKey } from './useAdminControllerManualAcceptance.ts';
 export { adminControllerManualAcceptanceMutationOptions } from './useAdminControllerManualAcceptance.ts';
 export { useAdminControllerManualAcceptance } from './useAdminControllerManualAcceptance.ts';
-export { adminControllerOverview } from './useAdminControllerOverview.ts';
-export { adminControllerOverviewQueryKey } from './useAdminControllerOverview.ts';
-export { adminControllerOverviewQueryOptions } from './useAdminControllerOverview.ts';
-export { useAdminControllerOverview } from './useAdminControllerOverview.ts';
-export { adminControllerOverviewSuspense } from './useAdminControllerOverviewSuspense.ts';
-export { adminControllerOverviewSuspenseQueryKey } from './useAdminControllerOverviewSuspense.ts';
-export { adminControllerOverviewSuspenseQueryOptions } from './useAdminControllerOverviewSuspense.ts';
-export { useAdminControllerOverviewSuspense } from './useAdminControllerOverviewSuspense.ts';
 export { adminControllerPatchState } from './useAdminControllerPatchState.ts';
 export { adminControllerPatchStateMutationKey } from './useAdminControllerPatchState.ts';
 export { adminControllerPatchStateMutationOptions } from './useAdminControllerPatchState.ts';

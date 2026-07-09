@@ -39,7 +39,6 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "overview": "Overview",
     "customers": "Customers",
     "documents": "Documents",
     "emailTemplates": "E-mail templates",
@@ -58,8 +57,7 @@
     "pendingCount": "Pending {{count}}",
     "blockedCount": "Blocked {{count}}",
     "objectedCount": "Objected {{count}}",
-    "channels": "Channels",
-    "openOverview": "Open compliance overview"
+    "channels": "Channels"
   },
   "versionCustomers": {
     "title": "Version",
@@ -120,37 +118,6 @@
     "EXPIRED_BLOCKING": "Blocked",
     "OBJECTED": "Objected",
     "SUPERSEDED": "Superseded"
-  },
-  "overview": {
-    "title": "Overview",
-    "subtitleCount": "{{count}} customers in the acceptance matrix",
-    "subtitleDefault": "Acceptance matrix across all customers",
-    "filter": "Filter",
-    "statusFilter": "Status filter",
-    "documentType": "Document type",
-    "audience": "Audience",
-    "customer": "Customer",
-    "roles": "Roles",
-    "allTypes": "All types",
-    "allAudiences": "All audiences",
-    "searchLabel": "Search customers",
-    "searchPlaceholder": "Search by name, reference or e-mail",
-    "searchClear": "Clear search",
-    "loadError": "The overview could not be loaded.",
-    "empty": "No customers in the acceptance matrix.",
-    "filters": {
-      "all": "All",
-      "non_compliant": "Non-compliant",
-      "pending": "Pending",
-      "objected": "Objected",
-      "unreachable": "Unreachable",
-      "deadline_lt_7d": "Deadline < 7 days"
-    },
-    "copyLink": "Copy acceptance link",
-    "copyLinkSuccess": "Acceptance link copied — valid until {{expires}}.",
-    "copyLinkManual": "Acceptance link created (valid until {{expires}}) — copy it from the prompt.",
-    "copyLinkPrompt": "Copy the acceptance link:",
-    "copyLinkFailed": "The acceptance link could not be created."
   },
   "documents": {
     "title": "Documents",
@@ -261,10 +228,17 @@
   },
   "customerDetail": {
     "backToOverview": "Back to overview",
+    "customer": "Customer",
     "customerId": "Customer ID: {{id}}",
     "loadError": "The history could not be loaded.",
     "loading": "Loading history…",
-    "openStates": "Open items & actions",
+    "agreements": "Agreements & status",
+    "noAgreements": "No outstanding agreements.",
+    "copyLink": "Copy acceptance link",
+    "copyLinkSuccess": "Acceptance link copied — valid until {{expires}}.",
+    "copyLinkManual": "Acceptance link created (valid until {{expires}}) — copy it from the prompt.",
+    "copyLinkPrompt": "Copy the acceptance link:",
+    "copyLinkFailed": "The acceptance link could not be created.",
     "acceptances": "Acceptances",
     "noAcceptances": "No acceptances recorded.",
     "objections": "Objections",

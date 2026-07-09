@@ -7,7 +7,7 @@ import en from './en.json';
  * Lightweight, dependency-free i18n layer.
  *
  * Translations live in `en.json` / `de.json` as nested objects; a key is a
- * dot path (e.g. "overview.title"). English is the default locale, German the
+ * dot path (e.g. "dashboard.title"). English is the default locale, German the
  * secondary one. `t()` supports `{{param}}` interpolation. The active language
  * is persisted to localStorage so it survives reloads.
  */

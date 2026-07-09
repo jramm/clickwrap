@@ -8,16 +8,15 @@ import { ApiError, errorMessageKey } from '../api/errors';
 import { useDashboard } from '../api/hooks';
 import type { VersionStats } from '../api/hooks';
 import { useTranslation } from '../i18n';
-import { Button, Card, PageHeader } from '../ui';
+import { Card, PageHeader } from '../ui';
 
 /**
  * Per-version acceptance dashboard — the landing page after login. One card per relevant version
  * (current + upcoming published versions of every document) with a progress bar, the acceptance
  * counters as chips and a channel breakdown. Tapping a card opens the per-version customer list
  * (`/versions/:id`), which reports each customer's status FOR THAT version — so an upcoming version
- * shows who has (not) accepted it, instead of the compliance overview's current-version cells. A
- * secondary "open compliance overview" link keeps the baseline matrix reachable. Cards stack on
- * narrow viewports.
+ * shows who has (not) accepted it, rather than only the currently effective version.
+ * Cards stack on narrow viewports.
  */
 export function DashboardPage() {
   const { t } = useTranslation();
@@ -58,11 +57,6 @@ export function DashboardPage() {
               key={item.versionId}
               item={item}
               onOpen={() => navigate(`/versions/${encodeURIComponent(item.versionId)}`)}
-              onOpenOverview={() =>
-                navigate(
-                  `/overview?documentType=${encodeURIComponent(item.documentType)}&audience=${encodeURIComponent(item.audience)}`,
-                )
-              }
             />
           ))}
         </Box>
@@ -74,10 +68,9 @@ export function DashboardPage() {
 interface VersionStatsCardProps {
   item: VersionStats;
   onOpen: () => void;
-  onOpenOverview: () => void;
 }
 
-function VersionStatsCard({ item, onOpen, onOpenOverview }: VersionStatsCardProps) {
+function VersionStatsCard({ item, onOpen }: VersionStatsCardProps) {
   const { t } = useTranslation();
   const { stats } = item;
   const percent = Math.round(stats.acceptanceRate * 100);
@@ -135,19 +128,6 @@ function VersionStatsCard({ item, onOpen, onOpenOverview }: VersionStatsCardProp
           {stats.acceptedByChannel.LINK} · ADMIN {stats.acceptedByChannel.ADMIN} · SYSTEM{' '}
           {stats.acceptedByChannel.SYSTEM}
         </Typography>
-
-        <Button
-          variant="text"
-          size="small"
-          sx={{ mt: 1, minHeight: 44 }}
-          onClick={(event) => {
-            event.stopPropagation(); // the surrounding card opens the per-version customer list
-            onOpenOverview();
-          }}
-          onKeyDown={(event) => event.stopPropagation()}
-        >
-          {t('dashboard.openOverview')}
-        </Button>
       </Card>
     </Box>
   );

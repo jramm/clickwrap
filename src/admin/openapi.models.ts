@@ -1,9 +1,8 @@
 /**
- * OpenAPI documentation models for the admin operations endpoints (overview, history, manual
- * acceptance, states, audiences, document types). Documentation only — runtime shapes live in the
- * services.
+ * OpenAPI documentation models for the admin operations endpoints (history, manual acceptance,
+ * states, audiences, document types). Documentation only — runtime shapes live in the services.
  */
-import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 const ROLLOUT_STATES = [
   'PENDING_NOTIFICATION',
@@ -15,58 +14,6 @@ const ROLLOUT_STATES = [
 ] as const;
 const METHODS = ['ACTIVE_CONSENT', 'TACIT', 'IMPORT'] as const;
 const CHANNELS = ['PORTAL', 'ADMIN', 'SYSTEM', 'LINK'] as const;
-
-export class OverviewCellModel {
-  @ApiPropertyOptional({ example: 'April 2026 edition' })
-  acceptedVersion?: string;
-
-  @ApiPropertyOptional({ enum: METHODS })
-  method?: string;
-
-  @ApiPropertyOptional({ enum: ROLLOUT_STATES })
-  state?: string;
-
-  @ApiPropertyOptional({ example: 'June 2026 edition', description: 'Only set while the current version is not accepted.' })
-  requiredVersion?: string;
-
-  @ApiPropertyOptional({ type: String, format: 'date-time' })
-  deadlineAt?: Date;
-
-  @ApiProperty()
-  blocking!: boolean;
-}
-
-// ApiExtraModels registers OverviewCellModel in the spec: it is only referenced via additionalProperties
-// ($ref), which nestjs/swagger does not traverse — without this the ref would dangle (breaks codegen).
-@ApiExtraModels(OverviewCellModel)
-export class OverviewRowModel {
-  @ApiProperty({ example: 'c-8a71…' })
-  customerId!: string;
-
-  @ApiProperty({
-    example: 'Acme GmbH',
-    description: "Derived display name: companyName if set, else the contact person's name ('' when unknown).",
-  })
-  customerName!: string;
-
-  @ApiProperty({ type: [String], example: ['customer'] })
-  roles!: string[];
-
-  @ApiProperty({
-    type: 'object',
-    additionalProperties: { $ref: getSchemaPath(OverviewCellModel) },
-    description: 'One cell per TYPE_AUDIENCE detail key (e.g. DPA_CUSTOMER).',
-  })
-  cells!: Record<string, OverviewCellModel>;
-}
-
-export class OverviewResponseModel {
-  @ApiProperty({ type: [OverviewRowModel] })
-  items!: OverviewRowModel[];
-
-  @ApiProperty({ example: 921 })
-  total!: number;
-}
 
 export class ActorModel {
   @ApiProperty({ example: 'u-42' })

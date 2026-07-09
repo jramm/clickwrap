@@ -1,6 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { overviewResponseModelSchema } from '../gen';
+import { dashboardResponseModelSchema } from '../gen';
 import { clearToken, getToken, setAuthErrorListener, setToken } from '../auth/tokenStore';
 import { server } from '../test/server';
 import { apiRequest } from './client';
@@ -51,21 +51,21 @@ describe('apiRequest — error mapping', () => {
     const onAuthError = vi.fn();
     setAuthErrorListener(onAuthError);
     server.use(
-      http.get(`${BASE}/admin/overview`, () =>
+      http.get(`${BASE}/admin/dashboard`, () =>
         HttpResponse.json({ code: 'FORBIDDEN' }, { status: 401 }),
       ),
     );
 
-    await expect(apiRequest('/admin/overview')).rejects.toBeInstanceOf(ApiError);
+    await expect(apiRequest('/admin/dashboard')).rejects.toBeInstanceOf(ApiError);
     expect(onAuthError).toHaveBeenCalledTimes(1);
     expect(getToken()).toBeNull();
   });
 
   it('reports PARSE_ERROR when the response violates the generated schema', async () => {
-    server.use(http.get(`${BASE}/admin/overview`, () => HttpResponse.json({ nonsense: true })));
+    server.use(http.get(`${BASE}/admin/dashboard`, () => HttpResponse.json({ nonsense: true })));
 
     await expect(
-      apiRequest('/admin/overview', { schema: overviewResponseModelSchema }),
+      apiRequest('/admin/dashboard', { schema: dashboardResponseModelSchema }),
     ).rejects.toMatchObject({ code: 'PARSE_ERROR' });
   });
 });

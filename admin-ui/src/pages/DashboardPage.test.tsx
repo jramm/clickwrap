@@ -48,16 +48,6 @@ describe('DashboardPage', () => {
     expect(navigateMock).toHaveBeenCalledWith('/versions/v-100');
   });
 
-  it('keeps the compliance overview reachable as a secondary card action', async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<DashboardPage />);
-
-    await screen.findByTestId('dashboard-grid');
-    await user.click(screen.getAllByRole('button', { name: 'Open compliance overview' })[0]);
-
-    expect(navigateMock).toHaveBeenCalledWith('/overview?documentType=dpa&audience=operator');
-  });
-
   it('shows an empty state when there are no versions', async () => {
     server.use(http.get(`${BASE}/admin/dashboard`, () => HttpResponse.json({ items: [] })));
     renderWithProviders(<DashboardPage />);

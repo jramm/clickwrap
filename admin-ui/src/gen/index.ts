@@ -21,8 +21,6 @@ export type { AdminControllerListDocumentTypesSuspenseQueryKey } from './hooks/u
 export type { AdminControllerListEmailTemplatesQueryKey } from './hooks/useAdminControllerListEmailTemplates.ts';
 export type { AdminControllerListEmailTemplatesSuspenseQueryKey } from './hooks/useAdminControllerListEmailTemplatesSuspense.ts';
 export type { AdminControllerManualAcceptanceMutationKey } from './hooks/useAdminControllerManualAcceptance.ts';
-export type { AdminControllerOverviewQueryKey } from './hooks/useAdminControllerOverview.ts';
-export type { AdminControllerOverviewSuspenseQueryKey } from './hooks/useAdminControllerOverviewSuspense.ts';
 export type { AdminControllerPatchStateMutationKey } from './hooks/useAdminControllerPatchState.ts';
 export type { AdminControllerPreviewEmailTemplateMutationKey } from './hooks/useAdminControllerPreviewEmailTemplate.ts';
 export type { AdminControllerPublishMutationKey } from './hooks/useAdminControllerPublish.ts';
@@ -185,14 +183,6 @@ export type {
   AdminControllerManualAcceptanceMutationResponse,
   AdminControllerManualAcceptancePathParams,
 } from './types/AdminControllerManualAcceptance.ts';
-export type {
-  AdminControllerOverview200,
-  AdminControllerOverview401,
-  AdminControllerOverviewQuery,
-  AdminControllerOverviewQueryParams,
-  AdminControllerOverviewQueryParamsFilterEnum,
-  AdminControllerOverviewQueryResponse,
-} from './types/AdminControllerOverview.ts';
 export type {
   AdminControllerPatchState200,
   AdminControllerPatchState401,
@@ -418,13 +408,6 @@ export type {
   ManualAcceptanceResponseModelStateEnum,
 } from './types/ManualAcceptanceResponseModel.ts';
 export type { NamedEntityModel } from './types/NamedEntityModel.ts';
-export type {
-  OverviewCellModel,
-  OverviewCellModelMethodEnum,
-  OverviewCellModelStateEnum,
-} from './types/OverviewCellModel.ts';
-export type { OverviewResponseModel } from './types/OverviewResponseModel.ts';
-export type { OverviewRowModel } from './types/OverviewRowModel.ts';
 export type { PatchStateBodyModel } from './types/PatchStateBodyModel.ts';
 export type {
   PatchVersionBodyModel,
@@ -580,14 +563,6 @@ export { adminControllerManualAcceptance } from './hooks/useAdminControllerManua
 export { adminControllerManualAcceptanceMutationKey } from './hooks/useAdminControllerManualAcceptance.ts';
 export { adminControllerManualAcceptanceMutationOptions } from './hooks/useAdminControllerManualAcceptance.ts';
 export { useAdminControllerManualAcceptance } from './hooks/useAdminControllerManualAcceptance.ts';
-export { adminControllerOverview } from './hooks/useAdminControllerOverview.ts';
-export { adminControllerOverviewQueryKey } from './hooks/useAdminControllerOverview.ts';
-export { adminControllerOverviewQueryOptions } from './hooks/useAdminControllerOverview.ts';
-export { useAdminControllerOverview } from './hooks/useAdminControllerOverview.ts';
-export { adminControllerOverviewSuspense } from './hooks/useAdminControllerOverviewSuspense.ts';
-export { adminControllerOverviewSuspenseQueryKey } from './hooks/useAdminControllerOverviewSuspense.ts';
-export { adminControllerOverviewSuspenseQueryOptions } from './hooks/useAdminControllerOverviewSuspense.ts';
-export { useAdminControllerOverviewSuspense } from './hooks/useAdminControllerOverviewSuspense.ts';
 export { adminControllerPatchState } from './hooks/useAdminControllerPatchState.ts';
 export { adminControllerPatchStateMutationKey } from './hooks/useAdminControllerPatchState.ts';
 export { adminControllerPatchStateMutationOptions } from './hooks/useAdminControllerPatchState.ts';
@@ -822,12 +797,6 @@ export {
   adminControllerManualAcceptancePathParamsSchema,
 } from './zod/adminControllerManualAcceptanceSchema.ts';
 export {
-  adminControllerOverview200Schema,
-  adminControllerOverview401Schema,
-  adminControllerOverviewQueryParamsSchema,
-  adminControllerOverviewQueryResponseSchema,
-} from './zod/adminControllerOverviewSchema.ts';
-export {
   adminControllerPatchState200Schema,
   adminControllerPatchState401Schema,
   adminControllerPatchState404Schema,
@@ -1004,9 +973,6 @@ export { loginMethodModelSchema } from './zod/loginMethodModelSchema.ts';
 export { manualAcceptanceBodyModelSchema } from './zod/manualAcceptanceBodyModelSchema.ts';
 export { manualAcceptanceResponseModelSchema } from './zod/manualAcceptanceResponseModelSchema.ts';
 export { namedEntityModelSchema } from './zod/namedEntityModelSchema.ts';
-export { overviewCellModelSchema } from './zod/overviewCellModelSchema.ts';
-export { overviewResponseModelSchema } from './zod/overviewResponseModelSchema.ts';
-export { overviewRowModelSchema } from './zod/overviewRowModelSchema.ts';
 export { patchStateBodyModelSchema } from './zod/patchStateBodyModelSchema.ts';
 export { patchVersionBodyModelSchema } from './zod/patchVersionBodyModelSchema.ts';
 export { publishResponseModelSchema } from './zod/publishResponseModelSchema.ts';

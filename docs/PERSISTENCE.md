@@ -28,7 +28,7 @@ Short documentation for the Prisma schema (`prisma/schema.prisma`), the post-mig
     entity that is still referenced (documents' `type`/`audience`, customers' `roles`).
   The check-then-delete in `deleteIfUnused` is not transactional; a concurrent insert of a
   referencing row can race it. This is acceptable for an admin-only, low-frequency operation.
-- **Compliance/overview detail keys** are built from the dynamic keys via
+- **Compliance detail keys** are built from the dynamic keys via
   `src/domain/keys.ts::detailKey(typeKey, audienceKey)` → `TYPE_AUDIENCE`, uppercased.
   Collision-free because keys are slugs (never contain `_`).
 - **`Acceptance` has no hard `@@unique([customerId, versionId])`:** deliberately only a normal
@@ -53,7 +53,7 @@ Short documentation for the Prisma schema (`prisma/schema.prisma`), the post-mig
   (`firstName`/`lastName` default `''` when unknown; `companyName` nullable). There is no stored
   `name` column: the display label is *derived* (`src/domain/customer.ts::customerDisplayName` —
   `companyName` when set, else `firstName lastName`) and surfaced as `{{customerName}}` in mails and
-  as `customerName` in overview/dashboard rows.
+  as `customerName` in dashboard / per-version customer rows.
 - **`Customer.externalRef` is NOT `@unique` — only `@@index([externalRef])`:** the external ID
   spaces of partners and customers are separate, so the same `externalRef` may legitimately appear
   on a partner record and a customer record (different entities). Uniqueness is therefore
@@ -230,7 +230,7 @@ Risk assessment (why this is acceptable for now):
 
 - The state transition is **conditional** (`UPDATE … WHERE state = expected`) — lost updates
   between the two writes are impossible; the worst case after a crash between transition and
-  append is a state `ACCEPTED` without an acceptance row (discoverable via overview/history,
+  append is a state `ACCEPTED` without an acceptance row (discoverable via customer history,
   correctable via admin manual recording).
 - The invariant "exactly one effective acceptance" is guaranteed independently by the partial
   unique index (`ALREADY_ACCEPTED`).

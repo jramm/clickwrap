@@ -27,7 +27,7 @@ export const buildAdminDocument = (app: INestApplication): OpenAPIObject => {
     .setTitle('clickwrap-server — admin API')
     .setDescription(
       'Administration surface (`/admin/**`): documents & versions, publish/rollout, customers, ' +
-        'operations (overview, history, manual acceptance, deadlines/reminders) and the dynamic ' +
+        'operations (per-version dashboard, history, manual acceptance, deadlines/reminders) and the dynamic ' +
         'entities (audiences, document types). Errors are always `{ code, message }` — the codes ' +
         'are documented in docs/API.md §7.',
     )

@@ -132,14 +132,6 @@ export type {
   AdminControllerManualAcceptancePathParams,
 } from './AdminControllerManualAcceptance.ts';
 export type {
-  AdminControllerOverview200,
-  AdminControllerOverview401,
-  AdminControllerOverviewQuery,
-  AdminControllerOverviewQueryParams,
-  AdminControllerOverviewQueryParamsFilterEnum,
-  AdminControllerOverviewQueryResponse,
-} from './AdminControllerOverview.ts';
-export type {
   AdminControllerPatchState200,
   AdminControllerPatchState401,
   AdminControllerPatchState404,
@@ -364,13 +356,6 @@ export type {
   ManualAcceptanceResponseModelStateEnum,
 } from './ManualAcceptanceResponseModel.ts';
 export type { NamedEntityModel } from './NamedEntityModel.ts';
-export type {
-  OverviewCellModel,
-  OverviewCellModelMethodEnum,
-  OverviewCellModelStateEnum,
-} from './OverviewCellModel.ts';
-export type { OverviewResponseModel } from './OverviewResponseModel.ts';
-export type { OverviewRowModel } from './OverviewRowModel.ts';
 export type { PatchStateBodyModel } from './PatchStateBodyModel.ts';
 export type {
   PatchVersionBodyModel,

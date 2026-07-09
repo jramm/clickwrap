@@ -20,7 +20,7 @@ export const assertValidEntityKey = (key: string, label: string): void => {
 };
 
 /**
- * Compliance/overview detail key per (document type, audience): `TYPE_AUDIENCE`, uppercased.
+ * Compliance detail key per (document type, audience): `TYPE_AUDIENCE`, uppercased.
  * Collision-free because entity keys are slugs (they never contain `_`); hyphens inside a
  * key are kept as-is (folding them into `_` would reintroduce collisions).
  */

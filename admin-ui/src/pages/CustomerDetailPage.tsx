@@ -1,4 +1,5 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -12,7 +13,13 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
-import { useCustomer, useCustomerHistory, useRemind, useSignedDocuments } from '../api/hooks';
+import {
+  useCreateAcceptanceLink,
+  useCustomer,
+  useCustomerHistory,
+  useRemind,
+  useSignedDocuments,
+} from '../api/hooks';
 import type { Acceptance, HistoryState, SignedDocument } from '../api/hooks';
 import { CustomerFormDialog } from '../components/CustomerFormDialog';
 import { ManualAcceptanceDialog } from '../components/ManualAcceptanceDialog';
@@ -45,7 +52,7 @@ export function CustomerDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
 
   const displayName = customer ? customerDisplayName(customer) : '';
-  const headerTitle = displayName || `${t('overview.customer')} ${id}`;
+  const headerTitle = displayName || `${t('customerDetail.customer')} ${id}`;
 
   const handleCopyId = async () => {
     const copied = await copyTextToClipboard(id, t('customerDetail.copyIdPrompt'));
@@ -252,11 +259,10 @@ function OpenStatesSection({ customerId, states }: { customerId: string; states:
   const { t, language } = useTranslation();
   const toast = useToast();
   const remind = useRemind(customerId);
+  const createAcceptanceLink = useCreateAcceptanceLink();
   const [action, setAction] = useState<{ state: HistoryState; mode: 'extend' | 'unblock' } | null>(
     null,
   );
-
-  if (states.length === 0) return null;
 
   const handleRemind = (stateId: string) => {
     remind.mutate(stateId, {
@@ -268,8 +274,42 @@ function OpenStatesSection({ customerId, states }: { customerId: string; states:
     });
   };
 
+  // "Copy acceptance link": mints the customer's permanent, whole-account acceptance link (covering
+  // ALL of their outstanding agreements — not per document) and puts the URL on the clipboard, with
+  // a window.prompt fallback. The success toast shows the expiry so the admin knows how long it works.
+  const handleCopyAcceptanceLink = async () => {
+    try {
+      const link = await createAcceptanceLink.mutateAsync({ customerId });
+      const copied = await copyTextToClipboard(link.url, t('customerDetail.copyLinkPrompt'));
+      const expires = new Date(link.expiresAt).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-GB');
+      toast.success(t(copied ? 'customerDetail.copyLinkSuccess' : 'customerDetail.copyLinkManual', { expires }));
+    } catch (err) {
+      // The PUBLIC_BASE_URL hint from the backend is actionable — surface it verbatim.
+      if (err instanceof ApiError && err.message.includes('PUBLIC_BASE_URL')) {
+        toast.error(err.message);
+      } else {
+        toast.error(err instanceof ApiError ? t(errorMessageKey(err)) : t('customerDetail.copyLinkFailed'));
+      }
+    }
+  };
+
+  const copyLinkAction = (
+    <Button
+      size="small"
+      variant="outlined"
+      startIcon={<ContentCopyIcon fontSize="small" />}
+      onClick={() => void handleCopyAcceptanceLink()}
+      loading={createAcceptanceLink.isPending}
+    >
+      {t('customerDetail.copyLink')}
+    </Button>
+  );
+
   return (
-    <Card title={t('customerDetail.openStates')}>
+    <Card title={t('customerDetail.agreements')} action={copyLinkAction}>
+      {states.length === 0 ? (
+        <Typography color="text.secondary">{t('customerDetail.noAgreements')}</Typography>
+      ) : (
       <Stack spacing={2} divider={<Divider />}>
         {states.map((state) => (
           <Stack
@@ -323,6 +363,7 @@ function OpenStatesSection({ customerId, states }: { customerId: string; states:
           </Stack>
         ))}
       </Stack>
+      )}
       {action && (
         <StateActionDialog
           customerId={customerId}

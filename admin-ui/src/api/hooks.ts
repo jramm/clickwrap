@@ -24,7 +24,6 @@ import {
   adminControllerListDocumentTypes,
   adminControllerListDocumentTypesQueryKey,
   adminControllerManualAcceptance,
-  adminControllerOverviewQueryOptions,
   adminControllerPatchState,
   adminControllerPublish,
   adminControllerRemind,
@@ -44,7 +43,6 @@ import {
   signedDocumentsAdminControllerListQueryOptions,
 } from '../gen';
 import type {
-  AdminControllerOverviewQueryParams,
   AdminControllerVersionCustomersQueryParams,
   CreateAcceptanceLinkResponseModel,
   CreateCustomerBodyModel,
@@ -81,9 +79,7 @@ export type {
   HistoryStateModel as HistoryState,
   NamedEntityModel as Category,
   SignedDocumentModel as SignedDocument,
-  OverviewCellModel as OverviewCell,
-  OverviewCellModelStateEnum as CellState,
-  OverviewRowModel as OverviewItem,
+  HistoryStateModelStateEnum as CellState,
   PublishResponseModel as PublishResult,
   VersionModel as Version,
   VersionStatsModel as VersionStats,
@@ -167,26 +163,6 @@ export function useDeleteCategory(kind: CategoryKind) {
   });
 }
 
-// --- Overview ------------------------------------------------------------
-export interface OverviewParams {
-  documentType?: string;
-  audience?: string;
-  filter?: string;
-  search?: string;
-  page?: number;
-}
-
-export function useOverview(params: OverviewParams) {
-  const queryParams: AdminControllerOverviewQueryParams = {
-    documentType: params.documentType,
-    audience: params.audience,
-    filter: params.filter as AdminControllerOverviewQueryParams['filter'],
-    search: params.search,
-    page: params.page !== undefined ? String(params.page) : undefined,
-  };
-  return useQuery(adminControllerOverviewQueryOptions({ params: queryParams }));
-}
-
 // --- Dashboard (per-version acceptance stats) ----------------------------
 export function useDashboard() {
   return useQuery(adminControllerDashboardQueryOptions());
@@ -202,7 +178,7 @@ export interface VersionCustomersParams {
 
 /**
  * Per-version customer list (`GET /admin/versions/:id/customers`). Every row reports the customer's
- * state and acceptance FOR THIS version — the version dimension the compliance overview drops.
+ * state and acceptance FOR THIS version (rather than only the currently effective one).
  */
 export function useVersionCustomers(versionId: string, params: VersionCustomersParams) {
   const queryParams: AdminControllerVersionCustomersQueryParams = {

@@ -94,14 +94,15 @@ License: **Apache-2.0**.
   deadline sweeper (tacit acceptance / hard block on expiry), daily reminders (7 and 2 days
   before a deadline), and Postmark fallback delivery polling.
 - **Hosted acceptance page** — the server itself serves a mobile-first acceptance page under
-  `/accept/<token>`: an admin mints a link in the UI ("copy acceptance link" on the overview) and
-  sends it directly to the person who has to accept — no portal integration required. The link
+  `/accept/<token>`: an admin mints a link in the UI ("copy acceptance link" in the agreements
+  section of the customer detail page) and sends it directly to the person who has to accept — no
+  portal integration required. The link
   token is a capability (only its SHA-256 is stored, expiry/revocation supported); the signer's
   identity is self-declared (typed name + e-mail) and recorded as such in the evidence chain.
   Rendering the page counts as provable access, so deadlines start exactly like with the popup.
 - **Admin web UI** — React + Google SSO front end for managing documents, versions, rollouts,
-  the acceptance matrix, per-customer history, manual (back-dated) recording, acceptance links,
-  and the dynamic categories. See [`admin-ui/`](admin-ui/).
+  the per-version acceptance dashboard, per-customer history, manual (back-dated) recording,
+  acceptance links, and the dynamic categories. See [`admin-ui/`](admin-ui/).
 - **Two persistence drivers** — an in-memory driver (no database, starts instantly, for
   dev/demo/tests) and a PostgreSQL driver via Prisma.
 
@@ -262,8 +263,8 @@ those modes objection/grace deadlines start exclusively via the in-app popup acc
 
 ## API overview
 
-- **`/admin/**`** — document & version management, publish/rollout, acceptance overview,
-  per-customer history, manual recording, deadline/block admin actions, and the dynamic
+- **`/admin/**`** — document & version management, publish/rollout, the per-version acceptance
+  dashboard, per-customer history, manual recording, deadline/block admin actions, and the dynamic
   audiences / document-types CRUD. Auth: the active `ADMIN_AUTH` strategies (default: Google SSO
   Bearer token or the `x-admin-token` dev fallback). `GET /admin/auth/methods` is the
   unauthenticated login-method discovery for the admin UI login page.
@@ -286,8 +287,9 @@ Full request/response shapes and the complete error-code table are in
 ## Admin UI
 
 A React admin web interface lives in [`admin-ui/`](admin-ui/) (Vite + React + TypeScript + MUI).
-It authenticates via Google SSO and drives the `/admin/**` API: acceptance matrix, document/version
-management with PDF upload and publish, per-customer history with expandable evidence, manual
+It authenticates via Google SSO and drives the `/admin/**` API: per-version acceptance dashboard,
+document/version management with PDF upload and publish, per-customer history with expandable
+evidence, manual
 acceptance, deadline extension / block suspension, reminders, and management of the dynamic
 audiences and document types. See [`admin-ui/README.md`](admin-ui/README.md) for setup.
 

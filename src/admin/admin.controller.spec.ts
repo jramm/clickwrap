@@ -44,7 +44,6 @@ import { EmailTemplateAdminService } from './email-template-admin.service';
 import { HistoryService } from './history.service';
 import { ManualAcceptanceService } from './manual-acceptance.service';
 import { DashboardService } from './dashboard.service';
-import { OverviewService } from './overview.service';
 import { VersionCustomersService } from './version-customers.service';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
@@ -94,7 +93,6 @@ describe('AdminController', () => {
       controllers: [AdminController],
       providers: [
         PublishService,
-        OverviewService,
         DashboardService,
         VersionCustomersService,
         HistoryService,
@@ -184,26 +182,6 @@ describe('AdminController', () => {
     const res = await request(app.getHttpServer()).post('/admin/versions/v-1/publish').expect(201);
     expect(res.body).toMatchObject({ versionId: 'v-1', status: 'PUBLISHED', rolloutCustomers: 1 });
     expect((await audit.findByTarget('AgreementVersion', 'v-1'))[0]).toMatchObject({ action: 'PUBLISH', actor: 'admin-1' });
-  });
-
-  it('GET /admin/overview?filter=non_compliant returns only blocked customers', async () => {
-    await versions.save(anActiveVersion({ id: 'v-1', documentId: 'doc-dpa-customer', status: 'PUBLISHED', validFrom: new Date('2026-07-01T00:00:00Z') }));
-    await customers.save(aCustomer({ id: 'c-blocked', roles: ['customer'] }));
-    await customers.save(aCustomer({ id: 'c-ok', roles: ['customer'] }));
-    await states.save(aState({ id: 'cvs-b', customerId: 'c-blocked', versionId: 'v-1', state: 'EXPIRED_BLOCKING' }));
-
-    const res = await request(app.getHttpServer()).get('/admin/overview?filter=non_compliant').expect(200);
-    expect(res.body.items.map((r: { customerId: string }) => r.customerId)).toEqual(['c-blocked']);
-  });
-
-  it('GET /admin/overview?search filters rows by customer name/externalRef/e-mail', async () => {
-    await versions.save(anActiveVersion({ id: 'v-1', documentId: 'doc-dpa-customer', status: 'PUBLISHED', validFrom: new Date('2026-07-01T00:00:00Z') }));
-    await customers.save(aCustomer({ id: 'c-acme', companyName: 'Acme GmbH', externalRef: 'crm-4711', roles: ['customer'] }));
-    await customers.save(aCustomer({ id: 'c-globex', companyName: 'Globex Corp', externalRef: 'crm-8000', roles: ['customer'] }));
-
-    const res = await request(app.getHttpServer()).get('/admin/overview?search=globex').expect(200);
-    expect(res.body.items.map((r: { customerId: string }) => r.customerId)).toEqual(['c-globex']);
-    expect(res.body.total).toBe(1);
   });
 
   it('GET /admin/dashboard returns per-version stats for the current published version', async () => {

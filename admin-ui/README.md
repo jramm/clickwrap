@@ -79,7 +79,7 @@ Scripts:
 
 The UI is fully responsive. Below the `md` breakpoint the AppBar navigation
 collapses into a hamburger + temporary Drawer (the language switcher and user
-menu stay in the bar); the Overview, Customers and Documents lists render as
+menu stay in the bar); the Customers and Documents lists render as
 tappable **card lists** instead of the desktop DataGrid; and all dialogs go
 **full screen** below `sm`. The responsive breakpoint policy lives in
 `src/ui/useIsMobile.ts`.
@@ -95,12 +95,6 @@ tappable **card lists** instead of the desktop DataGrid; and all dialogs go
 - **Version customers** `/versions/:id` — the drill-down target
   (`GET /admin/versions/:id/customers` + `/stats`): who has (not) accepted **that**
   version, filterable by state, with the matching stats header.
-- **Overview** `/overview` — acceptance matrix (DataGrid: customer × dynamic
-  {document type} × {audience}) from `GET /admin/overview`. Columns are derived
-  from the audiences (`GET /admin/audiences`) × document types
-  (`GET /admin/document-types`) that actually exist as documents
-  (`GET /admin/documents`) — no hardcoded keys. Filter bar, colored status
-  chips, row click → customer detail.
 - **Customers** `/customers` — list (display name, external ref, role chips,
   contact e-mails) with pagination (`GET /admin/customers`); **New customer**
   (`POST /admin/customers`) with `firstName`/`lastName` + optional `companyName`,
@@ -108,15 +102,18 @@ tappable **card lists** instead of the desktop DataGrid; and all dialogs go
   **"already accepted documents"** section (`acceptedVersions` IMPORT); **Edit**
   (`PATCH /admin/customers/:id`, firstName/lastName/companyName/roles/contactEmails;
   `externalRef` is immutable).
-- **Customer detail** `/customers/:id` — header from `GET /admin/customers/:id`;
-  history from `GET /admin/customers/:id/history` (acceptances incl. expandable
-  evidence, objections, notifications); the **signed-documents** archive
-  (`GET /admin/customers/:id/signed-documents`) with an upload dialog
-  (`POST …/signed-documents`, external document types only); actions: extend
-  deadline / suspend block (`PATCH /admin/customer-version-states/:id`, mandatory
-  reason), send reminder (`POST …/remind`), manual acceptance
-  (`POST /admin/customers/:id/acceptances`, evidence PDF → base64), and **copy
-  acceptance link** (`POST /admin/customers/:id/acceptance-links`).
+- **Customer detail** `/customers/:id` — header from `GET /admin/customers/:id`
+  (Edit + Record-acceptance actions); an **Agreements & status** section listing
+  the customer's per-document/version states (from `GET /admin/customers/:id/history`)
+  with the outstanding items and their deadlines — its header action is **"Copy
+  acceptance link"** (`POST /admin/customers/:id/acceptance-links`), one permanent
+  whole-account link covering all the customer's outstanding agreements; the rest of
+  the history (acceptances incl. expandable evidence, objections, notifications); the
+  **signed-documents** archive (`GET /admin/customers/:id/signed-documents`) with an
+  upload dialog (`POST …/signed-documents`, external document types only); per-item
+  actions: extend deadline / suspend block (`PATCH /admin/customer-version-states/:id`,
+  mandatory reason), send reminder (`POST …/remind`), manual acceptance
+  (`POST /admin/customers/:id/acceptances`, evidence PDF → base64).
 - **Documents & versions** `/documents` — `GET /admin/documents` +
   `GET /admin/documents/:id/versions`; **New document**
   (`POST /admin/documents`, type + audience selected from the dynamic

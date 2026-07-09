@@ -12,7 +12,6 @@ import {
   emailTemplateModelSchema,
   emailTemplatePreviewResponseModelSchema,
   namedEntityModelSchema,
-  overviewResponseModelSchema,
   publishResponseModelSchema,
   signedDocumentListResponseModelSchema,
   versionCustomersResponseModelSchema,
@@ -113,54 +112,6 @@ function makeVersion(overrides: Partial<z.input<typeof versionModelSchema>> = {}
     ...overrides,
   });
 }
-
-export const overviewFixture = overviewResponseModelSchema.parse({
-  items: [
-    {
-      customerId: 'c-123',
-      customerName: 'Example Utility Ltd',
-      roles: ['operator', 'partner'],
-      cells: {
-        TERMS_OPERATOR: { acceptedVersion: 'April 2026 edition', method: 'TACIT', state: 'ACCEPTED', blocking: false },
-        DPA_OPERATOR: {
-          acceptedVersion: 'Jan 2025 edition',
-          method: 'ACTIVE_CONSENT',
-          state: 'PENDING_NOTIFICATION',
-          requiredVersion: 'June 2026 edition',
-          deadlineAt: '2026-07-21T00:00:00Z',
-          blocking: false,
-        },
-        TERMS_PARTNER: {
-          acceptedVersion: 'March 2026 edition',
-          method: 'ACTIVE_CONSENT',
-          state: 'ACCEPTED',
-          blocking: false,
-        },
-        DPA_PARTNER: {
-          acceptedVersion: 'March 2026 edition',
-          method: 'ACTIVE_CONSENT',
-          state: 'OBJECTED',
-          blocking: false,
-        },
-      },
-    },
-    {
-      customerId: 'c-999',
-      customerName: 'Sample Energy Inc',
-      roles: ['operator'],
-      cells: {
-        DPA_OPERATOR: {
-          acceptedVersion: 'Jan 2025 edition',
-          method: 'ACTIVE_CONSENT',
-          state: 'EXPIRED_BLOCKING',
-          deadlineAt: '2026-06-30T00:00:00Z',
-          blocking: true,
-        },
-      },
-    },
-  ],
-  total: 2,
-});
 
 /** Future timestamp relative to the test run — powers the scheduled-publish fixtures. */
 export const futureValidFromFixture = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -495,7 +446,6 @@ export const handlers = [
   http.get(`${BASE}/admin/auth/methods`, () => HttpResponse.json(authMethodsFixture)),
   http.get(`${BASE}/admin/audiences`, () => HttpResponse.json(audiencesFixture)),
   http.get(`${BASE}/admin/document-types`, () => HttpResponse.json(documentTypesFixture)),
-  http.get(`${BASE}/admin/overview`, () => HttpResponse.json(overviewFixture)),
   http.get(`${BASE}/admin/dashboard`, () => HttpResponse.json(dashboardFixture)),
   http.get(`${BASE}/admin/versions/:id/customers`, ({ params, request }) => {
     const byVersion = versionCustomersByVersion as Record<string, typeof versionCustomersFixture>;

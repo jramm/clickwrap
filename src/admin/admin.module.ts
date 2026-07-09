@@ -13,11 +13,10 @@ import { DocumentTypeAdminService } from './document-type-admin.service';
 import { EmailTemplateAdminService } from './email-template-admin.service';
 import { HistoryService } from './history.service';
 import { ManualAcceptanceService } from './manual-acceptance.service';
-import { OverviewService } from './overview.service';
 import { VersionCustomersService } from './version-customers.service';
 
 /**
- * Admin module: operations — overview, history, manual recording, deadlines/reminders,
+ * Admin module: operations — per-version dashboard, history, manual recording, deadlines/reminders,
  * publish route, and CRUD for the dynamic entities (audiences, document types).
  *
  * Imports the agreements module (PublishService + module-owned ports: PdfStorage, RolloutNotifier,
@@ -27,7 +26,6 @@ import { VersionCustomersService } from './version-customers.service';
   imports: [AgreementsModule, CustomerServiceModule, AcceptModule, SignedDocumentsModule],
   controllers: [AdminController, SignedDocumentsAdminController],
   providers: [
-    OverviewService,
     DashboardService,
     VersionCustomersService,
     HistoryService,

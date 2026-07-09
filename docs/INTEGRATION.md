@@ -157,7 +157,7 @@ the real signature date), `signerName?`, `reference?` (e.g. `"HubSpot deal 12345
 
 If a customer's users never touch an integrated portal (or you have not built the popup yet),
 the service itself can collect the consent: an admin mints an **acceptance link** in the admin UI
-("copy acceptance link" on the overview page, backed by
+("copy acceptance link" in the agreements section of the customer detail page, backed by
 `POST /admin/customers/:id/acceptance-links`) and sends the URL directly to the person who has to
 accept. The recipient opens `${PUBLIC_BASE_URL}/accept/<token>` on any device and accepts there —
 zero code on your side. Details: [API.md §5a](API.md#5a-hosted-acceptance-page-accept--no-integration-required).
