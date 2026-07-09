@@ -7,6 +7,7 @@ import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DocumentsPage } from './pages/DocumentsPage';
 import { EmailTemplatesPage } from './pages/EmailTemplatesPage';
+import { EventsPage } from './pages/EventsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VersionCustomersPage } from './pages/VersionCustomersPage';
 
@@ -24,6 +25,7 @@ export function App() {
           <Route path="/versions/:id" element={<VersionCustomersPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/customers/:id" element={<CustomerDetailPage />} />
+          <Route path="/events" element={<EventsPage />} />
           <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/email-templates" element={<EmailTemplatesPage />} />
           <Route path="/settings" element={<SettingsPage />} />

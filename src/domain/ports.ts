@@ -174,6 +174,12 @@ export interface AcceptanceRepo {
   findEffectiveByVersion(versionId: string): Promise<Acceptance[]>;
   /** Complete history (including ineffective entries), chronological. */
   findByCustomer(customerId: string): Promise<Acceptance[]>;
+  /**
+   * ALL acceptances (every customer/version, including ineffective entries), in append order
+   * (ascending by acceptedAt). Feeds the cross-source legal event log (src/events); in-memory
+   * aggregation is acceptable for the MVP.
+   */
+  findAll(): Promise<Acceptance[]>;
 }
 
 export interface ObjectionRepo {
@@ -181,6 +187,11 @@ export interface ObjectionRepo {
   findById(id: string): Promise<Objection | undefined>;
   findByCustomerAndVersion(customerId: string, versionId: string): Promise<Objection[]>;
   findByCustomer(customerId: string): Promise<Objection[]>;
+  /**
+   * ALL objections (every customer/version), in append order. Feeds the cross-source legal event
+   * log (src/events).
+   */
+  findAll(): Promise<Objection[]>;
   /** Resolution (no dead-end state): late consent or admin decision. */
   resolve(id: string, resolution: ObjectionResolution, resolvedBy: string, resolvedAt: Date): Promise<Objection>;
 }
@@ -203,6 +214,12 @@ export interface AcceptanceLinkRepo {
 export interface NotificationEventRepo {
   append(event: NotificationEvent): Promise<NotificationEvent>;
   findByState(customerVersionStateId: string): Promise<NotificationEvent[]>;
+  /**
+   * ALL notification events (every customer-version state), in append order. Feeds the
+   * cross-source legal event log (src/events); the customer/version is resolved there via the
+   * CustomerVersionState the event points at.
+   */
+  findAll(): Promise<NotificationEvent[]>;
   /** Correlates Postmark webhook events via the MessageID. */
   findByProviderRef(providerRef: string): Promise<NotificationEvent | undefined>;
 }

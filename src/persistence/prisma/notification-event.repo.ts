@@ -42,4 +42,10 @@ export class PrismaNotificationEventRepo implements NotificationEventRepo {
     const row = await this.prisma.notificationEvent.findFirst({ where: { providerRef } });
     return row ? toDomain(row) : undefined;
   }
+
+  /** All notification events in append order (createdAt asc — insertion-order analog, see findByState). */
+  async findAll(): Promise<NotificationEvent[]> {
+    const rows = await this.prisma.notificationEvent.findMany({ orderBy: { createdAt: 'asc' } });
+    return rows.map(toDomain);
+  }
 }

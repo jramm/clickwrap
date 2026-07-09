@@ -502,6 +502,46 @@ Redirects to a fresh presigned PDF URL. Unknown id → `404 VERSION_NOT_FOUND`.
 
 ---
 
+## 4b. Admin — events (legal audit log)
+
+### GET /admin/events?customerId=&from=&to=&category=&documentType=&versionId=&page=
+
+One normalized, chronological (**newest-first**), paginated (**50/page**), filterable event list for
+legal tracing — for the whole system or a single customer. It **aggregates the existing append-only
+sources** (admin audit log, acceptances, objections, notification events); there is no new event
+table. In-memory aggregation (acceptable for the MVP — the sources are bounded by the admin/legal
+domain size, nothing is truncated).
+
+Response `{ items: Event[], total }` where `total` is the count **after filtering** (before
+pagination). Each `Event`:
+
+- `id` — source-prefixed stable id (`audit:…`, `acc:…`, `obj:…`, `notif:…`).
+- `occurredAt` — ISO date-time.
+- `type` — the specific event, e.g. `EMAIL_SENT`, `PAGE_ACCESSED`, `VERSION_ACCEPTED`,
+  `OBJECTION_RAISED`, `VERSION_PUBLISHED`, `DEADLINE_EXTENDED`, `BLOCK_SUSPENDED`,
+  `REMINDER_TRIGGERED`, `MANUAL_ACCEPTANCE`, `ACCEPTANCE_LINK_CREATED`, `CUSTOMER_CREATED/UPDATED`,
+  `SIGNED_DOCUMENT_UPLOADED`, `DOCUMENT_TYPE_*`, `AUDIENCE_*`, `EMAIL_TEMPLATE_*`.
+- `category` — one of `COMMUNICATION` (an e-mail was sent), `ACCESS` (the hosted acceptance page was
+  opened — provable access), `CONSENT` (acceptances + objections), `ADMINISTRATION` (all admin/system
+  actions). NotificationEvent channel `EMAIL` → COMMUNICATION; channel `LINK`/`PORTAL` → ACCESS.
+- `actorKind` (`ADMIN` | `CUSTOMER` | `SYSTEM`) + `actorLabel` — **displayed, not filterable**.
+- optional `customerId`, `customerName`, `versionId`, `documentType`, `audience`, `versionLabel`,
+  `channel`, `recipient`; always a short English `summary` and pass-through `metadata`
+  (reason/method/… — a superseded acceptance stays in the log, flagged via `metadata.isEffective`).
+
+Query params (all optional, applied **before** pagination):
+
+- `customerId` — exact match.
+- `from` / `to` — inclusive `occurredAt` bounds. ISO date-time; a **date-only** value is widened
+  (`from` = start of that day, `to` = **end** of that day) so a single-day range matches that day.
+- `category` — one of the four categories.
+- `documentType` — exact document type key. `versionId` — exact version id.
+- `page` — 1-based (50/page).
+
+Sort: `occurredAt` DESC, stable tiebreak by id.
+
+---
+
 ## 5. Portal / service-to-service
 
 Full integrator guide: [INTEGRATION.md](INTEGRATION.md).

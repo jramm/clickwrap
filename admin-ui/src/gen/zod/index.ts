@@ -281,6 +281,14 @@ export { emailTemplateModelSchema } from './emailTemplateModelSchema.ts';
 export { emailTemplatePreviewBodyModelSchema } from './emailTemplatePreviewBodyModelSchema.ts';
 export { emailTemplatePreviewResponseModelSchema } from './emailTemplatePreviewResponseModelSchema.ts';
 export { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+export { eventListResponseModelSchema } from './eventListResponseModelSchema.ts';
+export { eventModelSchema } from './eventModelSchema.ts';
+export {
+  eventsControllerListEvents200Schema,
+  eventsControllerListEvents401Schema,
+  eventsControllerListEventsQueryParamsSchema,
+  eventsControllerListEventsQueryResponseSchema,
+} from './eventsControllerListEventsSchema.ts';
 export { historyAcceptanceModelSchema } from './historyAcceptanceModelSchema.ts';
 export { historyEvidenceModelSchema } from './historyEvidenceModelSchema.ts';
 export { historyNotificationModelSchema } from './historyNotificationModelSchema.ts';

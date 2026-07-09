@@ -68,4 +68,12 @@ describeIfDb('PrismaObjectionRepo (against real Postgres)', () => {
       code: 'INVALID_STATE',
     });
   });
+
+  it('findAll returns every objection across customers/versions in append order (createdAt asc)', async () => {
+    await new PrismaCustomerRepo(prisma).save(aCustomer({ id: 'c-9' }));
+    await repo.append(anObjection({ id: 'o-1' }));
+    await repo.append(anObjection({ id: 'o-2', versionId: 'v-2' }));
+    await repo.append(anObjection({ id: 'o-3', customerId: 'c-9' }));
+    expect((await repo.findAll()).map((o) => o.id)).toEqual(['o-1', 'o-2', 'o-3']);
+  });
 });

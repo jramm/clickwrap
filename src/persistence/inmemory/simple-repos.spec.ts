@@ -112,6 +112,13 @@ describe('InMemoryObjectionRepo', () => {
   it('resolve on an unknown id → DomainError', async () => {
     await expect(repo.resolve('missing', 'WITHDRAWN', 'admin-1', new Date())).rejects.toBeInstanceOf(DomainError);
   });
+
+  it('findAll returns every objection across customers/versions in insertion order', async () => {
+    await repo.append(anObjection({ id: 'o-1' }));
+    await repo.append(anObjection({ id: 'o-2', versionId: 'v-2' }));
+    await repo.append(anObjection({ id: 'o-3', customerId: 'c-9' }));
+    expect((await repo.findAll()).map((o) => o.id)).toEqual(['o-1', 'o-2', 'o-3']);
+  });
 });
 
 describe('InMemoryNotificationEventRepo', () => {
@@ -144,5 +151,12 @@ describe('InMemoryNotificationEventRepo', () => {
     const events = await repo.findByState('cvs-1');
     events[0].recipient = 'mutated';
     expect((await repo.findByState('cvs-1'))[0].recipient).toBe('jane@customer.example');
+  });
+
+  it('findAll returns every event across states in insertion order', async () => {
+    await repo.append(aNotification({ id: 'n-1' }));
+    await repo.append(aNotification({ id: 'n-2', channel: 'LINK', customerVersionStateId: 'cvs-2' }));
+    await repo.append(aNotification({ id: 'n-3', customerVersionStateId: 'cvs-1' }));
+    expect((await repo.findAll()).map((n) => n.id)).toEqual(['n-1', 'n-2', 'n-3']);
   });
 });

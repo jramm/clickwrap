@@ -108,10 +108,19 @@ tappable **card lists** instead of the desktop DataGrid; and all dialogs go
   **"already accepted documents"** section (`acceptedVersions` IMPORT); **Edit**
   (`PATCH /admin/customers/:id`, firstName/lastName/companyName/roles/contactEmails;
   `externalRef` is immutable).
+- **Events** `/events` — the legal audit log (`GET /admin/events`): one normalized,
+  newest-first, paginated (50/page) list aggregating e-mails sent, hosted-page access,
+  acceptances/objections and admin/system actions. Filter bar: **customer**, **date from/to**
+  (date inputs widened to a full ISO date-time before sending — `to` = end of day), **category**
+  (COMMUNICATION / ACCESS / CONSENT / ADMINISTRATION) and **document type**. Columns: time,
+  category chip, type, actor (kind + label — displayed, not a filter), customer (link to the
+  detail page), document/version, details. Mobile card fallback. Deep-linkable via
+  `?customerId=` (used by the customer-detail activity section).
 - **Customer detail** `/customers/:id` — header from `GET /admin/customers/:id`
   (Edit + Record-acceptance actions); an **Agreements & status** section listing
   the customer's per-document/version states (from `GET /admin/customers/:id/history`)
-  with the outstanding items and their deadlines — its header action is **"Copy
+  with the outstanding items and their deadlines; an **Activity** section showing the customer's
+  recent events (`GET /admin/events?customerId=`) with a "View all in Events" link — its header action is **"Copy
   acceptance link"** (`POST /admin/customers/:id/acceptance-links`), one permanent
   whole-account link covering all the customer's outstanding agreements; the rest of
   the history (acceptances incl. expandable evidence, objections, notifications); the

@@ -332,6 +332,21 @@ export type { EmailTemplateModel, EmailTemplateModelKindEnum } from './EmailTemp
 export type { EmailTemplatePreviewBodyModel } from './EmailTemplatePreviewBodyModel.ts';
 export type { EmailTemplatePreviewResponseModel } from './EmailTemplatePreviewResponseModel.ts';
 export type { ErrorResponseDto } from './ErrorResponseDto.ts';
+export type { EventListResponseModel } from './EventListResponseModel.ts';
+export type {
+  EventModel,
+  EventModelActorKindEnum,
+  EventModelCategoryEnum,
+  EventModelTypeEnum,
+} from './EventModel.ts';
+export type {
+  EventsControllerListEvents200,
+  EventsControllerListEvents401,
+  EventsControllerListEventsQuery,
+  EventsControllerListEventsQueryParams,
+  EventsControllerListEventsQueryParamsCategoryEnum,
+  EventsControllerListEventsQueryResponse,
+} from './EventsControllerListEvents.ts';
 export type {
   HistoryAcceptanceModel,
   HistoryAcceptanceModelChannelEnum,

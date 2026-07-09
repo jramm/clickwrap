@@ -18,6 +18,7 @@ import { AdminAuthModule } from '../auth/admin-auth.module';
 import { ComplianceModule } from '../../compliance/compliance.module';
 import { ConsentModule } from '../../consent/consent.module';
 import { EmailModule } from '../../plugins/email/email.module';
+import { EventsModule } from '../../events/events.module';
 import { SEC_ADMIN_TOKEN, SEC_GOOGLE_SSO, SEC_SERVICE_TOKEN, SEC_WEBHOOK_TOKEN } from './security.decorators';
 
 const VERSION = '0.1.0';
@@ -51,7 +52,9 @@ export const buildAdminDocument = (app: INestApplication): OpenAPIObject => {
       SEC_ADMIN_TOKEN,
     )
     .build();
-  return SwaggerModule.createDocument(app, config, { include: [AdminModule, AgreementsModule, AdminAuthModule] });
+  return SwaggerModule.createDocument(app, config, {
+    include: [AdminModule, AgreementsModule, AdminAuthModule, EventsModule],
+  });
 };
 
 export const buildIntegrationDocument = (app: INestApplication): OpenAPIObject => {

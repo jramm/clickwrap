@@ -17,10 +17,11 @@ import {
   useCreateAcceptanceLink,
   useCustomer,
   useCustomerHistory,
+  useEvents,
   useRemind,
   useSignedDocuments,
 } from '../api/hooks';
-import type { Acceptance, HistoryState, SignedDocument } from '../api/hooks';
+import type { Acceptance, Event, HistoryState, SignedDocument } from '../api/hooks';
 import { CustomerFormDialog } from '../components/CustomerFormDialog';
 import { ManualAcceptanceDialog } from '../components/ManualAcceptanceDialog';
 import { SignedDocumentUploadDialog } from '../components/SignedDocumentUploadDialog';
@@ -63,13 +64,13 @@ export function CustomerDetailPage() {
     <Box>
       <Button
         component={RouterLink}
-        to="/"
+        to="/customers"
         variant="text"
         color="inherit"
         startIcon={<ArrowBackIcon />}
         sx={{ mb: 1 }}
       >
-        {t('customerDetail.backToOverview')}
+        {t('customerDetail.backToCustomers')}
       </Button>
       <PageHeader
         title={headerTitle}
@@ -123,6 +124,8 @@ export function CustomerDetailPage() {
       {data && (
         <Stack spacing={3}>
           <OpenStatesSection customerId={id} states={data.states} />
+
+          <CustomerEventsSection customerId={id} />
 
           <SignedDocumentsSection customerId={id} onUpload={() => setSignedUploadOpen(true)} />
 
@@ -202,6 +205,50 @@ export function CustomerDetailPage() {
         />
       )}
     </Box>
+  );
+}
+
+/** Recent events for this customer (first page of GET /admin/events?customerId=), newest first. */
+function CustomerEventsSection({ customerId }: { customerId: string }) {
+  const { t, language } = useTranslation();
+  const { data } = useEvents(1, { customerId });
+  const events = data?.items ?? [];
+
+  return (
+    <Card
+      title={t('events.sectionTitle')}
+      action={
+        <Button
+          size="small"
+          variant="outlined"
+          component={RouterLink}
+          to={`/events?customerId=${customerId}`}
+        >
+          {t('events.viewAll')}
+        </Button>
+      }
+    >
+      {events.length === 0 ? (
+        <Typography color="text.secondary">{t('events.empty')}</Typography>
+      ) : (
+        <Stack spacing={1} divider={<Divider flexItem />} data-testid="customer-events-section">
+          {events.map((event: Event) => (
+            <Stack key={event.id} direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+              <Chip size="small" label={t(`events.category.${event.category}`)} />
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {t(`events.eventType.${event.type}`)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {fmt(event.occurredAt, language)}
+              </Typography>
+              <Typography variant="body2" sx={{ flexBasis: '100%' }}>
+                {event.summary}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      )}
+    </Card>
   );
 }
 

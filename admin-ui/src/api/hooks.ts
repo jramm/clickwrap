@@ -31,6 +31,7 @@ import {
   adminControllerUpdateCustomer,
   adminControllerUpdateDocumentType,
   adminControllerVersionCustomersQueryOptions,
+  eventsControllerListEventsQueryOptions,
   agreementsAdminControllerCreateDocument,
   agreementsAdminControllerDeleteVersion,
   agreementsAdminControllerListDocumentsQueryKey,
@@ -46,6 +47,8 @@ import type {
   AdminControllerListCustomersQueryParams,
   AdminControllerListCustomersQueryParamsComplianceEnum as ComplianceFilter,
   AdminControllerVersionCustomersQueryParams,
+  EventsControllerListEventsQueryParams,
+  EventsControllerListEventsQueryParamsCategoryEnum as EventCategory,
   CreateAcceptanceLinkResponseModel,
   CreateCustomerBodyModel,
   CreateDocumentBodyModel,
@@ -67,7 +70,12 @@ import type {
  */
 
 // --- Friendly type aliases (all sourced from the generated client) ---------
+export type { EventCategory };
 export type {
+  EventModel as Event,
+  EventModelTypeEnum as EventType,
+  EventModelActorKindEnum as EventActorKind,
+  EventListResponseModel as EventList,
   CustomerHistoryResponseModel as CustomerHistory,
   CustomerRowModel as CustomerRow,
   CustomerRowModelComplianceStatusEnum as ComplianceStatus,
@@ -449,6 +457,33 @@ export function useCustomers(page?: number, search?: string, filters: CustomerLi
       params: Object.keys(params).length > 0 ? params : undefined,
     }),
   );
+}
+
+// --- Events (legal audit log) --------------------------------------------
+export interface EventFilters {
+  customerId?: string;
+  /** Full ISO date-time (widened from the date input — see EventsPage). */
+  from?: string;
+  to?: string;
+  category?: EventCategory;
+  documentType?: string;
+  versionId?: string;
+}
+
+/**
+ * Aggregated legal event log (`GET /admin/events`), newest-first, 50/page. The query key includes
+ * every filter (react-query resets/refetches on change); reset the page to 1 on any filter change
+ * in the consuming component.
+ */
+export function useEvents(page: number, filters: EventFilters = {}) {
+  const params: EventsControllerListEventsQueryParams = { page: String(page) };
+  if (filters.customerId) params.customerId = filters.customerId;
+  if (filters.from) params.from = filters.from;
+  if (filters.to) params.to = filters.to;
+  if (filters.category) params.category = filters.category;
+  if (filters.documentType) params.documentType = filters.documentType;
+  if (filters.versionId) params.versionId = filters.versionId;
+  return useQuery(eventsControllerListEventsQueryOptions({ params }));
 }
 
 export function useCreateCustomer() {

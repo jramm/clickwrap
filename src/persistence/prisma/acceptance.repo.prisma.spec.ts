@@ -97,4 +97,12 @@ describeIfDb('PrismaAcceptanceRepo (against real Postgres)', () => {
     const effective = await repo.findEffectiveByVersion('v-1');
     expect(effective.map((row) => row.id).sort()).toEqual(['a-1', 'a-2']);
   });
+
+  it('findAll returns every acceptance across customers/versions in acceptedAt order (incl. ineffective)', async () => {
+    await new PrismaCustomerRepo(prisma).save(aCustomer({ id: 'c-2', externalRef: 'ext-c-2' }));
+    await repo.append(anAcceptance({ id: 'a-late', acceptedAt: new Date('2026-07-10T00:00:00Z'), isEffective: false }));
+    await repo.append(anAcceptance({ id: 'a-early', customerId: 'c-2', acceptedAt: new Date('2026-07-01T00:00:00Z') }));
+    await repo.append(anAcceptance({ id: 'a-mid', versionId: 'v-2', acceptedAt: new Date('2026-07-05T00:00:00Z') }));
+    expect((await repo.findAll()).map((row) => row.id)).toEqual(['a-early', 'a-mid', 'a-late']);
+  });
 });

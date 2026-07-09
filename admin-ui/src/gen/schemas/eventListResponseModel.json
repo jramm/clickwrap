@@ -1,0 +1,108 @@
+{
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "acc:a-1",
+            "description": "Source-prefixed stable id (audit:/acc:/obj:/notif:)."
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-07-09T14:12:03.000Z"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "EMAIL_SENT",
+              "PAGE_ACCESSED",
+              "VERSION_ACCEPTED",
+              "OBJECTION_RAISED",
+              "VERSION_PUBLISHED",
+              "DEADLINE_EXTENDED",
+              "BLOCK_SUSPENDED",
+              "REMINDER_TRIGGERED",
+              "MANUAL_ACCEPTANCE",
+              "ACCEPTANCE_LINK_CREATED",
+              "CUSTOMER_CREATED",
+              "CUSTOMER_UPDATED",
+              "SIGNED_DOCUMENT_UPLOADED",
+              "DOCUMENT_TYPE_CREATED",
+              "DOCUMENT_TYPE_UPDATED",
+              "DOCUMENT_TYPE_DELETED",
+              "AUDIENCE_CREATED",
+              "AUDIENCE_UPDATED",
+              "AUDIENCE_DELETED",
+              "EMAIL_TEMPLATE_CREATED",
+              "EMAIL_TEMPLATE_UPDATED",
+              "EMAIL_TEMPLATE_DELETED"
+            ],
+            "example": "VERSION_ACCEPTED"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["COMMUNICATION", "ACCESS", "CONSENT", "ADMINISTRATION"],
+            "example": "CONSENT"
+          },
+          "actorKind": {
+            "type": "string",
+            "enum": ["ADMIN", "CUSTOMER", "SYSTEM"],
+            "example": "CUSTOMER"
+          },
+          "actorLabel": {
+            "type": "string",
+            "example": "Jane Doe",
+            "description": "Human-readable actor label (name/email/user id/\"system\")."
+          },
+          "customerId": { "type": "string", "example": "c-123" },
+          "customerName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Derived customer display name."
+          },
+          "versionId": { "type": "string", "example": "v-1" },
+          "documentType": {
+            "type": "string",
+            "example": "dpa",
+            "description": "Document type key."
+          },
+          "audience": { "type": "string", "example": "customer", "description": "Audience key." },
+          "versionLabel": { "type": "string", "example": "June 2026 edition" },
+          "channel": {
+            "type": "string",
+            "example": "EMAIL",
+            "description": "Delivery / acceptance channel of the source record."
+          },
+          "recipient": {
+            "type": "string",
+            "example": "legal@acme.example",
+            "description": "E-mail recipient / accessing user id."
+          },
+          "summary": {
+            "type": "string",
+            "example": "Version June 2026 edition accepted (ACTIVE_CONSENT, PORTAL)"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Pass-through source metadata (reason, method, isEffective, …)."
+          }
+        },
+        "required": ["id", "occurredAt", "type", "category", "actorKind", "actorLabel", "summary"],
+        "x-readme-ref-name": "EventModel"
+      }
+    },
+    "total": {
+      "type": "number",
+      "example": 173,
+      "description": "Total number of events AFTER filtering (before pagination)."
+    }
+  },
+  "required": ["items", "total"],
+  "x-readme-ref-name": "EventListResponseModel"
+}

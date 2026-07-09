@@ -23,4 +23,9 @@ export class InMemoryNotificationEventRepo implements NotificationEventRepo {
   async findByProviderRef(providerRef: string): Promise<NotificationEvent | undefined> {
     return deepCopy([...this.events.values()].find((e) => e.providerRef === providerRef));
   }
+
+  /** All notification events in insertion order (append-only store). */
+  async findAll(): Promise<NotificationEvent[]> {
+    return deepCopy([...this.events.values()]);
+  }
 }

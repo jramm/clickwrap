@@ -45,6 +45,8 @@ export type { AgreementsAdminControllerListVersionsSuspenseQueryKey } from './ho
 export type { AgreementsAdminControllerPatchVersionMutationKey } from './hooks/useAgreementsAdminControllerPatchVersion.ts';
 export type { AuthMethodsControllerMethodsQueryKey } from './hooks/useAuthMethodsControllerMethods.ts';
 export type { AuthMethodsControllerMethodsSuspenseQueryKey } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
+export type { EventsControllerListEventsQueryKey } from './hooks/useEventsControllerListEvents.ts';
+export type { EventsControllerListEventsSuspenseQueryKey } from './hooks/useEventsControllerListEventsSuspense.ts';
 export type { SignedDocumentsAdminControllerListQueryKey } from './hooks/useSignedDocumentsAdminControllerList.ts';
 export type { SignedDocumentsAdminControllerListSuspenseQueryKey } from './hooks/useSignedDocumentsAdminControllerListSuspense.ts';
 export type { SignedDocumentsAdminControllerPdfQueryKey } from './hooks/useSignedDocumentsAdminControllerPdf.ts';
@@ -387,6 +389,21 @@ export type { EmailTemplateModel, EmailTemplateModelKindEnum } from './types/Ema
 export type { EmailTemplatePreviewBodyModel } from './types/EmailTemplatePreviewBodyModel.ts';
 export type { EmailTemplatePreviewResponseModel } from './types/EmailTemplatePreviewResponseModel.ts';
 export type { ErrorResponseDto } from './types/ErrorResponseDto.ts';
+export type { EventListResponseModel } from './types/EventListResponseModel.ts';
+export type {
+  EventModel,
+  EventModelActorKindEnum,
+  EventModelCategoryEnum,
+  EventModelTypeEnum,
+} from './types/EventModel.ts';
+export type {
+  EventsControllerListEvents200,
+  EventsControllerListEvents401,
+  EventsControllerListEventsQuery,
+  EventsControllerListEventsQueryParams,
+  EventsControllerListEventsQueryParamsCategoryEnum,
+  EventsControllerListEventsQueryResponse,
+} from './types/EventsControllerListEvents.ts';
 export type {
   HistoryAcceptanceModel,
   HistoryAcceptanceModelChannelEnum,
@@ -666,6 +683,14 @@ export { authMethodsControllerMethodsSuspense } from './hooks/useAuthMethodsCont
 export { authMethodsControllerMethodsSuspenseQueryKey } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
 export { authMethodsControllerMethodsSuspenseQueryOptions } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
 export { useAuthMethodsControllerMethodsSuspense } from './hooks/useAuthMethodsControllerMethodsSuspense.ts';
+export { eventsControllerListEvents } from './hooks/useEventsControllerListEvents.ts';
+export { eventsControllerListEventsQueryKey } from './hooks/useEventsControllerListEvents.ts';
+export { eventsControllerListEventsQueryOptions } from './hooks/useEventsControllerListEvents.ts';
+export { useEventsControllerListEvents } from './hooks/useEventsControllerListEvents.ts';
+export { eventsControllerListEventsSuspense } from './hooks/useEventsControllerListEventsSuspense.ts';
+export { eventsControllerListEventsSuspenseQueryKey } from './hooks/useEventsControllerListEventsSuspense.ts';
+export { eventsControllerListEventsSuspenseQueryOptions } from './hooks/useEventsControllerListEventsSuspense.ts';
+export { useEventsControllerListEventsSuspense } from './hooks/useEventsControllerListEventsSuspense.ts';
 export { signedDocumentsAdminControllerList } from './hooks/useSignedDocumentsAdminControllerList.ts';
 export { signedDocumentsAdminControllerListQueryKey } from './hooks/useSignedDocumentsAdminControllerList.ts';
 export { signedDocumentsAdminControllerListQueryOptions } from './hooks/useSignedDocumentsAdminControllerList.ts';
@@ -969,6 +994,14 @@ export { emailTemplateModelSchema } from './zod/emailTemplateModelSchema.ts';
 export { emailTemplatePreviewBodyModelSchema } from './zod/emailTemplatePreviewBodyModelSchema.ts';
 export { emailTemplatePreviewResponseModelSchema } from './zod/emailTemplatePreviewResponseModelSchema.ts';
 export { errorResponseDtoSchema } from './zod/errorResponseDtoSchema.ts';
+export { eventListResponseModelSchema } from './zod/eventListResponseModelSchema.ts';
+export { eventModelSchema } from './zod/eventModelSchema.ts';
+export {
+  eventsControllerListEvents200Schema,
+  eventsControllerListEvents401Schema,
+  eventsControllerListEventsQueryParamsSchema,
+  eventsControllerListEventsQueryResponseSchema,
+} from './zod/eventsControllerListEventsSchema.ts';
 export { historyAcceptanceModelSchema } from './zod/historyAcceptanceModelSchema.ts';
 export { historyEvidenceModelSchema } from './zod/historyEvidenceModelSchema.ts';
 export { historyNotificationModelSchema } from './zod/historyNotificationModelSchema.ts';

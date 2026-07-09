@@ -28,6 +28,11 @@ export class InMemoryObjectionRepo implements ObjectionRepo {
     return deepCopy([...this.objections.values()].filter((o) => o.customerId === customerId));
   }
 
+  /** All objections in insertion order (append-only store). */
+  async findAll(): Promise<Objection[]> {
+    return deepCopy([...this.objections.values()]);
+  }
+
   async resolve(
     id: string,
     resolution: ObjectionResolution,

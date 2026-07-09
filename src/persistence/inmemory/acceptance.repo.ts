@@ -55,6 +55,11 @@ export class InMemoryAcceptanceRepo implements AcceptanceRepo {
     return deepCopy(history);
   }
 
+  async findAll(): Promise<Acceptance[]> {
+    const all = [...this.acceptances.values()].sort((a, b) => a.acceptedAt.getTime() - b.acceptedAt.getTime());
+    return deepCopy(all);
+  }
+
   private effectiveFor(customerId: string, versionId: string): Acceptance | undefined {
     return [...this.acceptances.values()].find(
       (a) => a.customerId === customerId && a.versionId === versionId && a.isEffective,

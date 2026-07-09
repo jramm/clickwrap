@@ -43,6 +43,7 @@ export function AppShell() {
   const nav = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/customers', label: t('nav.customers') },
+    { to: '/events', label: t('nav.events') },
     { to: '/documents', label: t('nav.documents') },
     { to: '/email-templates', label: t('nav.emailTemplates') },
     { to: '/settings', label: t('nav.settings') },

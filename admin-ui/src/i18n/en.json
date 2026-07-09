@@ -40,6 +40,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "customers": "Customers",
+    "events": "Events",
     "documents": "Documents",
     "emailTemplates": "E-mail templates",
     "settings": "Settings"
@@ -227,7 +228,6 @@
     "upcomingLabel": "upcoming, effective {{date}}"
   },
   "customerDetail": {
-    "backToOverview": "Back to overview",
     "customer": "Customer",
     "customerId": "Customer ID: {{id}}",
     "loadError": "The history could not be loaded.",
@@ -271,7 +271,8 @@
     "signedAt": "Signed",
     "signer": "Signer",
     "reference": "Reference",
-    "uploadedBy": "Uploaded by"
+    "uploadedBy": "Uploaded by",
+    "backToCustomers": "Back to customers"
   },
   "customers": {
     "title": "Customers",
@@ -319,6 +320,65 @@
       "pending": "Pending",
       "blocked": "Blocked",
       "objected": "Objected"
+    }
+  },
+  "events": {
+    "title": "Events",
+    "subtitle": "Legal audit log — e-mails, access, consent and admin/system actions",
+    "loadError": "Events could not be loaded.",
+    "empty": "No events match the current filters.",
+    "pageOf": "Page {{page}} of {{pages}} · {{total}} total",
+    "prev": "Previous",
+    "next": "Next",
+    "filterAll": "All",
+    "filterCustomer": "Customer",
+    "filterFrom": "From",
+    "filterTo": "To",
+    "filterCategory": "Category",
+    "filterDocumentType": "Document type",
+    "time": "Time",
+    "categoryHeader": "Category",
+    "type": "Type",
+    "actor": "Actor",
+    "customer": "Customer",
+    "document": "Document / version",
+    "details": "Details",
+    "sectionTitle": "Activity",
+    "viewAll": "View all in Events",
+    "category": {
+      "COMMUNICATION": "Communication",
+      "ACCESS": "Access",
+      "CONSENT": "Consent",
+      "ADMINISTRATION": "Administration"
+    },
+    "actorKind": {
+      "ADMIN": "Admin",
+      "CUSTOMER": "Customer",
+      "SYSTEM": "System"
+    },
+    "eventType": {
+      "EMAIL_SENT": "E-mail sent",
+      "PAGE_ACCESSED": "Page accessed",
+      "VERSION_ACCEPTED": "Version accepted",
+      "OBJECTION_RAISED": "Objection raised",
+      "VERSION_PUBLISHED": "Version published",
+      "DEADLINE_EXTENDED": "Deadline extended",
+      "BLOCK_SUSPENDED": "Block suspended",
+      "REMINDER_TRIGGERED": "Reminder triggered",
+      "MANUAL_ACCEPTANCE": "Manual acceptance",
+      "ACCEPTANCE_LINK_CREATED": "Acceptance link created",
+      "CUSTOMER_CREATED": "Customer created",
+      "CUSTOMER_UPDATED": "Customer updated",
+      "SIGNED_DOCUMENT_UPLOADED": "Signed document uploaded",
+      "DOCUMENT_TYPE_CREATED": "Document type created",
+      "DOCUMENT_TYPE_UPDATED": "Document type updated",
+      "DOCUMENT_TYPE_DELETED": "Document type deleted",
+      "AUDIENCE_CREATED": "Audience created",
+      "AUDIENCE_UPDATED": "Audience updated",
+      "AUDIENCE_DELETED": "Audience deleted",
+      "EMAIL_TEMPLATE_CREATED": "E-mail template created",
+      "EMAIL_TEMPLATE_UPDATED": "E-mail template updated",
+      "EMAIL_TEMPLATE_DELETED": "E-mail template deleted"
     }
   },
   "emailTemplates": {

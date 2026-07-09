@@ -88,4 +88,11 @@ describe('InMemoryAcceptanceRepo', () => {
     await repo.append(anAcceptance({ id: 'a-old', acceptedAt: new Date('2026-07-01T00:00:00Z') }));
     expect((await repo.findByCustomer('c-123')).map((a) => a.id)).toEqual(['a-old', 'a-new']);
   });
+
+  it('findAll returns every acceptance across customers/versions in acceptedAt order (incl. ineffective)', async () => {
+    await repo.append(anAcceptance({ id: 'a-late', acceptedAt: new Date('2026-07-10T00:00:00Z'), isEffective: false }));
+    await repo.append(anAcceptance({ id: 'a-early', customerId: 'c-9', acceptedAt: new Date('2026-07-01T00:00:00Z') }));
+    await repo.append(anAcceptance({ id: 'a-mid', versionId: 'v-2', acceptedAt: new Date('2026-07-05T00:00:00Z') }));
+    expect((await repo.findAll()).map((a) => a.id)).toEqual(['a-early', 'a-mid', 'a-late']);
+  });
 });

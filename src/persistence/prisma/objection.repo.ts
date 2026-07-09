@@ -53,6 +53,12 @@ export class PrismaObjectionRepo implements ObjectionRepo {
     return rows.map(toDomain);
   }
 
+  /** All objections in append order (createdAt asc — insertion-order analog, see findByCustomer). */
+  async findAll(): Promise<Objection[]> {
+    const rows = await this.prisma.objection.findMany({ orderBy: { createdAt: 'asc' } });
+    return rows.map(toDomain);
+  }
+
   async resolve(
     id: string,
     resolution: ObjectionResolution,

@@ -53,6 +53,16 @@ describe('CustomerDetailPage', () => {
     expect(download).toHaveAttribute('href', 'https://example.test/sd-1.pdf');
   });
 
+  it('shows the customer’s recent events section with a link into the Events page', async () => {
+    renderAt('c-123');
+
+    expect(await screen.findByTestId('customer-events-section')).toBeInTheDocument();
+    // The events section renders the fixture rows (summary text) and links to the full log.
+    expect(await screen.findByText(/Version April 2026 edition accepted/)).toBeInTheDocument();
+    const viewAll = screen.getByRole('link', { name: 'View all in Events' });
+    expect(viewAll).toHaveAttribute('href', '/events?customerId=c-123');
+  });
+
   it('opens the signed-document upload dialog limited to external document types', async () => {
     renderAt('c-123');
 

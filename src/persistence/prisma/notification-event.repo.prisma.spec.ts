@@ -60,4 +60,11 @@ describeIfDb('PrismaNotificationEventRepo (against real Postgres)', () => {
       code: 'INVALID_STATE',
     });
   });
+
+  it('findAll returns every event across states in append order (createdAt asc)', async () => {
+    await repo.append(aNotification({ id: 'n-1' }));
+    await repo.append(aNotification({ id: 'n-2', channel: 'LINK', customerVersionStateId: 'cvs-2', providerRef: undefined }));
+    await repo.append(aNotification({ id: 'n-3', customerVersionStateId: 'cvs-1' }));
+    expect((await repo.findAll()).map((n) => n.id)).toEqual(['n-1', 'n-2', 'n-3']);
+  });
 });

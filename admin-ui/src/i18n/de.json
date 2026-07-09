@@ -40,6 +40,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "customers": "Kunden",
+    "events": "Ereignisse",
     "documents": "Dokumente",
     "emailTemplates": "E-Mail-Vorlagen",
     "settings": "Einstellungen"
@@ -227,7 +228,6 @@
     "upcomingLabel": "kommend, gültig ab {{date}}"
   },
   "customerDetail": {
-    "backToOverview": "Zurück zur Übersicht",
     "customer": "Kunde",
     "customerId": "Kunden-ID: {{id}}",
     "loadError": "Die Historie konnte nicht geladen werden.",
@@ -271,7 +271,8 @@
     "signedAt": "Signiert",
     "signer": "Unterzeichner",
     "reference": "Referenz",
-    "uploadedBy": "Hochgeladen von"
+    "uploadedBy": "Hochgeladen von",
+    "backToCustomers": "Zurück zur Kundenliste"
   },
   "customers": {
     "title": "Kunden",
@@ -319,6 +320,65 @@
       "pending": "Ausstehend",
       "blocked": "Blockiert",
       "objected": "Widersprochen"
+    }
+  },
+  "events": {
+    "title": "Ereignisse",
+    "subtitle": "Rechtliches Ereignisprotokoll — E-Mails, Zugriffe, Einwilligungen und Admin-/Systemaktionen",
+    "loadError": "Ereignisse konnten nicht geladen werden.",
+    "empty": "Keine Ereignisse für die aktuellen Filter.",
+    "pageOf": "Seite {{page}} von {{pages}} · {{total}} gesamt",
+    "prev": "Zurück",
+    "next": "Weiter",
+    "filterAll": "Alle",
+    "filterCustomer": "Kunde",
+    "filterFrom": "Von",
+    "filterTo": "Bis",
+    "filterCategory": "Kategorie",
+    "filterDocumentType": "Dokumententyp",
+    "time": "Zeitpunkt",
+    "categoryHeader": "Kategorie",
+    "type": "Typ",
+    "actor": "Akteur",
+    "customer": "Kunde",
+    "document": "Dokument / Version",
+    "details": "Details",
+    "sectionTitle": "Aktivität",
+    "viewAll": "Alle in Ereignissen anzeigen",
+    "category": {
+      "COMMUNICATION": "Kommunikation",
+      "ACCESS": "Zugriff",
+      "CONSENT": "Einwilligung",
+      "ADMINISTRATION": "Administration"
+    },
+    "actorKind": {
+      "ADMIN": "Admin",
+      "CUSTOMER": "Kunde",
+      "SYSTEM": "System"
+    },
+    "eventType": {
+      "EMAIL_SENT": "E-Mail gesendet",
+      "PAGE_ACCESSED": "Seite aufgerufen",
+      "VERSION_ACCEPTED": "Version akzeptiert",
+      "OBJECTION_RAISED": "Widerspruch eingelegt",
+      "VERSION_PUBLISHED": "Version veröffentlicht",
+      "DEADLINE_EXTENDED": "Frist verlängert",
+      "BLOCK_SUSPENDED": "Sperre ausgesetzt",
+      "REMINDER_TRIGGERED": "Erinnerung ausgelöst",
+      "MANUAL_ACCEPTANCE": "Manuelle Annahme",
+      "ACCEPTANCE_LINK_CREATED": "Annahme-Link erstellt",
+      "CUSTOMER_CREATED": "Kunde angelegt",
+      "CUSTOMER_UPDATED": "Kunde aktualisiert",
+      "SIGNED_DOCUMENT_UPLOADED": "Signiertes Dokument hochgeladen",
+      "DOCUMENT_TYPE_CREATED": "Dokumententyp angelegt",
+      "DOCUMENT_TYPE_UPDATED": "Dokumententyp aktualisiert",
+      "DOCUMENT_TYPE_DELETED": "Dokumententyp gelöscht",
+      "AUDIENCE_CREATED": "Zielgruppe angelegt",
+      "AUDIENCE_UPDATED": "Zielgruppe aktualisiert",
+      "AUDIENCE_DELETED": "Zielgruppe gelöscht",
+      "EMAIL_TEMPLATE_CREATED": "E-Mail-Vorlage angelegt",
+      "EMAIL_TEMPLATE_UPDATED": "E-Mail-Vorlage aktualisiert",
+      "EMAIL_TEMPLATE_DELETED": "E-Mail-Vorlage gelöscht"
     }
   },
   "emailTemplates": {

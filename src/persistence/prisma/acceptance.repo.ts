@@ -102,4 +102,9 @@ export class PrismaAcceptanceRepo implements AcceptanceRepo {
     const rows = await this.prisma.acceptance.findMany({ where: { customerId }, orderBy: { acceptedAt: 'asc' } });
     return rows.map(toDomain);
   }
+
+  async findAll(): Promise<Acceptance[]> {
+    const rows = await this.prisma.acceptance.findMany({ orderBy: { acceptedAt: 'asc' } });
+    return rows.map(toDomain);
+  }
 }
