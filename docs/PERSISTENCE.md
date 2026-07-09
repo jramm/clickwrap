@@ -350,6 +350,34 @@ Environment caveats that remain **documented, not test-enforced**:
   - `SignedDocument` ↔ `PrismaSignedDocumentRepo` (externally-signed evidence archive, append-only).
   - `AcceptanceLink` ↔ `PrismaAcceptanceLinkRepo` (hosted-acceptance capability links; lookup by
     `tokenHash`).
+  - `Event` ↔ `PrismaEventRepo` (port `src/domain/ports.ts::EventRepo`, mapper
+    `mappers/event.mapper.ts`) — the append-only **activity log** backing `GET /admin/events`. The
+    core writes ONE row per successful domain action via the shared `EventRecorder`
+    (`src/events/event-recorder.ts`, provided globally by `RepositoryModule` like `ADMIN_AUDIT_TOKEN`
+    so agreements/consent/admin/plugin services inject it cycle-free). This is a **dual-write**: it
+    runs ALONGSIDE — never replaces — the legally authoritative evidence/audit stores
+    (`Acceptance`/`Objection`/`NotificationEvent`/`AdminAuditLog`/`OutboundEmail`), which are
+    unchanged. Row fields are stored **denormalized** (customerName, versionLabel, documentType, …)
+    so the read side (`EventsService`) is a trivial filter-before-paginate query (occurredAt DESC,
+    stable id tiebreak, 50/page). A recorder failure is logged (warn) and swallowed — it never breaks
+    the business action, which has already succeeded. `append` is a pure create (duplicate id →
+    `INVALID_STATE`); like the other evidence tables it can be locked append-only via REVOKE. Indexes:
+    `@@index([occurredAt])`, `@@index([customerId, occurredAt])`, `@@index([category])`,
+    `@@index([documentType])`.
+    **Traceability guarantee:** every state-changing action writes exactly one event — including the
+    AUTOMATIC (cron/webhook) transitions that have no human actor: passive/tacit acceptance
+    (`VERSION_ACCEPTED`, `metadata.method=TACIT`) and deadline expiry (`DEADLINE_EXPIRED`) from the
+    deadline sweeper; scheduled version activation/retirement (`VERSION_ACTIVATED`/`VERSION_RETIRED`)
+    and block carry-over (`BLOCK_CARRIED_OVER`) from the activation sweeper; e-mail delivery/bounce
+    (`EMAIL_DELIVERED`/`EMAIL_BOUNCED`) from the provider webhook (`actorKind=SYSTEM`). Rollout also
+    emits `OBLIGATION_ROLLED_OUT` per created `PENDING_NOTIFICATION` state — the authoritative
+    "customer became obliged" record, independent of whether an `EMAIL_SENT` fires (customers without
+    a contact e-mail still appear). The `EventRecorder` centrally denormalizes `documentType`/
+    `audience`/`versionLabel` (from `versionId` via `AgreementVersionRepo`/`AgreementDocumentRepo`)
+    and `customerName` (from `customerId` via `CustomerRepo`) when the caller did not supply them —
+    all lookups inside the swallow-guard, so a resolution failure never breaks the business action.
+    The full event-type catalogue (grouped by category, noting system/cron-driven types) is in
+    docs/API.md.
 - **`Customer.contactEmails String[] @default([])`**: rollout/reminder/confirmation mails go to all
   stored contacts; mapper + domain type aligned.
 - `prisma format`/`validate`/`generate` run green after every schema change.

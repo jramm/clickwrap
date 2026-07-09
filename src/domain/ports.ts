@@ -12,7 +12,9 @@ import type {
   Customer,
   CustomerVersionState,
   DocumentTypeDef,
+  DomainEvent,
   EmailTemplate,
+  EventCategory,
   NotificationEvent,
   Objection,
   ObjectionResolution,
@@ -233,4 +235,27 @@ export interface SignedDocumentRepo {
   findById(id: string): Promise<SignedDocument | undefined>;
   /** All signed documents of a customer, NEWEST FIRST (by uploadedAt desc). */
   findByCustomer(customerId: string): Promise<SignedDocument[]>;
+}
+
+/** Filters for {@link EventRepo.query}. All optional; combined with AND; the date range is inclusive. */
+export interface EventQueryFilters {
+  customerId?: string;
+  /** occurredAt >= from (inclusive). */
+  from?: Date;
+  /** occurredAt <= to (inclusive). */
+  to?: Date;
+  category?: EventCategory;
+  documentType?: string;
+  versionId?: string;
+}
+
+/**
+ * Append-only activity log written by the core on each successful domain action (dual-write next to
+ * the evidence stores). Backs GET /admin/events. `append` is a pure create; `query` filters BEFORE
+ * paginating (50/page), sorts occurredAt DESC with a stable id tiebreak, and returns the FILTERED
+ * total (not the page count).
+ */
+export interface EventRepo {
+  append(event: DomainEvent): Promise<DomainEvent>;
+  query(filters: EventQueryFilters, page?: number): Promise<{ items: DomainEvent[]; total: number }>;
 }

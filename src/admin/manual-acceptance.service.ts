@@ -10,6 +10,8 @@ import {
   consentTextHashFor,
 } from '../domain/consent-rules';
 import { accept } from '../domain/state-machine';
+import { customerDisplayName } from '../domain/customer';
+import { EventRecorder } from '../events/event-recorder';
 import { TOKENS } from '../persistence/tokens';
 import type { Actor } from '../common/auth/actor';
 import type { Clock } from '../domain/clock';
@@ -52,6 +54,7 @@ export class ManualAcceptanceService {
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     @Optional() private readonly confirmation?: AcceptanceConfirmationService,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async record(customerId: string, input: ManualAcceptanceInput, adminActor: Actor): Promise<ManualAcceptanceResult> {
@@ -137,6 +140,24 @@ export class ManualAcceptanceService {
       reason: input.reason,
       metadata: { customerId, versionId: version.id, method: input.method, evidenceStorageKey: stored.storageKey },
       createdAt: this.clock.now(),
+    });
+
+    // Admin-triggered manual recording → MANUAL_ACCEPTANCE (the clearer mapping: it is an admin action,
+    // distinct from a customer's own VERSION_ACCEPTED); method/channel carried in metadata. CONSENT.
+    await this.recorder?.record({
+      type: 'MANUAL_ACCEPTANCE',
+      category: 'CONSENT',
+      actorKind: 'ADMIN',
+      actorLabel: adminActor.userId,
+      customerId,
+      customerName: customerDisplayName(customer),
+      versionId: version.id,
+      documentType: document.type,
+      audience: document.audience,
+      versionLabel: version.versionLabel,
+      channel: 'ADMIN',
+      summary: `Manual acceptance recorded for version ${version.versionLabel} — ${input.reason}`,
+      metadata: { method: input.method, reason: input.reason },
     });
 
     // Best-effort acceptance confirmation (skips IMPORT internally); never fails the recording.

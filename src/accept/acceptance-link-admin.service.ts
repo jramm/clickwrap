@@ -3,9 +3,10 @@
  * The URL token is a capability: it is generated here, returned ONCE inside the URL and only its
  * SHA-256 is persisted. Every mint writes an ACCEPTANCE_LINK_CREATE audit entry.
  */
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { newId } from '../agreements/ids';
+import { EventRecorder } from '../events/event-recorder';
 import { DomainError } from '../common/errors';
 import {
   acceptanceLinkTokenHash,
@@ -41,6 +42,7 @@ export class AcceptanceLinkAdminService {
     @Inject(TOKENS.AcceptanceLinkRepo) private readonly links: AcceptanceLinkRepo,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async create(
@@ -81,6 +83,18 @@ export class AcceptanceLinkAdminService {
       // The token/tokenHash never appear in the audit log — the linkId is enough to correlate.
       metadata: { customerId, audienceKey: input.audienceKey, expiresAt: expiresAt.toISOString() },
       createdAt,
+    });
+
+    await this.recorder?.record({
+      type: 'ACCEPTANCE_LINK_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      customerId,
+      audience: input.audienceKey,
+      channel: 'LINK',
+      summary: 'Acceptance link created',
+      metadata: { linkId: link.id, audienceKey: input.audienceKey, expiresAt: expiresAt.toISOString() },
     });
 
     return { linkId: link.id, url: `${baseUrl}/accept/${token}`, expiresAt };

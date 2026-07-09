@@ -5,6 +5,9 @@ import { aState, anActiveVersion, aVersion } from '../domain/testing/fixtures';
 import type { AgreementVersion, CustomerVersionState } from '../domain/types';
 import { InMemoryAcceptanceRepo } from '../persistence/inmemory/acceptance.repo';
 import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo';
+import { InMemoryEventRepo } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
+import type { DomainEvent } from '../domain/types';
 import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { DeadlineSweeperService } from './deadline-sweeper.service';
 
@@ -302,5 +305,89 @@ describe('DeadlineSweeperService', () => {
     expect((await stateRepo.findById('cvs-3'))?.state).toBe('ACCEPTED');
     expect(await acceptanceRepo.findEffective('c-1', 'v-1')).toBeDefined();
     expect(await acceptanceRepo.findEffective('c-3', 'v-3')).toBeDefined();
+  });
+
+  describe('activity events', () => {
+    const dueBase = {
+      state: 'NOTIFIED' as const,
+      notifiedAt: new Date('2026-07-07T09:00:00Z'),
+      deadlineAt: new Date('2026-07-21T09:00:00Z'),
+    };
+
+    const setup = async (
+      version: AgreementVersion,
+      stateRepo: InMemoryCustomerVersionStateRepo,
+    ): Promise<DomainEvent[]> => {
+      process.env.SWEEPER_ENABLED = 'true';
+      const versionRepo = new FakeAgreementVersionRepo();
+      versionRepo.seed(version);
+      const acceptanceRepo = new InMemoryAcceptanceRepo();
+      const clock = new FixedClock(T0);
+      const eventRepo = new InMemoryEventRepo();
+      const service = new DeadlineSweeperService(
+        stateRepo,
+        versionRepo,
+        acceptanceRepo,
+        clock,
+        undefined,
+        new EventRecorder(eventRepo, clock),
+      );
+      await service.run();
+      return (await eventRepo.query({})).items;
+    };
+
+    it('TACIT_ACCEPTED (transitioned): emits VERSION_ACCEPTED (SYSTEM, method=TACIT)', async () => {
+      const stateRepo = new InMemoryCustomerVersionStateRepo();
+      await stateRepo.save(aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', ...dueBase }));
+      const events = await setup(aVersion({ id: 'v-1', objectionPeriodDays: 14, consentText: undefined }), stateRepo);
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toMatchObject({
+        type: 'VERSION_ACCEPTED',
+        category: 'CONSENT',
+        actorKind: 'SYSTEM',
+        channel: 'SYSTEM',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        summary: 'Passively accepted (objection period lapsed)',
+        metadata: { method: 'TACIT' },
+      });
+    });
+
+    it('EXPIRED_BLOCKING (transitioned): emits DEADLINE_EXPIRED (CONSENT, SYSTEM)', async () => {
+      const stateRepo = new InMemoryCustomerVersionStateRepo();
+      await stateRepo.save(aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', ...dueBase }));
+      const events = await setup(anActiveVersion({ id: 'v-1', gracePeriodDays: 14 }), stateRepo);
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toMatchObject({
+        type: 'DEADLINE_EXPIRED',
+        category: 'CONSENT',
+        actorKind: 'SYSTEM',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        summary: 'Deadline expired — became blocking',
+      });
+    });
+
+    it('SUPERSEDED (no-op): emits NEITHER event', async () => {
+      const stateRepo = new StaleDueCustomerVersionStateRepo();
+      const supersededState = aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', ...dueBase, state: 'SUPERSEDED' });
+      await stateRepo.save(supersededState);
+      stateRepo.setDue([supersededState]);
+      const events = await setup(aVersion({ id: 'v-1', objectionPeriodDays: 14 }), stateRepo);
+
+      expect(events).toHaveLength(0);
+    });
+
+    it('already ACCEPTED between findDue and processing (not transitioned): emits NEITHER event', async () => {
+      const stateRepo = new StaleDueCustomerVersionStateRepo();
+      const staleSnapshot = aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', ...dueBase });
+      await stateRepo.save({ ...staleSnapshot, state: 'ACCEPTED' });
+      stateRepo.setDue([staleSnapshot]);
+      const events = await setup(aVersion({ id: 'v-1', objectionPeriodDays: 14 }), stateRepo);
+
+      expect(events).toHaveLength(0);
+    });
   });
 });

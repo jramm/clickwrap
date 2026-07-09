@@ -1,7 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Clock } from '../../../domain/clock';
 import type { AgreementVersionRepo, CustomerVersionStateRepo, NotificationEventRepo } from '../../../domain/ports';
+import { EventRecorder } from '../../../events/event-recorder';
 import { recordAccess } from '../../../domain/state-machine';
 import { ESCALATION_LOG, type EscalationLog } from '../../../common/escalation/escalation-log';
 import { TOKENS } from '../../../persistence/tokens';
@@ -30,6 +31,7 @@ export class DeliveryEventService {
     @Inject(ESCALATION_LOG) private readonly escalationLog: EscalationLog,
     @Inject(EMAIL_TOKENS.EmailDeliveryProvider) private readonly provider: EmailDeliveryProvider,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   /** Dispatches an inbound event to delivery or bounce handling. */
@@ -76,6 +78,19 @@ export class DeliveryEventService {
         occurredAt: this.clock.now(),
         providerRef,
       });
+      // Only the FIRST delivery for this providerRef emits an activity event (double delivery is idempotent).
+      await this.recorder?.record({
+        type: 'EMAIL_DELIVERED',
+        category: 'COMMUNICATION',
+        actorKind: 'SYSTEM',
+        actorLabel: 'system',
+        customerId: outboundEmail.customerId,
+        versionId: outboundEmail.versionId,
+        channel: 'EMAIL',
+        recipient: outboundEmail.recipient,
+        summary: `E-mail delivered to ${outboundEmail.recipient}`,
+        metadata: { providerRef },
+      });
     }
 
     const version = await this.versionRepo.findById(outboundEmail.versionId);
@@ -101,6 +116,7 @@ export class DeliveryEventService {
     if (!outboundEmail) {
       return;
     }
+    const inactivatedEmail = event.meta?.inactivatedRecipient === true;
     await this.escalationLog.record({
       id: randomUUID(),
       kind: 'EMAIL_BOUNCE',
@@ -108,7 +124,21 @@ export class DeliveryEventService {
       versionId: outboundEmail.versionId,
       recipient: event.recipient,
       occurredAt: this.clock.now(),
-      inactivatedEmail: event.meta?.inactivatedRecipient === true,
+      inactivatedEmail,
+    });
+    // customerId/versionId resolved from the OutboundEmail like recordDelivery; documentType is
+    // resolved centrally by the EventRecorder from versionId.
+    await this.recorder?.record({
+      type: 'EMAIL_BOUNCED',
+      category: 'COMMUNICATION',
+      actorKind: 'SYSTEM',
+      actorLabel: 'system',
+      customerId: outboundEmail.customerId,
+      versionId: outboundEmail.versionId,
+      channel: 'EMAIL',
+      recipient: event.recipient,
+      summary: 'E-mail bounced (recipient unreachable)',
+      metadata: { inactivatedEmail },
     });
   }
 

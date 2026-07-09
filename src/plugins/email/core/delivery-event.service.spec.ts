@@ -5,6 +5,8 @@ import type { AgreementVersion } from '../../../domain/types';
 import { InMemoryEscalationLog } from '../../../common/escalation/escalation-log.inmemory';
 import { InMemoryCustomerVersionStateRepo } from '../../../persistence/inmemory/customer-version-state.repo';
 import { InMemoryNotificationEventRepo } from '../../../persistence/inmemory/notification-event.repo';
+import { InMemoryEventRepo } from '../../../persistence/inmemory';
+import { EventRecorder } from '../../../events/event-recorder';
 import { DeliveryEventService } from './delivery-event.service';
 import type { DeliveryStatus, EmailDeliveryProvider } from './email-delivery-provider';
 import type { OutboundEmail } from './outbound-email';
@@ -81,6 +83,7 @@ describe('DeliveryEventService', () => {
   let escalationLog: InMemoryEscalationLog;
   let provider: FakePollingProvider;
   let clock: FixedClock;
+  let eventRepo: InMemoryEventRepo;
   let service: DeliveryEventService;
 
   beforeEach(() => {
@@ -91,6 +94,7 @@ describe('DeliveryEventService', () => {
     escalationLog = new InMemoryEscalationLog();
     provider = new FakePollingProvider();
     clock = new FixedClock(T0);
+    eventRepo = new InMemoryEventRepo();
     service = new DeliveryEventService(
       outboundEmails,
       notificationEvents,
@@ -99,6 +103,7 @@ describe('DeliveryEventService', () => {
       escalationLog,
       provider,
       clock,
+      new EventRecorder(eventRepo, clock),
     );
   });
 
@@ -127,6 +132,22 @@ describe('DeliveryEventService', () => {
 
       const outboundEmail = await outboundEmails.findByProviderRef('ref-1');
       expect(outboundEmail?.deliveredAt?.toISOString()).toBe(T0.toISOString());
+    });
+
+    it('records an EMAIL_DELIVERED event on the first delivery', async () => {
+      const version = aVersion({ id: 'v-1', objectionPeriodDays: 14 });
+      versions.seed(version);
+      await outboundEmails.save(anOutboundEmail());
+      await states.save(aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', state: 'PENDING_NOTIFICATION' }));
+
+      await service.handle({ kind: 'DELIVERED', providerRef: 'ref-1', recipient: 'max@customer.example' });
+
+      const events = await eventRepo.query({});
+      expect(events.items[0]).toMatchObject({
+        type: 'EMAIL_DELIVERED',
+        category: 'COMMUNICATION',
+        actorKind: 'SYSTEM',
+      });
     });
 
     it('respects block carry-over: deadlineAt = notifiedAt when carryOverBlocking is set', async () => {
@@ -217,6 +238,44 @@ describe('DeliveryEventService', () => {
       expect(state?.state).toBe('PENDING_NOTIFICATION');
       expect(state?.notifiedAt).toBeUndefined();
       expect(await notificationEvents.findByState('cvs-1')).toHaveLength(0);
+    });
+
+    it('records an EMAIL_BOUNCED event (COMMUNICATION, SYSTEM) with inactivatedEmail metadata', async () => {
+      const version = aVersion({ id: 'v-1', objectionPeriodDays: 14 });
+      versions.seed(version);
+      await outboundEmails.save(anOutboundEmail());
+      await states.save(aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', state: 'PENDING_NOTIFICATION' }));
+
+      await service.handle({
+        kind: 'BOUNCED',
+        providerRef: 'ref-1',
+        recipient: 'max@customer.example',
+        meta: { inactivatedRecipient: true },
+      });
+
+      const events = await eventRepo.query({});
+      expect(events.items).toHaveLength(1);
+      expect(events.items[0]).toMatchObject({
+        type: 'EMAIL_BOUNCED',
+        category: 'COMMUNICATION',
+        actorKind: 'SYSTEM',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        recipient: 'max@customer.example',
+        summary: 'E-mail bounced (recipient unreachable)',
+        metadata: { inactivatedEmail: true },
+      });
+    });
+
+    it('unknown providerRef: no bounce event (and no escalation)', async () => {
+      await service.handle({
+        kind: 'BOUNCED',
+        providerRef: 'foreign-ref',
+        recipient: 'unknown@customer.example',
+        meta: { inactivatedRecipient: false },
+      });
+
+      expect((await eventRepo.query({})).items).toHaveLength(0);
     });
 
     it('unknown providerRef: no-op without escalation entry — like the delivery path', async () => {

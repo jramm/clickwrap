@@ -1,6 +1,7 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { newId } from '../agreements/ids';
+import { EventRecorder } from '../events/event-recorder';
 import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
 import {
@@ -66,6 +67,7 @@ export class EmailTemplateAdminService {
     @Inject(TOKENS.DocumentTypeRepo) private readonly documentTypes: DocumentTypeRepo,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async list(): Promise<EmailTemplateView[]> {
@@ -96,6 +98,14 @@ export class EmailTemplateAdminService {
       metadata: { name: saved.name, kind: saved.kind },
       createdAt: now,
     });
+    await this.recorder?.record({
+      type: 'EMAIL_TEMPLATE_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      summary: `E-mail template "${saved.name}" created`,
+      metadata: { templateId: saved.id, name: saved.name, kind: saved.kind },
+    });
     return { ...saved, isDefault: isDefaultEmailTemplateId(saved.id) };
   }
 
@@ -119,6 +129,14 @@ export class EmailTemplateAdminService {
       metadata: { name: updated.name, kind: updated.kind },
       createdAt: this.clock.now(),
     });
+    await this.recorder?.record({
+      type: 'EMAIL_TEMPLATE_UPDATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      summary: `E-mail template "${updated.name}" updated`,
+      metadata: { templateId: updated.id, name: updated.name, kind: updated.kind },
+    });
     return { ...updated, isDefault: isDefaultEmailTemplateId(updated.id) };
   }
 
@@ -139,6 +157,14 @@ export class EmailTemplateAdminService {
       targetId: id,
       metadata: { name: existing.name },
       createdAt: this.clock.now(),
+    });
+    await this.recorder?.record({
+      type: 'EMAIL_TEMPLATE_DELETED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      summary: `E-mail template "${existing.name}" deleted`,
+      metadata: { templateId: id, name: existing.name },
     });
   }
 

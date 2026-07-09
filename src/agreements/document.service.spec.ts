@@ -7,7 +7,9 @@ import {
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryDocumentTypeRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { DocumentService } from './document.service';
 import { InMemoryPdfStorage } from './pdf-storage.inmemory';
 
@@ -24,6 +26,7 @@ describe('DocumentService', () => {
   let documentTypes: InMemoryDocumentTypeRepo;
   let audiences: InMemoryAudienceRepo;
   let pdf: InMemoryPdfStorage;
+  let events: InMemoryEventRepo;
   let service: DocumentService;
 
   beforeEach(async () => {
@@ -32,11 +35,20 @@ describe('DocumentService', () => {
     documentTypes = new InMemoryDocumentTypeRepo(documents);
     audiences = new InMemoryAudienceRepo(documents, new InMemoryCustomerRepo());
     pdf = new InMemoryPdfStorage();
+    events = new InMemoryEventRepo();
     await documentTypes.save(aDocumentTypeDef());
     await documentTypes.save(aDocumentTypeDef({ id: 'dt-terms', key: 'terms', name: 'Terms of Service' }));
     await audiences.save(anAudience());
     await audiences.save(anAudience({ id: 'aud-partner', key: 'partner', name: 'Partners' }));
-    service = new DocumentService(documents, versions, documentTypes, audiences, pdf, new FixedClock(T0));
+    service = new DocumentService(
+      documents,
+      versions,
+      documentTypes,
+      audiences,
+      pdf,
+      new FixedClock(T0),
+      new EventRecorder(events, new FixedClock(T0)),
+    );
   });
 
   describe('create', () => {
@@ -45,6 +57,28 @@ describe('DocumentService', () => {
       expect(doc).toMatchObject({ type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
       expect(doc.id).toMatch(/^doc-/);
       expect(await documents.findByTypeAndAudience('dpa', 'customer')).toMatchObject({ id: doc.id });
+    });
+
+    it('records a DOCUMENT_CREATED event (ADMINISTRATION, ADMIN) on success', async () => {
+      const doc = await service.create({ type: 'dpa', audience: 'customer', name: 'DPA — Customers' }, 'admin-7');
+
+      const { items } = await events.query({});
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        type: 'DOCUMENT_CREATED',
+        category: 'ADMINISTRATION',
+        actorKind: 'ADMIN',
+        actorLabel: 'admin-7',
+        documentType: 'dpa',
+        audience: 'customer',
+        metadata: { documentId: doc.id },
+      });
+    });
+
+    it('records NO event when creation fails (duplicate)', async () => {
+      await service.create({ type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
+      await expectCode(service.create({ type: 'dpa', audience: 'customer', name: 'dup' }), 'INVALID_STATE');
+      expect((await events.query({})).total).toBe(1); // only the first create emitted
     });
 
     it('allows the same type for another audience', async () => {

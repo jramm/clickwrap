@@ -507,23 +507,22 @@ Redirects to a fresh presigned PDF URL. Unknown id → `404 VERSION_NOT_FOUND`.
 ### GET /admin/events?customerId=&from=&to=&category=&documentType=&versionId=&page=
 
 One normalized, chronological (**newest-first**), paginated (**50/page**), filterable event list for
-legal tracing — for the whole system or a single customer. It **aggregates the existing append-only
-sources** (admin audit log, acceptances, objections, notification events); there is no new event
-table. In-memory aggregation (acceptable for the MVP — the sources are bounded by the admin/legal
-domain size, nothing is truncated).
+legal tracing — for the whole system or a single customer. It reads a **dedicated, append-only
+`Event` table** that the core writes on each successful domain action (dual-write via
+`EventRecorder`, ALONGSIDE the unchanged evidence/audit stores — Acceptance/Objection/
+NotificationEvent/AdminAuditLog/OutboundEmail remain the legally authoritative records). The read
+side is a trivial query over that table; the row fields are stored **denormalized** (customerName,
+versionLabel, documentType, …) so the log stays historically accurate.
 
 Response `{ items: Event[], total }` where `total` is the count **after filtering** (before
 pagination). Each `Event`:
 
-- `id` — source-prefixed stable id (`audit:…`, `acc:…`, `obj:…`, `notif:…`).
-- `occurredAt` — ISO date-time.
-- `type` — the specific event, e.g. `EMAIL_SENT`, `PAGE_ACCESSED`, `VERSION_ACCEPTED`,
-  `OBJECTION_RAISED`, `VERSION_PUBLISHED`, `DEADLINE_EXTENDED`, `BLOCK_SUSPENDED`,
-  `REMINDER_TRIGGERED`, `MANUAL_ACCEPTANCE`, `ACCEPTANCE_LINK_CREATED`, `CUSTOMER_CREATED/UPDATED`,
-  `SIGNED_DOCUMENT_UPLOADED`, `DOCUMENT_TYPE_*`, `AUDIENCE_*`, `EMAIL_TEMPLATE_*`.
-- `category` — one of `COMMUNICATION` (an e-mail was sent), `ACCESS` (the hosted acceptance page was
-  opened — provable access), `CONSENT` (acceptances + objections), `ADMINISTRATION` (all admin/system
-  actions). NotificationEvent channel `EMAIL` → COMMUNICATION; channel `LINK`/`PORTAL` → ACCESS.
+- `id` — stable `Event`-table id (`evt-…`).
+- `occurredAt` — ISO date-time (server time at record time).
+- `type` — the specific event (see the **full catalogue** below).
+- `category` — one of `COMMUNICATION` (an e-mail was sent/delivered), `ACCESS` (the hosted acceptance
+  page was opened — provable access), `CONSENT` (acceptances + objections), `ADMINISTRATION` (all
+  admin/system config + operations actions).
 - `actorKind` (`ADMIN` | `CUSTOMER` | `SYSTEM`) + `actorLabel` — **displayed, not filterable**.
 - optional `customerId`, `customerName`, `versionId`, `documentType`, `audience`, `versionLabel`,
   `channel`, `recipient`; always a short English `summary` and pass-through `metadata`
@@ -539,6 +538,53 @@ Query params (all optional, applied **before** pagination):
 - `page` — 1-based (50/page).
 
 Sort: `occurredAt` DESC, stable tiebreak by id.
+
+#### Event catalogue (traceability guarantee)
+
+Every state-changing action produces exactly one event, so the log is a complete audit trail.
+`actorKind` is `SYSTEM` for cron/webhook-driven transitions, `ADMIN` for admin-triggered actions,
+`CUSTOMER` for portal/link self-service. Grouped by `category`:
+
+**COMMUNICATION**
+- `EMAIL_SENT` (SYSTEM) — a rollout/reminder/acceptance-link mail was sent (also covers automatic,
+  cron-driven reminders, whose mailer is the same instrumented `AgreementEmailService`).
+- `EMAIL_DELIVERED` (SYSTEM) — provider delivery confirmation (webhook / fallback polling).
+- `EMAIL_BOUNCED` (SYSTEM) — provider bounce (recipient unreachable); `metadata.inactivatedEmail`.
+
+**ACCESS**
+- `PAGE_ACCESSED` (CUSTOMER) — the hosted acceptance page was opened (provable access).
+
+**CONSENT**
+- `VERSION_ACCEPTED` — active consent (`CUSTOMER`, portal/link), admin/import recording (`SYSTEM`,
+  `metadata.method=IMPORT`), or **passive/tacit** acceptance (`SYSTEM`, `metadata.method=TACIT`,
+  cron-driven by the deadline sweeper when the objection period lapses).
+- `OBJECTION_RAISED` (CUSTOMER) — an objection to a PASSIVE version.
+- `MANUAL_ACCEPTANCE` (ADMIN) — an admin recorded an acceptance manually.
+- `DEADLINE_EXTENDED` (ADMIN) — an admin extended a deadline.
+- `DEADLINE_EXPIRED` (SYSTEM) — **cron**: an ACTIVE version's grace period lapsed → EXPIRED_BLOCKING
+  (deadline sweeper).
+- `BLOCK_SUSPENDED` (ADMIN) — an admin lifted/suspended a block.
+- `BLOCK_CARRIED_OVER` (SYSTEM) — **cron**: an EXPIRED_BLOCKING predecessor block was carried onto the
+  successor version's state (activation sweeper).
+- `OBLIGATION_ROLLED_OUT` (ADMIN on publish/rollout, SYSTEM on integration onboarding / activation
+  sweeper) — a customer was put under obligation to accept a version (one per created
+  PENDING_NOTIFICATION state). The authoritative "customer became obliged" record — crucial for
+  customers with **no** contact e-mail, for whom no `EMAIL_SENT` fires.
+- `REMINDER_TRIGGERED` (SYSTEM) — a reminder was triggered.
+
+**ADMINISTRATION**
+- `VERSION_PUBLISHED` (ADMIN) — a version was published.
+- `VERSION_ACTIVATED` (SYSTEM) — **cron**: a scheduled version became the effective one (activation
+  sweeper).
+- `VERSION_RETIRED` — a predecessor version was retired: `ADMIN` on an immediate publish, `SYSTEM`
+  (cron) at a scheduled flip (activation sweeper).
+- `DOCUMENT_CREATED` (ADMIN) — a document (type × audience container) was created.
+- `VERSION_DRAFT_CREATED` (ADMIN) — a DRAFT version was created.
+- `VERSION_UPDATED` (ADMIN) — a DRAFT version was patched.
+- `CUSTOMER_CREATED` / `CUSTOMER_UPDATED` (ADMIN) — customer master-data changes.
+- `SIGNED_DOCUMENT_UPLOADED` (ADMIN) — an externally-signed document was archived.
+- `ACCEPTANCE_LINK_CREATED` (ADMIN) — a hosted acceptance link was minted.
+- `DOCUMENT_TYPE_*` / `AUDIENCE_*` / `EMAIL_TEMPLATE_*` (ADMIN) — config CRUD.
 
 ---
 

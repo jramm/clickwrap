@@ -1,6 +1,7 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { newId } from '../agreements/ids';
+import { EventRecorder } from '../events/event-recorder';
 import type { Clock } from '../domain/clock';
 import { DomainError } from '../common/errors';
 import type { DocumentTypeRepo, EmailTemplateRepo } from '../domain/ports';
@@ -38,6 +39,7 @@ export class DocumentTypeAdminService {
     @Inject(TOKENS.EmailTemplateRepo) private readonly emailTemplates: EmailTemplateRepo,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async list(): Promise<DocumentTypeDef[]> {
@@ -63,6 +65,15 @@ export class DocumentTypeAdminService {
       targetId: saved.id,
       metadata: { key: saved.key, name: saved.name, external: saved.external === true },
       createdAt: this.clock.now(),
+    });
+    await this.recorder?.record({
+      type: 'DOCUMENT_TYPE_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      documentType: saved.key,
+      summary: `Document type "${saved.name}" created`,
+      metadata: { key: saved.key, name: saved.name, external: saved.external === true },
     });
     return saved;
   }
@@ -120,6 +131,15 @@ export class DocumentTypeAdminService {
       },
       createdAt: this.clock.now(),
     });
+    await this.recorder?.record({
+      type: 'DOCUMENT_TYPE_UPDATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      documentType: updated.key,
+      summary: `Document type "${updated.name}" updated`,
+      metadata: { name: updated.name },
+    });
     return updated;
   }
 
@@ -171,6 +191,15 @@ export class DocumentTypeAdminService {
       targetId: id,
       metadata: { key: existing.key },
       createdAt: this.clock.now(),
+    });
+    await this.recorder?.record({
+      type: 'DOCUMENT_TYPE_DELETED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      documentType: existing.key,
+      summary: `Document type "${existing.name}" deleted`,
+      metadata: { key: existing.key },
     });
   }
 

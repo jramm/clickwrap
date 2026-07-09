@@ -14,7 +14,9 @@ import {
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { CustomerAdminService } from './customer-admin.service';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
@@ -29,6 +31,7 @@ describe('CustomerAdminService', () => {
   let acceptances: InMemoryAcceptanceRepo;
   let audit: InMemoryAdminAuditRepo;
   let notifier: InMemoryRolloutNotifier;
+  let events: InMemoryEventRepo;
   let service: CustomerAdminService;
 
   /** Rebuilds the service with a different notifier (failure-injection tests). */
@@ -43,6 +46,7 @@ describe('CustomerAdminService', () => {
       rolloutNotifier,
       audit,
       new FixedClock(T0),
+      new EventRecorder(events, new FixedClock(T0)),
     );
 
   beforeEach(async () => {
@@ -54,6 +58,7 @@ describe('CustomerAdminService', () => {
     acceptances = new InMemoryAcceptanceRepo();
     audit = new InMemoryAdminAuditRepo();
     notifier = new InMemoryRolloutNotifier();
+    events = new InMemoryEventRepo();
     await audiences.save(anAudience({ id: 'aud-customer', key: 'customer', name: 'Customers' }));
     await audiences.save(anAudience({ id: 'aud-partner', key: 'partner', name: 'Partners' }));
     service = serviceWithNotifier(notifier);
@@ -568,6 +573,49 @@ describe('CustomerAdminService', () => {
       expect(await states.findByCustomer(created.id)).toHaveLength(0);
     });
 
+    it('create: emits OBLIGATION_ROLLED_OUT (CONSENT, ADMIN) once per created state', async () => {
+      const created = await service.create(
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
+        ADMIN,
+      );
+
+      const obligations = (await events.query({})).items.filter((e) => e.type === 'OBLIGATION_ROLLED_OUT');
+      expect(obligations).toHaveLength(1);
+      expect(obligations[0]).toMatchObject({
+        category: 'CONSENT',
+        actorKind: 'ADMIN',
+        customerId: created.id,
+        versionId: 'v-dpa',
+        documentType: 'dpa',
+        summary: expect.stringContaining('put under obligation'),
+      });
+    });
+
+    it('integration source: OBLIGATION_ROLLED_OUT is a SYSTEM action', async () => {
+      const created = await service.create(
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
+        ADMIN,
+        'integration',
+      );
+
+      const obligations = (await events.query({})).items.filter((e) => e.type === 'OBLIGATION_ROLLED_OUT');
+      expect(obligations).toHaveLength(1);
+      expect(obligations[0].actorKind).toBe('SYSTEM');
+      expect(obligations[0].customerId).toBe(created.id);
+    });
+
+    it('emits NO OBLIGATION_ROLLED_OUT when a state already exists (no new rollout)', async () => {
+      const created = await service.create(
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
+        ADMIN,
+      );
+      // Second update with no added role → no new states, no new obligation events.
+      const before = (await events.query({})).items.filter((e) => e.type === 'OBLIGATION_ROLLED_OUT').length;
+      await service.update(created.id, { companyName: 'Acme 2' }, ADMIN);
+      const after = (await events.query({})).items.filter((e) => e.type === 'OBLIGATION_ROLLED_OUT').length;
+      expect(after).toBe(before);
+    });
+
     it('role add via update: rollout only for the ADDED role, existing states untouched', async () => {
       const created = await service.create(
         { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
@@ -824,6 +872,34 @@ describe('CustomerAdminService', () => {
       // The self-record must not count as its own overlapping duplicate.
       const updated = await service.update(partner.id, { roles: ['partner'], companyName: 'Partner Co' }, ADMIN);
       expect(updated).toMatchObject({ id: partner.id, roles: ['partner'], companyName: 'Partner Co' });
+    });
+  });
+
+  describe('event recording', () => {
+    it('records a CUSTOMER_CREATED event on success', async () => {
+      const created = await service.create(
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
+        ADMIN,
+      );
+      const { items } = await events.query({ customerId: created.id });
+      expect(items.some((e) => e.type === 'CUSTOMER_CREATED' && e.actorKind === 'ADMIN')).toBe(true);
+    });
+
+    it('records a CUSTOMER_UPDATED event on success', async () => {
+      const created = await service.create(
+        { externalRef: 'ext-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
+        ADMIN,
+      );
+      await service.update(created.id, { companyName: 'Acme 2' }, ADMIN);
+      const { items } = await events.query({ customerId: created.id });
+      expect(items.some((e) => e.type === 'CUSTOMER_UPDATED')).toBe(true);
+    });
+
+    it('records NO event when create validation fails', async () => {
+      await expect(
+        service.create({ externalRef: 'ext-1', roles: ['ghost'], contactEmails: [] }, ADMIN),
+      ).rejects.toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
+      expect((await events.query({})).total).toBe(0);
     });
   });
 });

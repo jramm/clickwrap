@@ -5,8 +5,10 @@ import { AGREEMENTS_TOKENS, type PdfStorage, type PdfUpload } from '../agreement
 import type { Actor } from '../common/auth/actor';
 import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
+import { customerDisplayName } from '../domain/customer';
 import type { AudienceRepo, CustomerRepo, DocumentTypeRepo, SignedDocumentRepo } from '../domain/ports';
 import type { SignedDocument } from '../domain/types';
+import { EventRecorder } from '../events/event-recorder';
 import { TOKENS } from '../persistence/tokens';
 import { toSignedDocumentDto, type SignedDocumentDto } from './signed-document.dto';
 
@@ -47,6 +49,7 @@ export class SignedDocumentService {
     @Inject(AGREEMENTS_TOKENS.PdfStorage) private readonly pdf: PdfStorage,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     @Optional() @Inject(ADMIN_AUDIT_TOKEN) private readonly audit?: AdminAuditRepo,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async upload(
@@ -115,6 +118,20 @@ export class SignedDocumentService {
         createdAt: now,
       });
     }
+
+    // Admin surface = ADMIN actor; the integration (service-token) surface = SYSTEM.
+    await this.recorder?.record({
+      type: 'SIGNED_DOCUMENT_UPLOADED',
+      category: 'ADMINISTRATION',
+      actorKind: options.recordAudit ? 'ADMIN' : 'SYSTEM',
+      actorLabel: actor.userId,
+      customerId,
+      customerName: customerDisplayName(customer),
+      documentType: saved.documentTypeKey,
+      audience: saved.audience,
+      summary: `Signed document uploaded (${saved.documentTypeKey})`,
+      metadata: { signedDocumentId: saved.id, contentHash: saved.contentHash },
+    });
 
     return this.toDto(saved);
   }

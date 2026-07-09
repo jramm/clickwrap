@@ -6,6 +6,7 @@ import type { AcceptanceRepo, AgreementVersionRepo, CustomerVersionStateRepo } f
 import { sweep } from '../domain/state-machine';
 import type { Acceptance, CustomerVersionState } from '../domain/types';
 import { TOKENS } from '../persistence/tokens';
+import { EventRecorder } from '../events/event-recorder';
 import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { SWEEPER_SYSTEM_ACTOR } from './system-actor';
 
@@ -28,6 +29,7 @@ export class DeadlineSweeperService {
     @Inject(TOKENS.AcceptanceRepo) private readonly acceptanceRepo: AcceptanceRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     @Optional() private readonly confirmation?: AcceptanceConfirmationService,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   /** Sweep run: finds due states and applies the matching transition logic per version. */
@@ -63,6 +65,8 @@ export class DeadlineSweeperService {
     // deliberately placed BEFORE the acceptance append.
     const transitioned = await this.stateRepo.transition(state.id, 'NOTIFIED', { state: result.state.state });
     if (!transitioned) {
+      // NOOP / already-changed / SUPERSEDED: NEITHER a DEADLINE_EXPIRED nor a TACIT acceptance
+      // event is emitted — the automatic transition did not actually apply.
       return;
     }
     if (result.outcome === 'TACIT_ACCEPTED') {
@@ -80,8 +84,34 @@ export class DeadlineSweeperService {
         contentHash: version.contentHash,
       };
       await this.acceptanceRepo.append(acceptance);
+      // Passive/TACIT acceptance is a SEPARATE path from the interactive AcceptanceService — it gets
+      // its own VERSION_ACCEPTED record (SYSTEM, method=TACIT). documentType/versionLabel are
+      // resolved centrally by the EventRecorder from versionId.
+      await this.recorder?.record({
+        type: 'VERSION_ACCEPTED',
+        category: 'CONSENT',
+        actorKind: 'SYSTEM',
+        actorLabel: SWEEPER_SYSTEM_ACTOR.userId,
+        customerId: state.customerId,
+        versionId: state.versionId,
+        versionLabel: version.versionLabel,
+        channel: 'SYSTEM',
+        summary: 'Passively accepted (objection period lapsed)',
+        metadata: { method: 'TACIT' },
+      });
       // Best-effort acceptance confirmation (delivers the accepted PDF); never fails the sweep.
       await this.confirmation?.sendForAcceptance(version, acceptance);
+    } else if (result.outcome === 'EXPIRED_BLOCKING') {
+      await this.recorder?.record({
+        type: 'DEADLINE_EXPIRED',
+        category: 'CONSENT',
+        actorKind: 'SYSTEM',
+        actorLabel: SWEEPER_SYSTEM_ACTOR.userId,
+        customerId: state.customerId,
+        versionId: state.versionId,
+        versionLabel: version.versionLabel,
+        summary: 'Deadline expired — became blocking',
+      });
     }
   }
 }

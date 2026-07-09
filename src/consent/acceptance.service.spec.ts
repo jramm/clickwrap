@@ -14,7 +14,9 @@ import {
   InMemoryAgreementVersionRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { AcceptanceService } from './acceptance.service';
 import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory';
@@ -37,6 +39,7 @@ describe('AcceptanceService', () => {
   let acceptances: InMemoryAcceptanceRepo;
   let idempotency: InMemoryIdempotencyStore;
   let clock: FixedClock;
+  let events: InMemoryEventRepo;
   let service: AcceptanceService;
 
   const seedVersion = async (overrides: Partial<AgreementVersion> = {}): Promise<AgreementVersion> => {
@@ -61,6 +64,7 @@ describe('AcceptanceService', () => {
     acceptances = new InMemoryAcceptanceRepo();
     idempotency = new InMemoryIdempotencyStore();
     clock = new FixedClock(NOW);
+    events = new InMemoryEventRepo();
     service = new AcceptanceService(
       versions,
       documents,
@@ -70,6 +74,8 @@ describe('AcceptanceService', () => {
       idempotency,
       new SequentialIdGenerator(),
       clock,
+      undefined,
+      new EventRecorder(events, clock),
     );
     await documents.save(aDocument());
     await customers.save(aCustomer());
@@ -349,5 +355,29 @@ describe('AcceptanceService', () => {
 
     await expect(raceService.accept(acceptInput())).rejects.toMatchObject({ code: 'ALREADY_ACCEPTED' });
     expect(await acceptances.findByCustomer('c-123')).toHaveLength(0);
+  });
+
+  describe('event recording', () => {
+    it('records a CONSENT / VERSION_ACCEPTED / CUSTOMER event on a successful acceptance', async () => {
+      await seedVersion();
+      await service.accept(acceptInput());
+      const { items } = await events.query({});
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        type: 'VERSION_ACCEPTED',
+        category: 'CONSENT',
+        actorKind: 'CUSTOMER',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        documentType: aDocument().type,
+        channel: 'PORTAL',
+      });
+    });
+
+    it('records NO event when acceptance validation fails', async () => {
+      await seedVersion();
+      await expect(service.accept(acceptInput({ displayedConsentText: 'tampered' }))).rejects.toBeDefined();
+      expect((await events.query({})).total).toBe(0);
+    });
   });
 });

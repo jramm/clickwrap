@@ -2,6 +2,7 @@ import { DomainError } from '../common/errors';
 import { InMemoryAdminAuditRepo } from '../agreements/audit';
 import { InMemoryPdfStorage } from '../agreements/pdf-storage.inmemory';
 import { FixedClock } from '../domain/clock';
+import { EventRecorder } from '../events/event-recorder';
 import { testActor } from '../domain/testing/fixtures';
 import { aCustomer, aState, aVersion, anActiveVersion } from '../domain/testing/fixtures';
 import {
@@ -10,6 +11,7 @@ import {
   InMemoryAgreementVersionRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
 import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
 import { ManualAcceptanceService, type ManualAcceptanceInput } from './manual-acceptance.service';
@@ -38,6 +40,7 @@ describe('ManualAcceptanceService', () => {
   let acceptances: InMemoryAcceptanceRepo;
   let pdf: InMemoryPdfStorage;
   let audit: InMemoryAdminAuditRepo;
+  let eventRepo: InMemoryEventRepo;
   let service: ManualAcceptanceService;
 
   beforeEach(async () => {
@@ -48,7 +51,19 @@ describe('ManualAcceptanceService', () => {
     acceptances = new InMemoryAcceptanceRepo();
     pdf = new InMemoryPdfStorage();
     audit = new InMemoryAdminAuditRepo();
-    service = new ManualAcceptanceService(customers, versions, documents, states, acceptances, pdf, audit, new FixedClock(T0));
+    eventRepo = new InMemoryEventRepo();
+    service = new ManualAcceptanceService(
+      customers,
+      versions,
+      documents,
+      states,
+      acceptances,
+      pdf,
+      audit,
+      new FixedClock(T0),
+      undefined,
+      new EventRecorder(eventRepo, new FixedClock(T0)),
+    );
 
     await documents.save({ id: 'doc-dpa-customer', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
     await versions.save(anActiveVersion({ id: 'v-1', documentId: 'doc-dpa-customer', status: 'PUBLISHED' }));
@@ -106,6 +121,12 @@ describe('ManualAcceptanceService', () => {
     const logs = await audit.findByTarget('Acceptance', result.acceptanceId);
     expect(logs[0]).toMatchObject({ action: 'MANUAL_ACCEPTANCE', actor: 'admin-1', reason: 'Consent received by letter' });
     expect(logs[0].metadata?.evidenceStorageKey).toEqual(expect.stringContaining('letter.pdf'));
+  });
+
+  it('records a MANUAL_ACCEPTANCE consent event', async () => {
+    await service.record('c-123', input(), adminActor);
+    const events = await eventRepo.query({});
+    expect(events.items[0]).toMatchObject({ type: 'MANUAL_ACCEPTANCE', category: 'CONSENT', actorKind: 'ADMIN' });
   });
 
   it('missing reason → INVALID_STATE', async () => {

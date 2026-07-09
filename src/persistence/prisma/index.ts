@@ -6,6 +6,7 @@ export { PrismaAudienceRepo } from './audience.repo';
 export { PrismaCustomerRepo } from './customer.repo';
 export { PrismaDocumentTypeRepo } from './document-type.repo';
 export { PrismaEmailTemplateRepo } from './email-template.repo';
+export { PrismaEventRepo } from './event.repo';
 export { PrismaCustomerVersionStateRepo } from './customer-version-state.repo';
 export { PrismaEscalationLog } from './escalation-log.repo';
 export { PrismaIdempotencyStore } from './idempotency-store.repo';

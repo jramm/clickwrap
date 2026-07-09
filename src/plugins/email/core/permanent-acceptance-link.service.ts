@@ -5,8 +5,9 @@
  * SHA-256 is stored, exactly like standard links. The link never expires (kind=PERMANENT) but is
  * revocable; a revoked link stays dead (deterministic token → same, revoked row).
  */
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { newId } from '../../../agreements/ids';
+import { EventRecorder } from '../../../events/event-recorder';
 import { DomainError } from '../../../common/errors';
 import {
   acceptanceLinkTokenHash,
@@ -24,6 +25,7 @@ export class PermanentAcceptanceLinkService {
     @Inject(TOKENS.AcceptanceLinkRepo) private readonly links: AcceptanceLinkRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     @Inject(EMAIL_TOKENS.NotificationConfig) private readonly config: NotificationConfig,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   /** The deterministic URL token for the customer's permanent link (never persisted raw). */
@@ -42,7 +44,7 @@ export class PermanentAcceptanceLinkService {
       return existing;
     }
     try {
-      return await this.links.create({
+      const created = await this.links.create({
         id: newId('al'),
         tokenHash,
         customerId,
@@ -51,6 +53,18 @@ export class PermanentAcceptanceLinkService {
         createdAt: this.clock.now(),
         expiresAt: undefined,
       });
+      // Only the FIRST lazy creation of the per-customer permanent link is recorded (SYSTEM actor).
+      await this.recorder?.record({
+        type: 'ACCEPTANCE_LINK_CREATED',
+        category: 'ADMINISTRATION',
+        actorKind: 'SYSTEM',
+        actorLabel: 'system',
+        customerId,
+        channel: 'LINK',
+        summary: 'Permanent acceptance link created',
+        metadata: { linkId: created.id, kind: 'PERMANENT' },
+      });
+      return created;
     } catch (err) {
       if (err instanceof DomainError && err.code === 'INVALID_STATE') {
         const raced = await this.links.findByTokenHash(tokenHash);

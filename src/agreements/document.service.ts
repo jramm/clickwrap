@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { DomainError } from '../common/errors';
 import { latestPdfPath, publicBaseUrl } from '../common/public-documents';
+import { EventRecorder } from '../events/event-recorder';
 import { TOKENS } from '../persistence/tokens';
 import type { Clock } from '../domain/clock';
 import type { AgreementDocumentRepo, AgreementVersionRepo, AudienceRepo, DocumentTypeRepo } from '../domain/ports';
@@ -52,6 +53,7 @@ export class DocumentService {
     @Inject(TOKENS.AudienceRepo) private readonly audiences: AudienceRepo,
     @Inject(AGREEMENTS_TOKENS.PdfStorage) private readonly pdf: PdfStorage,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   /**
@@ -59,7 +61,7 @@ export class DocumentService {
    * the dynamic entities: unknown type → UNKNOWN_DOCUMENT_TYPE, unknown audience →
    * UNKNOWN_AUDIENCE (both 422).
    */
-  async create(input: CreateDocumentInput): Promise<AgreementDocument> {
+  async create(input: CreateDocumentInput, adminUserId = 'admin'): Promise<AgreementDocument> {
     const documentType = await this.documentTypes.findByKey(input.type);
     if (!documentType) {
       throw new DomainError('UNKNOWN_DOCUMENT_TYPE', `Unknown document type: ${input.type}`);
@@ -82,7 +84,23 @@ export class DocumentService {
         `A document for (${input.type}, ${input.audience}) already exists`,
       );
     }
-    return this.documents.save({ id: newId('doc'), type: input.type, audience: input.audience, name: input.name });
+    const saved = await this.documents.save({
+      id: newId('doc'),
+      type: input.type,
+      audience: input.audience,
+      name: input.name,
+    });
+    await this.recorder?.record({
+      type: 'DOCUMENT_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      documentType: saved.type,
+      audience: saved.audience,
+      summary: `Document "${saved.name}" created (${saved.type} / ${saved.audience})`,
+      metadata: { documentId: saved.id },
+    });
+    return saved;
   }
 
   async list(): Promise<DocumentListEntry[]> {

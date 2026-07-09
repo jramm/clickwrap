@@ -7,6 +7,8 @@ import { InMemoryAudienceRepo } from '../../../persistence/inmemory/audience.rep
 import { InMemoryCustomerRepo } from '../../../persistence/inmemory/customer.repo';
 import { InMemoryDocumentTypeRepo } from '../../../persistence/inmemory/document-type.repo';
 import { InMemoryEmailTemplateRepo } from '../../../persistence/inmemory/email-template.repo';
+import { InMemoryEventRepo } from '../../../persistence/inmemory/event.repo';
+import { EventRecorder } from '../../../events/event-recorder';
 import { AgreementEmailService } from './agreement-email.service';
 import { EmailContentService } from './email-content.service';
 import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from './email-delivery-provider';
@@ -34,12 +36,14 @@ describe('AgreementEmailService', () => {
   let provider: FakeEmailProvider;
   let outboundEmailRepo: InMemoryOutboundEmailRepo;
   let clock: FixedClock;
+  let events: InMemoryEventRepo;
   let service: AgreementEmailService;
 
   beforeEach(async () => {
     provider = new FakeEmailProvider();
     outboundEmailRepo = new InMemoryOutboundEmailRepo();
     clock = new FixedClock(T0);
+    events = new InMemoryEventRepo();
 
     const documents = new InMemoryAgreementDocumentRepo();
     const documentTypes = new InMemoryDocumentTypeRepo(documents);
@@ -63,7 +67,7 @@ describe('AgreementEmailService', () => {
       CONFIG,
       permanentLinks,
     );
-    service = new AgreementEmailService(provider, outboundEmailRepo, clock, content);
+    service = new AgreementEmailService(provider, outboundEmailRepo, clock, content, new EventRecorder(events, clock));
   });
 
   describe('sendVersionNotification', () => {
@@ -104,6 +108,33 @@ describe('AgreementEmailService', () => {
       expect(provider.sentMessages[0].subject).toContain('Reminder');
       const stored = await outboundEmailRepo.findByProviderRef(result.providerRef);
       expect(stored?.recipient).toBe('max@customer.example');
+    });
+  });
+
+  describe('event recording', () => {
+    it('records an EMAIL_SENT event after a successful send', async () => {
+      const customer = aCustomer();
+      const version = aVersion();
+      await service.sendVersionNotification(customer, 'max@customer.example', version);
+
+      const { items } = await events.query({});
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        type: 'EMAIL_SENT',
+        category: 'COMMUNICATION',
+        actorKind: 'SYSTEM',
+        actorLabel: 'system',
+        customerId: customer.id,
+        versionId: version.id,
+        channel: 'EMAIL',
+        recipient: 'max@customer.example',
+      });
+    });
+
+    it('records NO event when the provider send throws', async () => {
+      jest.spyOn(provider, 'send').mockRejectedValueOnce(new Error('provider down'));
+      await expect(service.sendVersionNotification(aCustomer(), 'max@customer.example', aVersion())).rejects.toThrow();
+      expect((await events.query({})).total).toBe(0);
     });
   });
 });

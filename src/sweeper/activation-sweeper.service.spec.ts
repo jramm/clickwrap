@@ -5,7 +5,9 @@ import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { ActivationSweeperService } from './activation-sweeper.service';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
@@ -191,5 +193,68 @@ describe('ActivationSweeperService', () => {
     // The failing document is skipped (nothing retired) — the other one is still processed.
     expect((await versions.findById('v-old'))?.status).toBe('PUBLISHED');
     expect((await versions.findById('v-terms-old'))?.status).toBe('RETIRED');
+  });
+
+  describe('activity events', () => {
+    let eventRepo: InMemoryEventRepo;
+
+    const withRecorder = (): ActivationSweeperService => {
+      eventRepo = new InMemoryEventRepo();
+      return new ActivationSweeperService(documents, versions, states, clock, new EventRecorder(eventRepo, clock, versions, documents));
+    };
+
+    const types = async (): Promise<string[]> => (await eventRepo.query({})).items.map((e) => e.type);
+
+    it('at the flip: emits VERSION_ACTIVATED (successor) + VERSION_RETIRED (predecessor), SYSTEM/ADMINISTRATION', async () => {
+      await seedScheduledPair();
+      clock.set(AFTER_FLIP);
+      const svc = withRecorder();
+
+      await svc.run();
+
+      const items = (await eventRepo.query({})).items;
+      expect(items.map((e) => e.type)).toEqual(expect.arrayContaining(['VERSION_ACTIVATED', 'VERSION_RETIRED']));
+      const activated = items.find((e) => e.type === 'VERSION_ACTIVATED');
+      expect(activated).toMatchObject({ actorKind: 'SYSTEM', category: 'ADMINISTRATION', versionId: 'v-next', documentType: 'dpa' });
+      const retired = items.find((e) => e.type === 'VERSION_RETIRED');
+      expect(retired).toMatchObject({ actorKind: 'SYSTEM', category: 'ADMINISTRATION', versionId: 'v-old', documentType: 'dpa' });
+    });
+
+    it('before validFrom (no flip): emits no events', async () => {
+      await seedScheduledPair();
+      const svc = withRecorder();
+
+      await svc.run();
+
+      expect(await types()).toEqual([]);
+    });
+
+    it('block carry-over creating a state: emits OBLIGATION_ROLLED_OUT + BLOCK_CARRIED_OVER', async () => {
+      await seedScheduledPair();
+      await states.save(aState({ id: 'cvs-blocked', customerId: 'c-1', versionId: 'v-old', state: 'EXPIRED_BLOCKING' }));
+      clock.set(AFTER_FLIP);
+      const svc = withRecorder();
+
+      await svc.run();
+
+      const emitted = await types();
+      expect(emitted).toEqual(expect.arrayContaining(['OBLIGATION_ROLLED_OUT', 'BLOCK_CARRIED_OVER']));
+      const obligation = (await eventRepo.query({})).items.find((e) => e.type === 'OBLIGATION_ROLLED_OUT');
+      expect(obligation).toMatchObject({ category: 'CONSENT', actorKind: 'SYSTEM', customerId: 'c-1', versionId: 'v-next' });
+    });
+
+    it('block carry-over onto an existing open state: emits BLOCK_CARRIED_OVER but NOT OBLIGATION_ROLLED_OUT', async () => {
+      await seedScheduledPair();
+      await states.save(aState({ id: 'cvs-blocked', customerId: 'c-1', versionId: 'v-old', state: 'EXPIRED_BLOCKING' }));
+      await states.save(aState({ id: 'cvs-next', customerId: 'c-1', versionId: 'v-next', state: 'PENDING_NOTIFICATION' }));
+      clock.set(AFTER_FLIP);
+      const svc = withRecorder();
+
+      await svc.run();
+
+      const emitted = await types();
+      expect(emitted).toContain('BLOCK_CARRIED_OVER');
+      expect(emitted).not.toContain('OBLIGATION_ROLLED_OUT');
+    });
   });
 });

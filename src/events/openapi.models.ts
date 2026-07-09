@@ -8,20 +8,30 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 /** The four broad buckets a normalized event falls into (used by the frontend category filter/chip). */
 export const EVENT_CATEGORIES = ['COMMUNICATION', 'ACCESS', 'CONSENT', 'ADMINISTRATION'] as const;
 
-/** Every specific event type surfaced by the aggregation (source records mapped to these). */
+/** Every specific event type recorded into the append-only Event table (GET /admin/events reads it). */
 export const EVENT_TYPES = [
   'EMAIL_SENT',
+  'EMAIL_DELIVERED',
+  'EMAIL_BOUNCED',
   'PAGE_ACCESSED',
   'VERSION_ACCEPTED',
   'OBJECTION_RAISED',
   'VERSION_PUBLISHED',
+  'VERSION_ACTIVATED',
+  'VERSION_RETIRED',
   'DEADLINE_EXTENDED',
+  'DEADLINE_EXPIRED',
   'BLOCK_SUSPENDED',
+  'BLOCK_CARRIED_OVER',
+  'OBLIGATION_ROLLED_OUT',
   'REMINDER_TRIGGERED',
   'MANUAL_ACCEPTANCE',
   'ACCEPTANCE_LINK_CREATED',
   'CUSTOMER_CREATED',
   'CUSTOMER_UPDATED',
+  'DOCUMENT_CREATED',
+  'VERSION_DRAFT_CREATED',
+  'VERSION_UPDATED',
   'SIGNED_DOCUMENT_UPLOADED',
   'DOCUMENT_TYPE_CREATED',
   'DOCUMENT_TYPE_UPDATED',
@@ -37,7 +47,7 @@ export const EVENT_TYPES = [
 export const EVENT_ACTOR_KINDS = ['ADMIN', 'CUSTOMER', 'SYSTEM'] as const;
 
 export class EventModel {
-  @ApiProperty({ example: 'acc:a-1', description: 'Source-prefixed stable id (audit:/acc:/obj:/notif:).' })
+  @ApiProperty({ example: 'evt-9f1c…', description: 'Stable Event-table id (evt-…).' })
   id!: string;
 
   @ApiProperty({ format: 'date-time', example: '2026-07-09T14:12:03.000Z' })

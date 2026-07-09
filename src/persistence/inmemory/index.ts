@@ -7,6 +7,7 @@ export { InMemoryCustomerRepo } from './customer.repo';
 export { InMemoryCustomerVersionStateRepo } from './customer-version-state.repo';
 export { InMemoryDocumentTypeRepo } from './document-type.repo';
 export { InMemoryEmailTemplateRepo } from './email-template.repo';
+export { InMemoryEventRepo } from './event.repo';
 export { InMemoryNotificationEventRepo } from './notification-event.repo';
 export { InMemoryObjectionRepo } from './objection.repo';
 export { InMemorySignedDocumentRepo } from './signed-document.repo';

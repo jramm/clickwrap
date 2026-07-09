@@ -1,8 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { DomainError } from '../common/errors';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
 import { newId } from '../agreements/ids';
+import { customerDisplayName } from '../domain/customer';
+import { EventRecorder } from '../events/event-recorder';
 import { TOKENS } from '../persistence/tokens';
 import type { Clock } from '../domain/clock';
 import type {
@@ -31,6 +33,7 @@ export class CustomerVersionStateAdminService {
     @Inject(AGREEMENTS_TOKENS.RolloutNotifier) private readonly notifier: RolloutNotifier,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async patch(stateId: string, input: PatchStateInput, adminUserId: string): Promise<CustomerVersionState> {
@@ -65,6 +68,21 @@ export class CustomerVersionStateAdminService {
       metadata: { deadlineAt: input.deadlineAt, suspendBlock: input.suspendBlock === true },
       createdAt: this.clock.now(),
     });
+
+    const suspendedBlock = input.suspendBlock === true;
+    await this.recorder?.record({
+      type: suspendedBlock ? 'BLOCK_SUSPENDED' : 'DEADLINE_EXTENDED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      customerId: saved.customerId,
+      versionId: saved.versionId,
+      summary: suspendedBlock ? `Block suspended — ${input.reason}` : `Deadline extended — ${input.reason}`,
+      metadata: {
+        reason: input.reason,
+        ...(input.deadlineAt !== undefined ? { deadlineAt: input.deadlineAt.toISOString() } : {}),
+      },
+    });
     return saved;
   }
 
@@ -88,6 +106,18 @@ export class CustomerVersionStateAdminService {
       targetType: 'CustomerVersionState',
       targetId: stateId,
       createdAt: this.clock.now(),
+    });
+
+    await this.recorder?.record({
+      type: 'REMINDER_TRIGGERED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      customerId: customer.id,
+      customerName: customerDisplayName(customer),
+      versionId: version.id,
+      versionLabel: version.versionLabel,
+      summary: 'Reminder e-mail re-sent',
     });
     return saved;
   }

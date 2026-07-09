@@ -1,6 +1,7 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { newId } from '../agreements/ids';
+import { EventRecorder } from '../events/event-recorder';
 import type { Clock } from '../domain/clock';
 import { DomainError } from '../common/errors';
 import type { AudienceRepo } from '../domain/ports';
@@ -28,6 +29,7 @@ export class AudienceAdminService {
     @Inject(TOKENS.AudienceRepo) private readonly audiences: AudienceRepo,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async list(): Promise<Audience[]> {
@@ -48,6 +50,15 @@ export class AudienceAdminService {
       targetId: saved.id,
       metadata: { key: saved.key, name: saved.name },
       createdAt: this.clock.now(),
+    });
+    await this.recorder?.record({
+      type: 'AUDIENCE_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      audience: saved.key,
+      summary: `Audience "${saved.name}" created`,
+      metadata: { key: saved.key, name: saved.name },
     });
     return saved;
   }
@@ -73,6 +84,15 @@ export class AudienceAdminService {
       metadata: { name: updated.name },
       createdAt: this.clock.now(),
     });
+    await this.recorder?.record({
+      type: 'AUDIENCE_UPDATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      audience: updated.key,
+      summary: `Audience "${updated.name}" updated`,
+      metadata: { name: updated.name },
+    });
     return updated;
   }
 
@@ -90,6 +110,15 @@ export class AudienceAdminService {
       targetId: id,
       metadata: { key: existing.key },
       createdAt: this.clock.now(),
+    });
+    await this.recorder?.record({
+      type: 'AUDIENCE_DELETED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor,
+      audience: existing.key,
+      summary: `Audience "${existing.name}" deleted`,
+      metadata: { key: existing.key },
     });
   }
 

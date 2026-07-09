@@ -5,12 +5,14 @@ import type { Actor } from '../common/auth/actor';
 import { DomainError } from '../common/errors';
 import { FixedClock } from '../domain/clock';
 import { aCustomer, aDocumentTypeDef, anAudience } from '../domain/testing/fixtures';
+import { EventRecorder } from '../events/event-recorder';
 import { InMemoryFileStorage } from '../plugins/file-storage/memory/in-memory-file-storage';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryDocumentTypeRepo,
+  InMemoryEventRepo,
   InMemorySignedDocumentRepo,
 } from '../persistence/inmemory';
 import { SignedDocumentService, type UploadSignedDocumentInput } from './signed-document.service';
@@ -38,6 +40,7 @@ describe('SignedDocumentService', () => {
   let customers: InMemoryCustomerRepo;
   let storage: InMemoryFileStorage;
   let audit: InMemoryAdminAuditRepo;
+  let eventRepo: InMemoryEventRepo;
   let service: SignedDocumentService;
 
   beforeEach(async () => {
@@ -48,6 +51,7 @@ describe('SignedDocumentService', () => {
     signedDocuments = new InMemorySignedDocumentRepo();
     storage = new InMemoryFileStorage();
     audit = new InMemoryAdminAuditRepo();
+    eventRepo = new InMemoryEventRepo();
     service = new SignedDocumentService(
       customers,
       documentTypes,
@@ -56,6 +60,7 @@ describe('SignedDocumentService', () => {
       new FileStoragePdfAdapter(storage),
       new FixedClock(T0),
       audit,
+      new EventRecorder(eventRepo, new FixedClock(T0)),
     );
 
     await customers.save(aCustomer({ id: 'c-123' }));
@@ -100,6 +105,16 @@ describe('SignedDocumentService', () => {
       const dto = await service.upload('c-123', anUpload(), actor, { recordAudit: true });
       const logs = await audit.findByTarget('SignedDocument', dto.id);
       expect(logs).toMatchObject([{ action: 'SIGNED_DOCUMENT_UPLOAD', actor: 'admin-1', createdAt: T0 }]);
+    });
+
+    it('records a SIGNED_DOCUMENT_UPLOADED event on a successful admin upload', async () => {
+      await service.upload('c-123', anUpload(), actor, { recordAudit: true });
+      const { items } = await eventRepo.query({});
+      expect(items[0]).toMatchObject({
+        type: 'SIGNED_DOCUMENT_UPLOADED',
+        category: 'ADMINISTRATION',
+        actorKind: 'ADMIN',
+      });
     });
 
     it('does NOT write an audit entry for the integration path (recordAudit unset)', async () => {

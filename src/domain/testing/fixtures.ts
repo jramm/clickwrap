@@ -9,6 +9,7 @@ import type {
   Customer,
   CustomerVersionState,
   DocumentTypeDef,
+  DomainEvent,
   NotificationEvent,
   Objection,
   SignedDocument,
@@ -153,5 +154,23 @@ export const aNotification = (overrides: Partial<NotificationEvent> = {}): Notif
   recipient: 'jane@customer.example',
   occurredAt: new Date('2026-07-07T09:05:11Z'),
   providerRef: 'pm-message-1',
+  ...overrides,
+});
+
+export const anEvent = (overrides: Partial<DomainEvent> = {}): DomainEvent => ({
+  id: 'evt-1',
+  type: 'VERSION_ACCEPTED',
+  category: 'CONSENT',
+  occurredAt: new Date('2026-07-09T14:12:03Z'),
+  actorKind: 'CUSTOMER',
+  actorLabel: 'Jane Doe',
+  customerId: 'c-123',
+  customerName: 'Acme GmbH',
+  versionId: 'v-1',
+  documentType: 'dpa',
+  audience: 'customer',
+  versionLabel: 'June 2026 edition',
+  channel: 'PORTAL',
+  summary: 'Version June 2026 edition accepted (ACTIVE_CONSENT, PORTAL)',
   ...overrides,
 });

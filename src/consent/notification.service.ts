@@ -2,7 +2,7 @@
  * Delivery evidence from the portal (POST /customers/:id/notifications): "popup was displayed".
  * notifiedAt = server time (no backdating); displayedAt is only used for plausibility checks. Idempotent.
  */
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import type { CustomerContext } from '../common/auth/actor';
 import { Clock } from '../domain/clock';
 import { DomainError } from '../common/errors';
@@ -11,6 +11,7 @@ import type {
   CustomerVersionStateRepo,
   NotificationEventRepo,
 } from '../domain/ports';
+import { EventRecorder } from '../events/event-recorder';
 import { recordAccess } from '../domain/state-machine';
 import type { CustomerVersionStateValue } from '../domain/types';
 import { TOKENS } from '../persistence/tokens';
@@ -48,6 +49,7 @@ export class NotificationService {
     @Inject(TOKENS.NotificationEventRepo) private readonly events: NotificationEventRepo,
     @Inject(CONSENT_TOKENS.IdGenerator) private readonly ids: IdGenerator,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async notify(input: NotificationInput): Promise<NotificationResponse> {
@@ -86,6 +88,18 @@ export class NotificationService {
         channel: input.channel,
         recipient: input.context.actor.userId,
         occurredAt: this.clock.now(),
+      });
+      await this.recorder?.record({
+        type: 'PAGE_ACCESSED',
+        category: 'ACCESS',
+        actorKind: 'CUSTOMER',
+        actorLabel: input.context.actor.name ?? input.context.actor.email ?? input.context.actor.userId,
+        customerId: input.customerId,
+        versionId: input.versionId,
+        versionLabel: version.versionLabel,
+        channel: input.channel,
+        recipient: input.context.actor.userId,
+        summary: `Acceptance page opened via ${input.channel} (version ${version.versionLabel})`,
       });
     }
 

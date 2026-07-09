@@ -10,13 +10,14 @@ import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
 import {
   useCreateAcceptanceLink,
   useCustomer,
   useCustomerHistory,
+  useDocumentTypes,
   useEvents,
   useRemind,
   useSignedDocuments,
@@ -29,6 +30,7 @@ import { StateActionDialog } from '../components/StateActionDialog';
 import { useTranslation } from '../i18n';
 import { customerDisplayName } from '../lib/customerDisplayName';
 import { copyTextToClipboard } from '../lib/clipboard';
+import { documentLabel } from '../lib/eventDocumentLabel';
 import { Button, Card, PageHeader, StatusChip, useToast } from '../ui';
 
 /**
@@ -212,7 +214,13 @@ export function CustomerDetailPage() {
 function CustomerEventsSection({ customerId }: { customerId: string }) {
   const { t, language } = useTranslation();
   const { data } = useEvents(1, { customerId });
+  const { data: documentTypes = [] } = useDocumentTypes();
   const events = data?.items ?? [];
+
+  const documentTypeName = useMemo(() => {
+    const map = new Map(documentTypes.map((d) => [d.key, d.name]));
+    return (key: string) => map.get(key) ?? key;
+  }, [documentTypes]);
 
   return (
     <Card
@@ -238,6 +246,13 @@ function CustomerEventsSection({ customerId }: { customerId: string }) {
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {t(`events.eventType.${event.type}`)}
               </Typography>
+              {documentLabel(event, documentTypeName) && (
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={documentLabel(event, documentTypeName)}
+                />
+              )}
               <Typography variant="body2" color="text.secondary">
                 {fmt(event.occurredAt, language)}
               </Typography>

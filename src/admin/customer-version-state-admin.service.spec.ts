@@ -8,7 +8,9 @@ import {
   InMemoryAgreementVersionRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { CustomerVersionStateAdminService } from './customer-version-state-admin.service';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
@@ -26,6 +28,7 @@ describe('CustomerVersionStateAdminService', () => {
   let states: InMemoryCustomerVersionStateRepo;
   let notifier: InMemoryRolloutNotifier;
   let audit: InMemoryAdminAuditRepo;
+  let events: InMemoryEventRepo;
   let service: CustomerVersionStateAdminService;
 
   beforeEach(async () => {
@@ -35,7 +38,16 @@ describe('CustomerVersionStateAdminService', () => {
     states = new InMemoryCustomerVersionStateRepo();
     notifier = new InMemoryRolloutNotifier();
     audit = new InMemoryAdminAuditRepo();
-    service = new CustomerVersionStateAdminService(states, versions, customers, notifier, audit, new FixedClock(T0));
+    events = new InMemoryEventRepo();
+    service = new CustomerVersionStateAdminService(
+      states,
+      versions,
+      customers,
+      notifier,
+      audit,
+      new FixedClock(T0),
+      new EventRecorder(events, new FixedClock(T0)),
+    );
 
     await documents.save({ id: 'doc-dpa-customer', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
     await versions.save(aVersion({ id: 'v-1', documentId: 'doc-dpa-customer' }));
@@ -95,6 +107,33 @@ describe('CustomerVersionStateAdminService', () => {
 
     it('unknown state → INVALID_STATE', async () => {
       await expectCode(service.remind('cvs-unknown', 'admin-1'), 'INVALID_STATE');
+    });
+  });
+
+  describe('event recording', () => {
+    it('records DEADLINE_EXTENDED on a deadline extension', async () => {
+      await states.save(aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', state: 'NOTIFIED', notifiedAt: T0, deadlineAt: new Date('2026-07-21T09:00:00Z') }));
+      await service.patch('cvs-1', { deadlineAt: NEW_DEADLINE, reason: 'Cohort postponed' }, 'admin-1');
+      const { items } = await events.query({});
+      expect(items[0]).toMatchObject({ type: 'DEADLINE_EXTENDED', category: 'ADMINISTRATION', actorKind: 'ADMIN', customerId: 'c-123', versionId: 'v-1' });
+    });
+
+    it('records BLOCK_SUSPENDED when suspending a block', async () => {
+      await states.save(aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', state: 'EXPIRED_BLOCKING' }));
+      await service.patch('cvs-1', { suspendBlock: true, deadlineAt: NEW_DEADLINE, reason: 'Special case' }, 'admin-1');
+      expect((await events.query({})).items[0]).toMatchObject({ type: 'BLOCK_SUSPENDED' });
+    });
+
+    it('records REMINDER_TRIGGERED on remind', async () => {
+      await states.save(aState({ id: 'cvs-1', customerId: 'c-123', versionId: 'v-1', state: 'NOTIFIED', deadlineAt: new Date('2026-07-21T09:00:00Z') }));
+      await service.remind('cvs-1', 'admin-1');
+      expect((await events.query({})).items[0]).toMatchObject({ type: 'REMINDER_TRIGGERED', category: 'ADMINISTRATION' });
+    });
+
+    it('records NO event when the patch validation fails', async () => {
+      await states.save(aState({ id: 'cvs-1', state: 'NOTIFIED' }));
+      await expectCode(service.patch('cvs-1', { reason: '' }, 'admin-1'), 'INVALID_STATE');
+      expect((await events.query({})).total).toBe(0);
     });
   });
 });

@@ -15,6 +15,7 @@ import { ESCALATION_LOG } from '../common/escalation/escalation-log';
 import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory';
 import { InMemoryIdempotencyStore } from '../consent/inmemory';
 import { CONSENT_TOKENS } from '../consent/ports';
+import { EventRecorder } from '../events/event-recorder';
 import { SystemClock } from '../domain/clock';
 import type { AgreementDocumentRepo, CustomerRepo, DocumentTypeRepo } from '../domain/ports';
 import { EMAIL_TOKENS } from '../plugins/email/core/email-delivery-provider';
@@ -29,6 +30,7 @@ import {
   InMemoryCustomerVersionStateRepo,
   InMemoryDocumentTypeRepo,
   InMemoryEmailTemplateRepo,
+  InMemoryEventRepo,
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
   InMemorySignedDocumentRepo,
@@ -77,11 +79,13 @@ const inMemoryProviders: Provider[] = [
   { provide: TOKENS.NotificationEventRepo, useClass: InMemoryNotificationEventRepo },
   { provide: TOKENS.AcceptanceLinkRepo, useClass: InMemoryAcceptanceLinkRepo },
   { provide: TOKENS.SignedDocumentRepo, useClass: InMemorySignedDocumentRepo },
+  { provide: TOKENS.EventRepo, useClass: InMemoryEventRepo },
   { provide: TOKENS.Clock, useClass: SystemClock },
   { provide: ADMIN_AUDIT_TOKEN, useClass: InMemoryAdminAuditRepo },
   { provide: CONSENT_TOKENS.IdempotencyStore, useClass: InMemoryIdempotencyStore },
   { provide: EMAIL_TOKENS.OutboundEmailRepo, useClass: InMemoryOutboundEmailRepo },
   { provide: ESCALATION_LOG, useClass: InMemoryEscalationLog },
+  EventRecorder,
 ];
 
 @Global()

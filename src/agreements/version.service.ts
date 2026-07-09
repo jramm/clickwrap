@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { DomainError } from '../common/errors';
 import { assertDraftMutable } from '../domain/consent-rules';
+import { EventRecorder } from '../events/event-recorder';
 import { TOKENS } from '../persistence/tokens';
 import type { AgreementDocumentRepo, AgreementVersionRepo } from '../domain/ports';
 import type { AcceptanceMode, AgreementVersion } from '../domain/types';
@@ -41,15 +42,16 @@ export class VersionService {
     @Inject(TOKENS.AgreementVersionRepo) private readonly versions: AgreementVersionRepo,
     @Inject(TOKENS.AgreementDocumentRepo) private readonly documents: AgreementDocumentRepo,
     @Inject(AGREEMENTS_TOKENS.PdfStorage) private readonly pdf: PdfStorage,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
-  async createDraft(input: CreateDraftInput): Promise<AgreementVersion> {
+  async createDraft(input: CreateDraftInput, adminUserId = 'admin'): Promise<AgreementVersion> {
     const document = await this.documents.findById(input.documentId);
     if (!document) {
       throw new DomainError('INVALID_STATE', `Document ${input.documentId} does not exist`);
     }
     const stored = await this.pdf.store(input.file);
-    return this.versions.save({
+    const saved = await this.versions.save({
       id: newId('v'),
       documentId: input.documentId,
       versionLabel: input.versionLabel,
@@ -65,10 +67,28 @@ export class VersionService {
       fileSize: stored.fileSize,
       validFrom: input.validFrom,
     });
+    // documentType/audience are resolved centrally by the EventRecorder from versionId.
+    await this.recorder?.record({
+      type: 'VERSION_DRAFT_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      versionId: saved.id,
+      documentType: document.type,
+      audience: document.audience,
+      versionLabel: saved.versionLabel,
+      summary: `Draft version ${saved.versionLabel} created`,
+    });
+    return saved;
   }
 
   /** Change metadata or replace the PDF — DRAFT only (assertDraftMutable → VERSION_IMMUTABLE). */
-  async patchDraft(versionId: string, patch: PatchDraftInput, file?: PdfUpload): Promise<AgreementVersion> {
+  async patchDraft(
+    versionId: string,
+    patch: PatchDraftInput,
+    file?: PdfUpload,
+    adminUserId = 'admin',
+  ): Promise<AgreementVersion> {
     const version = await this.getVersion(versionId);
     assertDraftMutable(version);
     let updated: AgreementVersion = { ...version, ...patch };
@@ -82,7 +102,17 @@ export class VersionService {
         fileSize: stored.fileSize,
       };
     }
-    return this.versions.save(updated);
+    const saved = await this.versions.save(updated);
+    await this.recorder?.record({
+      type: 'VERSION_UPDATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      versionId: saved.id,
+      versionLabel: saved.versionLabel,
+      summary: `Draft version ${saved.versionLabel} updated`,
+    });
+    return saved;
   }
 
   /** Only DRAFTs may be deleted (assertDraftMutable → VERSION_IMMUTABLE). */

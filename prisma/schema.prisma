@@ -522,3 +522,33 @@ model EscalationEntry {
 
   @@index([customerId])
 }
+
+/// Append-only activity log written by the core on each successful domain action (dual-write next to
+/// the evidence/audit stores, which stay the legally authoritative records). Backs GET /admin/events.
+/// Fields are stored denormalized (customerName, versionLabel, documentType, …) so the read side is a
+/// trivial query and each row stays historically accurate. Port: src/domain/ports.ts::EventRepo.
+model Event {
+  id         String        @id
+  type       String // EventType union (src/domain/types.ts), stored as text
+  category   String // EventCategory union
+  occurredAt DateTime // set by the service/EventRecorder (Clock), not a DB default
+  actorKind  String // EventActorKind union
+  actorLabel String
+
+  customerId   String?
+  customerName String?
+  versionId    String?
+  documentType String?
+  audience     String?
+  versionLabel String?
+  channel      String?
+  recipient    String?
+
+  summary  String
+  metadata Json? // pass-through per-event metadata (method, reason, providerRef, …)
+
+  @@index([occurredAt])
+  @@index([customerId, occurredAt])
+  @@index([category])
+  @@index([documentType])
+}

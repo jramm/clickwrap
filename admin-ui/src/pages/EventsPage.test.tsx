@@ -14,6 +14,10 @@ describe('EventsPage', () => {
   it('renders event rows with a category chip and the type label', async () => {
     renderWithProviders(<EventsPage />);
     expect(await screen.findByText('Version April 2026 edition accepted (ACTIVE_CONSENT, PORTAL)')).toBeInTheDocument();
+    // The document column shows the resolved document-type NAME (not the raw "dpa" key) + version.
+    expect(
+      (await screen.findAllByText('Data Processing Agreement · April 2026 edition')).length,
+    ).toBeGreaterThan(0);
     // The CONSENT category chip is rendered (two CONSENT rows in the fixture).
     expect((await screen.findAllByTestId('category-chip-CONSENT')).length).toBeGreaterThan(0);
     expect(screen.getByText(/4 total/)).toBeInTheDocument();

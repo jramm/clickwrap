@@ -2411,7 +2411,7 @@
     },
     "/admin/events": {
       "get": {
-        "description": "Normalizes every append-only source (admin audit log, acceptances, objections, notification events) into a single newest-first event list for legal tracing — for the whole system or one customer. Categories: COMMUNICATION (e-mail sent), ACCESS (hosted acceptance page opened), CONSENT (acceptances + objections), ADMINISTRATION (all admin/system actions). All filters run BEFORE pagination, so `total` is the filtered count. A date-only `to` is treated as end-of-day.",
+        "description": "A single newest-first event list for legal tracing — for the whole system or one customer — read from the append-only Event table the core writes on each successful action (dual-write alongside the unchanged evidence stores). Categories: COMMUNICATION (e-mail sent/delivered), ACCESS (hosted acceptance page opened), CONSENT (acceptances + objections), ADMINISTRATION (all admin/system actions). All filters run BEFORE pagination, so `total` is the filtered count. A date-only `to` is treated as end-of-day.",
         "operationId": "EventsController_listEvents",
         "parameters": [
           {
@@ -2513,7 +2513,7 @@
             "admin-token": []
           }
         ],
-        "summary": "Chronological legal event / audit log (aggregated, filterable, 50/page)",
+        "summary": "Chronological legal event / audit log (append-only Event table, filterable, 50/page)",
         "tags": [
           "admin"
         ]
@@ -4509,8 +4509,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "acc:a-1",
-            "description": "Source-prefixed stable id (audit:/acc:/obj:/notif:)."
+            "example": "evt-9f1c…",
+            "description": "Stable Event-table id (evt-…)."
           },
           "occurredAt": {
             "type": "string",
@@ -4521,17 +4521,27 @@
             "type": "string",
             "enum": [
               "EMAIL_SENT",
+              "EMAIL_DELIVERED",
+              "EMAIL_BOUNCED",
               "PAGE_ACCESSED",
               "VERSION_ACCEPTED",
               "OBJECTION_RAISED",
               "VERSION_PUBLISHED",
+              "VERSION_ACTIVATED",
+              "VERSION_RETIRED",
               "DEADLINE_EXTENDED",
+              "DEADLINE_EXPIRED",
               "BLOCK_SUSPENDED",
+              "BLOCK_CARRIED_OVER",
+              "OBLIGATION_ROLLED_OUT",
               "REMINDER_TRIGGERED",
               "MANUAL_ACCEPTANCE",
               "ACCEPTANCE_LINK_CREATED",
               "CUSTOMER_CREATED",
               "CUSTOMER_UPDATED",
+              "DOCUMENT_CREATED",
+              "VERSION_DRAFT_CREATED",
+              "VERSION_UPDATED",
               "SIGNED_DOCUMENT_UPLOADED",
               "DOCUMENT_TYPE_CREATED",
               "DOCUMENT_TYPE_UPDATED",

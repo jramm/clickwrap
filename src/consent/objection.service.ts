@@ -2,13 +2,14 @@
  * Objection from the portal (POST /customers/:id/objections).
  * PASSIVE versions within the period only; after expiry only an escalation note + error.
  */
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import type { CustomerContext } from '../common/auth/actor';
 import { Clock } from '../domain/clock';
 import { DomainError } from '../common/errors';
 import type { AgreementVersionRepo, CustomerVersionStateRepo, ObjectionRepo } from '../domain/ports';
 import { object as objectState } from '../domain/state-machine';
 import type { Objection } from '../domain/types';
+import { EventRecorder } from '../events/event-recorder';
 import { ESCALATION_LOG, type EscalationLog } from '../common/escalation/escalation-log';
 import { TOKENS } from '../persistence/tokens';
 import { CONSENT_TOKENS, type IdempotencyStore, type IdGenerator } from './ports';
@@ -36,6 +37,7 @@ export class ObjectionService {
     @Inject(CONSENT_TOKENS.IdempotencyStore) private readonly idempotency: IdempotencyStore,
     @Inject(CONSENT_TOKENS.IdGenerator) private readonly ids: IdGenerator,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async object(input: ObjectionInput): Promise<ObjectionResponse> {
@@ -96,6 +98,19 @@ export class ObjectionService {
       channel: 'PORTAL',
     };
     await this.objections.append(objection);
+
+    await this.recorder?.record({
+      type: 'OBJECTION_RAISED',
+      category: 'CONSENT',
+      actorKind: 'CUSTOMER',
+      actorLabel: input.context.actor.name ?? input.context.actor.email ?? 'customer',
+      customerId: input.customerId,
+      versionId: input.versionId,
+      versionLabel: version.versionLabel,
+      channel: 'PORTAL',
+      summary: `Objection raised against version ${version.versionLabel}${input.reason ? `: ${input.reason}` : ''}`,
+      metadata: { ...(input.reason !== undefined ? { reason: input.reason } : {}) },
+    });
 
     const response: ObjectionResponse = { objectionId: objection.id, state: 'OBJECTED' };
     await this.idempotency.put(idemKey, response);

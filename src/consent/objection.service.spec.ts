@@ -5,9 +5,11 @@ import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
   InMemoryObjectionRepo,
 } from '../persistence/inmemory';
 import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory';
 import { ObjectionService } from './objection.service';
 
@@ -28,6 +30,7 @@ describe('ObjectionService', () => {
   let objections: InMemoryObjectionRepo;
   let escalations: InMemoryEscalationLog;
   let idempotency: InMemoryIdempotencyStore;
+  let eventRepo: InMemoryEventRepo;
   let clock: FixedClock;
   let service: ObjectionService;
 
@@ -47,6 +50,7 @@ describe('ObjectionService', () => {
     objections = new InMemoryObjectionRepo();
     escalations = new InMemoryEscalationLog();
     idempotency = new InMemoryIdempotencyStore();
+    eventRepo = new InMemoryEventRepo();
     clock = new FixedClock(BEFORE_DEADLINE);
     service = new ObjectionService(
       versions,
@@ -56,6 +60,7 @@ describe('ObjectionService', () => {
       idempotency,
       new SequentialIdGenerator(),
       clock,
+      new EventRecorder(eventRepo, clock),
     );
     // PASSIVE version + NOTIFIED state within the period.
     await documents.save(aDocument());
@@ -71,6 +76,14 @@ describe('ObjectionService', () => {
     const stored = await objections.findByCustomerAndVersion('c-123', 'v-1');
     expect(stored).toHaveLength(1);
     expect(stored[0]).toMatchObject({ channel: 'PORTAL', reason: input().reason, objectedAt: BEFORE_DEADLINE });
+  });
+
+  it('records an OBJECTION_RAISED event on a successful objection', async () => {
+    const response = await service.object(input());
+
+    expect(response).toEqual({ objectionId: 'o-1', state: 'OBJECTED' });
+    const { items } = await eventRepo.query({});
+    expect(items[0]).toMatchObject({ type: 'OBJECTION_RAISED', category: 'CONSENT', actorKind: 'CUSTOMER' });
   });
 
   it('idempotency replay: same key → identical response, only one objection', async () => {

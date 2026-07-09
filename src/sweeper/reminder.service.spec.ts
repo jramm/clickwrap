@@ -1,8 +1,24 @@
 import { FixedClock } from '../domain/clock';
+import { defaultEmailTemplates } from '../domain/email-template';
 import type { CustomerVersionStateRepo } from '../domain/ports';
-import { aCustomer, aState, aVersion } from '../domain/testing/fixtures';
+import { aCustomer, aDocument, aState, aVersion } from '../domain/testing/fixtures';
 import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types';
 import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo';
+import {
+  InMemoryAcceptanceLinkRepo,
+  InMemoryAgreementDocumentRepo,
+  InMemoryAudienceRepo,
+  InMemoryCustomerRepo,
+  InMemoryDocumentTypeRepo,
+  InMemoryEmailTemplateRepo,
+  InMemoryEventRepo,
+} from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
+import { AgreementEmailService } from '../plugins/email/core/agreement-email.service';
+import { EmailContentService } from '../plugins/email/core/email-content.service';
+import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from '../plugins/email/core/email-delivery-provider';
+import { InMemoryOutboundEmailRepo } from '../plugins/email/core/outbound-email.repo.inmemory';
+import { PermanentAcceptanceLinkService } from '../plugins/email/core/permanent-acceptance-link.service';
 import type { ReminderCandidate, ReminderCandidateRepo, ReminderMailer } from './ports';
 import { ReminderService } from './reminder.service';
 
@@ -129,6 +145,55 @@ describe('ReminderService', () => {
     await service.run();
 
     expect(mailer.calls).toHaveLength(0);
+  });
+
+  it('automatic reminder emits EMAIL_SENT (SWEEPER ReminderMailer = AgreementEmailService, already instrumented)', async () => {
+    // Mirrors the production wiring SWEEPER_TOKENS.ReminderMailer = { useExisting: AgreementEmailService }:
+    // sendReminder → sendAndRecord is already instrumented, so no new wiring is needed — just assert it.
+    const config: NotificationConfig = {
+      appName: 'Clickwrap',
+      publicBaseUrl: 'https://clickwrap.example.org',
+      acceptanceLinkSecret: 'test-secret',
+    };
+    const clock = new FixedClock(T0);
+    const provider: EmailDeliveryProvider = {
+      async send(_mail: OutboundMail) {
+        return { providerRef: 'reminder-ref-1' };
+      },
+    };
+    const documents = new InMemoryAgreementDocumentRepo();
+    const documentTypes = new InMemoryDocumentTypeRepo(documents);
+    const customers = new InMemoryCustomerRepo();
+    const audiences = new InMemoryAudienceRepo(documents, customers);
+    const templates = new InMemoryEmailTemplateRepo(documentTypes);
+    const permanentLinks = new PermanentAcceptanceLinkService(new InMemoryAcceptanceLinkRepo(), clock, config);
+    await documents.save(aDocument());
+    await documentTypes.save({ id: 'dt-dpa', key: 'dpa', name: 'Data Processing Agreement' });
+    await audiences.save({ id: 'aud-customer', key: 'customer', name: 'Customers' });
+    for (const t of defaultEmailTemplates(clock)) {
+      await templates.save(t);
+    }
+    const content = new EmailContentService(documents, documentTypes, audiences, templates, clock, config, permanentLinks);
+    const events = new InMemoryEventRepo();
+    const mailer = new AgreementEmailService(
+      provider,
+      new InMemoryOutboundEmailRepo(),
+      clock,
+      content,
+      new EventRecorder(events, clock),
+    );
+
+    const stateRepo = new InMemoryCustomerVersionStateRepo();
+    const deadlineAt = new Date(T0.getTime() + 7 * MS_PER_DAY);
+    await stateRepo.save(aState({ id: 'cvs-1', state: 'NOTIFIED', deadlineAt, remindersSent: 0 }));
+    const candidateRepo = new FakeReminderCandidateRepo(stateRepo, 'cvs-1', CUSTOMER, VERSION, RECIPIENT);
+    const service = new ReminderService(candidateRepo, mailer, stateRepo, clock);
+
+    await service.run();
+
+    const { items } = await events.query({});
+    expect(items.filter((e) => e.type === 'EMAIL_SENT')).toHaveLength(1);
+    expect(items[0]).toMatchObject({ type: 'EMAIL_SENT', category: 'COMMUNICATION', recipient: RECIPIENT });
   });
 
   it('race condition: acceptance happens during the mail send → remindersSent update does not reset ACCEPTED', async () => {

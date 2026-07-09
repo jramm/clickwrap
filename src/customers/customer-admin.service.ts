@@ -1,7 +1,8 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
 import { newId } from '../agreements/ids';
 import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
+import { EventRecorder } from '../events/event-recorder';
 import type { Actor } from '../common/auth/actor';
 import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
@@ -15,7 +16,13 @@ import type {
   CustomerRepo,
   CustomerVersionStateRepo,
 } from '../domain/ports';
-import type { AgreementDocument, AgreementVersion, Customer, CustomerVersionStateValue } from '../domain/types';
+import type {
+  AgreementDocument,
+  AgreementVersion,
+  Customer,
+  CustomerVersionStateValue,
+  EventActorKind,
+} from '../domain/types';
 import { TOKENS } from '../persistence/tokens';
 import { matchesCustomerSearch } from './customer-search';
 
@@ -152,6 +159,7 @@ export class CustomerAdminService {
     @Inject(AGREEMENTS_TOKENS.RolloutNotifier) private readonly notifier: RolloutNotifier,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   /**
@@ -289,7 +297,11 @@ export class CustomerAdminService {
     // its ACCEPTED state (and gets no notification); an import of an OLD (retired) version leaves
     // the current version without a state, so it becomes PENDING_NOTIFICATION here and the
     // customer is immediately asked (state + notification mail) to accept the current revision.
-    const rolloutStates = await this.rolloutCurrentVersions(saved, saved.roles);
+    // Integration-triggered onboarding is a SYSTEM action; admin-triggered is ADMIN.
+    const rolloutStates = await this.rolloutCurrentVersions(saved, saved.roles, {
+      actorKind: source === 'integration' ? 'SYSTEM' : 'ADMIN',
+      actorLabel: actor.userId,
+    });
 
     await this.audit.append({
       id: newId('audit'),
@@ -304,6 +316,17 @@ export class CustomerAdminService {
         rolloutStates,
       },
       createdAt: this.clock.now(),
+    });
+
+    await this.recorder?.record({
+      type: 'CUSTOMER_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor.userId,
+      customerId: saved.id,
+      customerName: customerDisplayName(saved),
+      summary: `Customer ${customerDisplayName(saved)} created`,
+      metadata: { source, externalRef: saved.externalRef, roles: saved.roles },
     });
 
     return { ...toRow(saved), importedAcceptances };
@@ -340,7 +363,10 @@ export class CustomerAdminService {
     // notification mail per newly rolled-out version is sent — versions of the existing roles
     // already had their rollout and are NOT re-notified).
     const addedRoles = input.roles !== undefined ? input.roles.filter((role) => !existing.roles.includes(role)) : [];
-    const rolloutStates = addedRoles.length > 0 ? await this.rolloutCurrentVersions(updated, addedRoles) : 0;
+    const rolloutStates =
+      addedRoles.length > 0
+        ? await this.rolloutCurrentVersions(updated, addedRoles, { actorKind: 'ADMIN', actorLabel: actor.userId })
+        : 0;
 
     await this.audit.append({
       id: newId('audit'),
@@ -358,6 +384,17 @@ export class CustomerAdminService {
       },
       createdAt: this.clock.now(),
     });
+
+    await this.recorder?.record({
+      type: 'CUSTOMER_UPDATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: actor.userId,
+      customerId: updated.id,
+      customerName: customerDisplayName(updated),
+      summary: `Customer ${customerDisplayName(updated)} updated`,
+      metadata: { roles: updated.roles },
+    });
     return toRow(updated);
   }
 
@@ -374,7 +411,11 @@ export class CustomerAdminService {
    * still starts with the first provable access, never with the plain send.
    * Returns the number of created states (audit metadata).
    */
-  private async rolloutCurrentVersions(customer: Customer, roles: string[]): Promise<number> {
+  private async rolloutCurrentVersions(
+    customer: Customer,
+    roles: string[],
+    trigger: { actorKind: EventActorKind; actorLabel: string },
+  ): Promise<number> {
     const now = this.clock.now();
     const rolledOut: AgreementVersion[] = [];
     for (const document of await this.documents.findAll()) {
@@ -395,6 +436,21 @@ export class CustomerAdminService {
           versionId: version.id,
           state: 'PENDING_NOTIFICATION',
           remindersSent: 0,
+        });
+        // Authoritative "customer put under obligation" record — one per created state. Crucial
+        // for customers with NO contact e-mail (no EMAIL_SENT fires for them below).
+        await this.recorder?.record({
+          type: 'OBLIGATION_ROLLED_OUT',
+          category: 'CONSENT',
+          actorKind: trigger.actorKind,
+          actorLabel: trigger.actorLabel,
+          customerId: customer.id,
+          customerName: customerDisplayName(customer),
+          versionId: version.id,
+          documentType: document.type,
+          audience: document.audience,
+          versionLabel: version.versionLabel,
+          summary: `Customer put under obligation for version ${version.versionLabel}`,
         });
         rolledOut.push(version);
       }
@@ -524,6 +580,23 @@ export class CustomerAdminService {
       isEffective: true,
       contentHash: item.version.contentHash,
       evidenceNote: item.reference,
+    });
+
+    // Out-of-band import: SYSTEM actor kind (bulk onboarding), CONSENT category, method in metadata.
+    await this.recorder?.record({
+      type: 'VERSION_ACCEPTED',
+      category: 'CONSENT',
+      actorKind: 'SYSTEM',
+      actorLabel: actor.userId,
+      customerId,
+      versionId: item.version.id,
+      versionLabel: item.version.versionLabel,
+      channel: 'ADMIN',
+      summary: `Version ${item.version.versionLabel} accepted (IMPORT, ADMIN)`,
+      metadata: {
+        method: 'IMPORT',
+        ...(item.reference !== undefined ? { evidenceNote: item.reference } : {}),
+      },
     });
     return { versionId: item.version.id, acceptanceId: saved.id };
   }

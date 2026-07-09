@@ -56,9 +56,14 @@ describe('CustomerDetailPage', () => {
   it('shows the customer’s recent events section with a link into the Events page', async () => {
     renderAt('c-123');
 
-    expect(await screen.findByTestId('customer-events-section')).toBeInTheDocument();
+    const section = await screen.findByTestId('customer-events-section');
     // The events section renders the fixture rows (summary text) and links to the full log.
     expect(await screen.findByText(/Version April 2026 edition accepted/)).toBeInTheDocument();
+    // Each row also shows the document type (resolved name) + version, so a legal reviewer sees
+    // WHICH agreement an event concerns — not just "version accepted".
+    expect(
+      within(section).getAllByText('Data Processing Agreement · April 2026 edition').length,
+    ).toBeGreaterThan(0);
     const viewAll = screen.getByRole('link', { name: 'View all in Events' });
     expect(viewAll).toHaveAttribute('href', '/events?customerId=c-123');
   });

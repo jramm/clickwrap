@@ -28,8 +28,8 @@ export type EventsControllerListEventsQueryKey = ReturnType<
 >;
 
 /**
- * @description Normalizes every append-only source (admin audit log, acceptances, objections, notification events) into a single newest-first event list for legal tracing — for the whole system or one customer. Categories: COMMUNICATION (e-mail sent), ACCESS (hosted acceptance page opened), CONSENT (acceptances + objections), ADMINISTRATION (all admin/system actions). All filters run BEFORE pagination, so `total` is the filtered count. A date-only `to` is treated as end-of-day.
- * @summary Chronological legal event / audit log (aggregated, filterable, 50/page)
+ * @description A single newest-first event list for legal tracing — for the whole system or one customer — read from the append-only Event table the core writes on each successful action (dual-write alongside the unchanged evidence stores). Categories: COMMUNICATION (e-mail sent/delivered), ACCESS (hosted acceptance page opened), CONSENT (acceptances + objections), ADMINISTRATION (all admin/system actions). All filters run BEFORE pagination, so `total` is the filtered count. A date-only `to` is treated as end-of-day.
+ * @summary Chronological legal event / audit log (append-only Event table, filterable, 50/page)
  * {@link /admin/events}
  */
 export async function eventsControllerListEvents(
@@ -68,8 +68,8 @@ export function eventsControllerListEventsQueryOptions(
 }
 
 /**
- * @description Normalizes every append-only source (admin audit log, acceptances, objections, notification events) into a single newest-first event list for legal tracing — for the whole system or one customer. Categories: COMMUNICATION (e-mail sent), ACCESS (hosted acceptance page opened), CONSENT (acceptances + objections), ADMINISTRATION (all admin/system actions). All filters run BEFORE pagination, so `total` is the filtered count. A date-only `to` is treated as end-of-day.
- * @summary Chronological legal event / audit log (aggregated, filterable, 50/page)
+ * @description A single newest-first event list for legal tracing — for the whole system or one customer — read from the append-only Event table the core writes on each successful action (dual-write alongside the unchanged evidence stores). Categories: COMMUNICATION (e-mail sent/delivered), ACCESS (hosted acceptance page opened), CONSENT (acceptances + objections), ADMINISTRATION (all admin/system actions). All filters run BEFORE pagination, so `total` is the filtered count. A date-only `to` is treated as end-of-day.
+ * @summary Chronological legal event / audit log (append-only Event table, filterable, 50/page)
  * {@link /admin/events}
  */
 export function useEventsControllerListEvents<

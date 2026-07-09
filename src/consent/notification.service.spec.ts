@@ -1,10 +1,12 @@
 import type { CustomerContext } from '../common/auth/actor';
 import { FixedClock } from '../domain/clock';
 import { aDocument, aState, aVersion, testActor } from '../domain/testing/fixtures';
+import { EventRecorder } from '../events/event-recorder';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
   InMemoryNotificationEventRepo,
 } from '../persistence/inmemory';
 import { SequentialIdGenerator } from './inmemory';
@@ -23,6 +25,7 @@ describe('NotificationService', () => {
   let versions: InMemoryAgreementVersionRepo;
   let states: InMemoryCustomerVersionStateRepo;
   let events: InMemoryNotificationEventRepo;
+  let eventRepo: InMemoryEventRepo;
   let clock: FixedClock;
   let service: NotificationService;
 
@@ -39,8 +42,16 @@ describe('NotificationService', () => {
     versions = new InMemoryAgreementVersionRepo(documents);
     states = new InMemoryCustomerVersionStateRepo();
     events = new InMemoryNotificationEventRepo();
+    eventRepo = new InMemoryEventRepo();
     clock = new FixedClock(NOW);
-    service = new NotificationService(versions, states, events, new SequentialIdGenerator(), clock);
+    service = new NotificationService(
+      versions,
+      states,
+      events,
+      new SequentialIdGenerator(),
+      clock,
+      new EventRecorder(eventRepo, clock),
+    );
     await documents.save(aDocument());
     await versions.save(aVersion({ id: 'v-1', acceptanceMode: 'PASSIVE', objectionPeriodDays: 14 }));
   });
@@ -146,5 +157,20 @@ describe('NotificationService', () => {
     expect(response.state).toBe('SUPERSEDED');
     expect((await staleStates.findById('cvs-1'))?.state).toBe('SUPERSEDED');
     expect(await events.findByState('cvs-1')).toHaveLength(0);
+  });
+
+  describe('event recording', () => {
+    it('records a PAGE_ACCESSED event on the first provable access', async () => {
+      await states.save(aState({ state: 'PENDING_NOTIFICATION' }));
+
+      const response = await service.notify(input());
+
+      expect(response).toEqual({ state: 'NOTIFIED', notifiedAt: NOW, deadlineAt: DEADLINE });
+      expect((await eventRepo.query({})).items[0]).toMatchObject({
+        type: 'PAGE_ACCESSED',
+        category: 'ACCESS',
+        actorKind: 'CUSTOMER',
+      });
+    });
   });
 });

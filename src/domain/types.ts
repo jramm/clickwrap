@@ -302,3 +302,85 @@ export interface NotificationEvent {
   /** Postmark MessageID — correlation key for webhook events. */
   providerRef?: string;
 }
+
+/**
+ * The four broad buckets a {@link DomainEvent} falls into (used by the admin event-log category
+ * filter/chip): COMMUNICATION (e-mail sent/delivered), ACCESS (hosted acceptance page opened),
+ * CONSENT (acceptances + objections), ADMINISTRATION (all admin/system config + operations actions).
+ */
+export type EventCategory = 'COMMUNICATION' | 'ACCESS' | 'CONSENT' | 'ADMINISTRATION';
+
+/** Who caused the event: an admin user, the customer (portal/link self-service), or the system. */
+export type EventActorKind = 'ADMIN' | 'CUSTOMER' | 'SYSTEM';
+
+/** Every specific event type the core records into the append-only Event table. */
+export type EventType =
+  | 'EMAIL_SENT'
+  | 'EMAIL_DELIVERED'
+  | 'EMAIL_BOUNCED'
+  | 'PAGE_ACCESSED'
+  | 'VERSION_ACCEPTED'
+  | 'OBJECTION_RAISED'
+  | 'VERSION_PUBLISHED'
+  | 'VERSION_ACTIVATED'
+  | 'VERSION_RETIRED'
+  | 'DEADLINE_EXTENDED'
+  | 'DEADLINE_EXPIRED'
+  | 'BLOCK_SUSPENDED'
+  | 'BLOCK_CARRIED_OVER'
+  | 'OBLIGATION_ROLLED_OUT'
+  | 'REMINDER_TRIGGERED'
+  | 'MANUAL_ACCEPTANCE'
+  | 'ACCEPTANCE_LINK_CREATED'
+  | 'CUSTOMER_CREATED'
+  | 'CUSTOMER_UPDATED'
+  | 'DOCUMENT_CREATED'
+  | 'VERSION_DRAFT_CREATED'
+  | 'VERSION_UPDATED'
+  | 'SIGNED_DOCUMENT_UPLOADED'
+  | 'DOCUMENT_TYPE_CREATED'
+  | 'DOCUMENT_TYPE_UPDATED'
+  | 'DOCUMENT_TYPE_DELETED'
+  | 'AUDIENCE_CREATED'
+  | 'AUDIENCE_UPDATED'
+  | 'AUDIENCE_DELETED'
+  | 'EMAIL_TEMPLATE_CREATED'
+  | 'EMAIL_TEMPLATE_UPDATED'
+  | 'EMAIL_TEMPLATE_DELETED';
+
+/**
+ * One entry of the append-only, core-written activity log (the `Event` table). The core records a
+ * DomainEvent via {@link EventRecorder} on each SUCCESSFUL domain action, ALONGSIDE the existing
+ * evidence/audit stores (Acceptance/Objection/NotificationEvent/AdminAuditLog/OutboundEmail stay the
+ * legally authoritative records — this is a parallel, denormalized read model for GET /admin/events).
+ * Fields are stored denormalized (customerName, versionLabel, documentType, …) so the read side is a
+ * trivial query and the row stays historically accurate even if the referenced entity later changes.
+ */
+export interface DomainEvent {
+  id: string;
+  type: EventType;
+  category: EventCategory;
+  /** When the recorded action happened — always server time (Clock), never a client value. */
+  occurredAt: Date;
+  actorKind: EventActorKind;
+  /** Human-readable actor label (admin user id, customer name/e-mail, or "system"). */
+  actorLabel: string;
+  customerId?: string;
+  /** Derived customer display name at record time (see {@link customerDisplayName}). */
+  customerName?: string;
+  versionId?: string;
+  /** Document type key. */
+  documentType?: string;
+  /** Audience key. */
+  audience?: string;
+  versionLabel?: string;
+  /** Delivery / acceptance channel of the underlying action. */
+  channel?: string;
+  /** E-mail recipient / accessing user id. */
+  recipient?: string;
+  summary: string;
+  metadata?: Record<string, unknown>;
+}
+
+/** Page size of the admin event log. Filtering runs BEFORE pagination; `total` is the filtered count. */
+export const EVENTS_PAGE_SIZE = 50;

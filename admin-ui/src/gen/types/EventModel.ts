@@ -5,17 +5,27 @@
 
 export type EventModelTypeEnum =
   | 'EMAIL_SENT'
+  | 'EMAIL_DELIVERED'
+  | 'EMAIL_BOUNCED'
   | 'PAGE_ACCESSED'
   | 'VERSION_ACCEPTED'
   | 'OBJECTION_RAISED'
   | 'VERSION_PUBLISHED'
+  | 'VERSION_ACTIVATED'
+  | 'VERSION_RETIRED'
   | 'DEADLINE_EXTENDED'
+  | 'DEADLINE_EXPIRED'
   | 'BLOCK_SUSPENDED'
+  | 'BLOCK_CARRIED_OVER'
+  | 'OBLIGATION_ROLLED_OUT'
   | 'REMINDER_TRIGGERED'
   | 'MANUAL_ACCEPTANCE'
   | 'ACCEPTANCE_LINK_CREATED'
   | 'CUSTOMER_CREATED'
   | 'CUSTOMER_UPDATED'
+  | 'DOCUMENT_CREATED'
+  | 'VERSION_DRAFT_CREATED'
+  | 'VERSION_UPDATED'
   | 'SIGNED_DOCUMENT_UPLOADED'
   | 'DOCUMENT_TYPE_CREATED'
   | 'DOCUMENT_TYPE_UPDATED'
@@ -33,7 +43,7 @@ export type EventModelActorKindEnum = 'ADMIN' | 'CUSTOMER' | 'SYSTEM';
 
 export type EventModel = {
   /**
-   * @description Source-prefixed stable id (audit:/acc:/obj:/notif:).
+   * @description Stable Event-table id (evt-…).
    * @type string
    */
   id: string;

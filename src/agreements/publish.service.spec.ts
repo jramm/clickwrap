@@ -8,7 +8,9 @@ import {
   InMemoryAgreementVersionRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { InMemoryAdminAuditRepo } from './audit';
 import { InMemoryRolloutNotifier } from './rollout-notifier.inmemory';
 import { PublishService } from './publish.service';
@@ -29,6 +31,7 @@ describe('PublishService', () => {
   let notifier: InMemoryRolloutNotifier;
   let audit: InMemoryAdminAuditRepo;
   let clock: FixedClock;
+  let events: InMemoryEventRepo;
   let service: PublishService;
 
   beforeEach(async () => {
@@ -40,7 +43,8 @@ describe('PublishService', () => {
     notifier = new InMemoryRolloutNotifier();
     audit = new InMemoryAdminAuditRepo();
     clock = new FixedClock(T0);
-    service = new PublishService(versions, documents, customers, states, notifier, audit, clock);
+    events = new InMemoryEventRepo();
+    service = new PublishService(versions, documents, customers, states, notifier, audit, clock, new EventRecorder(events, clock));
     await documents.save({ id: 'doc-dpa-customer', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
   });
 
@@ -209,6 +213,67 @@ describe('PublishService', () => {
       const logs = await audit.findByTarget('AgreementVersion', 'v-1');
       expect(logs).toHaveLength(1);
       expect(logs[0]).toMatchObject({ action: 'PUBLISH', actor: 'admin-1' });
+    });
+  });
+
+  describe('event recording', () => {
+    it('records a VERSION_PUBLISHED event on success', async () => {
+      await versions.save(aVersion({ id: 'v-1', status: 'DRAFT', versionLabel: 'June 2026 edition' }));
+      await service.publish('v-1', 'admin-1');
+      const { items } = await events.query({});
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        type: 'VERSION_PUBLISHED',
+        category: 'ADMINISTRATION',
+        actorKind: 'ADMIN',
+        actorLabel: 'admin-1',
+        versionId: 'v-1',
+        documentType: 'dpa',
+        audience: 'customer',
+        versionLabel: 'June 2026 edition',
+      });
+    });
+
+    it('records NO event when validation fails', async () => {
+      await versions.save(aVersion({ id: 'v-1', status: 'DRAFT', changeSummary: '' }));
+      await expectCode(service.publish('v-1', 'admin-1'), 'CHANGE_SUMMARY_REQUIRED');
+      expect((await events.query({})).total).toBe(0);
+    });
+
+    it('records an OBLIGATION_ROLLED_OUT event (ADMIN, CONSENT) per rolled-out customer', async () => {
+      await customers.save(aCustomer({ id: 'c-1', roles: ['customer'] }));
+      await versions.save(aVersion({ id: 'v-1', status: 'DRAFT', versionLabel: 'June 2026 edition' }));
+
+      await service.publish('v-1', 'admin-1');
+
+      const obligations = (await events.query({})).items.filter((e) => e.type === 'OBLIGATION_ROLLED_OUT');
+      expect(obligations).toHaveLength(1);
+      expect(obligations[0]).toMatchObject({
+        category: 'CONSENT',
+        actorKind: 'ADMIN',
+        actorLabel: 'admin-1',
+        customerId: 'c-1',
+        versionId: 'v-1',
+        versionLabel: 'June 2026 edition',
+        summary: 'Customer put under obligation for version June 2026 edition',
+      });
+    });
+
+    it('records a VERSION_RETIRED event (ADMIN) when an immediate publish retires the predecessor', async () => {
+      await versions.save(aVersion({ id: 'v-old', status: 'PUBLISHED', versionLabel: 'May 2026 edition', validFrom: new Date('2026-06-01T00:00:00Z') }));
+      await versions.save(aVersion({ id: 'v-1', status: 'DRAFT', versionLabel: 'June 2026 edition' }));
+
+      await service.publish('v-1', 'admin-1');
+
+      const retired = (await events.query({})).items.filter((e) => e.type === 'VERSION_RETIRED');
+      expect(retired).toHaveLength(1);
+      expect(retired[0]).toMatchObject({
+        category: 'ADMINISTRATION',
+        actorKind: 'ADMIN',
+        versionId: 'v-old',
+        versionLabel: 'May 2026 edition',
+        summary: 'Version May 2026 edition retired',
+      });
     });
   });
 });

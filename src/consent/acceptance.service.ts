@@ -13,6 +13,7 @@ import {
   assertVersionCurrent,
   consentTextHashFor,
 } from '../domain/consent-rules';
+import { customerDisplayName } from '../domain/customer';
 import { DomainError } from '../common/errors';
 import type {
   AcceptanceRepo,
@@ -23,6 +24,7 @@ import type {
 } from '../domain/ports';
 import { accept } from '../domain/state-machine';
 import type { Acceptance, CustomerVersionState } from '../domain/types';
+import { EventRecorder } from '../events/event-recorder';
 import { TOKENS } from '../persistence/tokens';
 import { CONSENT_TOKENS, type IdempotencyStore, type IdGenerator } from './ports';
 
@@ -62,6 +64,7 @@ export class AcceptanceService {
     @Inject(CONSENT_TOKENS.IdGenerator) private readonly ids: IdGenerator,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     @Optional() private readonly confirmation?: AcceptanceConfirmationService,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async accept(input: AcceptanceInput): Promise<AcceptanceResponse> {
@@ -163,6 +166,23 @@ export class AcceptanceService {
     // UnitOfWork). Current safeguards: conditional transition() + partial unique index
     // "one effective acceptance". See docs/PERSISTENCE.md "Open items: transactionality".
     await this.acceptances.append(acceptance);
+
+    // Interactive self-service consent: CUSTOMER actor kind (portal popup / hosted link page).
+    await this.recorder?.record({
+      type: 'VERSION_ACCEPTED',
+      category: 'CONSENT',
+      actorKind: 'CUSTOMER',
+      actorLabel: input.context.actor.name ?? input.context.actor.email ?? 'customer',
+      customerId: input.customerId,
+      customerName: customerDisplayName(customer),
+      versionId: input.versionId,
+      documentType: document.type,
+      audience: document.audience,
+      versionLabel: version.versionLabel,
+      channel,
+      summary: `Version ${version.versionLabel} accepted (ACTIVE_CONSENT, ${channel})`,
+      metadata: { method: 'ACTIVE_CONSENT' },
+    });
 
     // Best-effort acceptance confirmation (delivers the accepted PDF); never fails the acceptance.
     await this.confirmation?.sendForAcceptance(version, acceptance);

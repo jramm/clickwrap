@@ -1,6 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import type { Clock } from '../../../domain/clock';
+import { customerDisplayName } from '../../../domain/customer';
 import type { AgreementVersion, Customer } from '../../../domain/types';
+import { EventRecorder } from '../../../events/event-recorder';
 import { TOKENS } from '../../../persistence/tokens';
 import { EmailContentService } from './email-content.service';
 import { EMAIL_TOKENS, type EmailDeliveryProvider, type SendResult } from './email-delivery-provider';
@@ -27,6 +29,7 @@ export class AgreementEmailService {
     @Inject(EMAIL_TOKENS.OutboundEmailRepo) private readonly outboundEmailRepo: OutboundEmailRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     private readonly content: EmailContentService,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   /** Rollout notification about a newly published version. */
@@ -63,6 +66,22 @@ export class AgreementEmailService {
       versionId: version.id,
       recipient,
       sentAt: this.clock.now(),
+    });
+
+    // Every rollout/reminder send is recorded — so a customer-create → acceptance-link mail shows up.
+    await this.recorder?.record({
+      type: 'EMAIL_SENT',
+      category: 'COMMUNICATION',
+      actorKind: 'SYSTEM',
+      actorLabel: 'system',
+      customerId: customer.id,
+      customerName: customerDisplayName(customer),
+      versionId: version.id,
+      versionLabel: version.versionLabel,
+      channel: 'EMAIL',
+      recipient,
+      summary: `E-mail sent to ${recipient} (version ${version.versionLabel})`,
+      metadata: { providerRef },
     });
     return { providerRef };
   }

@@ -8,8 +8,9 @@ import { EventListResponseModel } from './openapi.models';
 
 /**
  * Legal event / audit log endpoint (admin). One normalized, chronological (newest-first),
- * paginated, filterable list aggregating the existing append-only sources (admin audit log,
- * acceptances, objections, notification events). AdminGuard protects the route.
+ * paginated, filterable list read from the append-only Event table the core writes on each
+ * successful action (dual-write via EventRecorder; the evidence stores stay unchanged).
+ * AdminGuard protects the route.
  */
 @ApiTags('admin')
 @AdminAuth()
@@ -21,13 +22,14 @@ export class EventsController {
 
   @Get('events')
   @ApiOperation({
-    summary: 'Chronological legal event / audit log (aggregated, filterable, 50/page)',
+    summary: 'Chronological legal event / audit log (append-only Event table, filterable, 50/page)',
     description:
-      'Normalizes every append-only source (admin audit log, acceptances, objections, notification ' +
-      'events) into a single newest-first event list for legal tracing — for the whole system or one ' +
-      'customer. Categories: COMMUNICATION (e-mail sent), ACCESS (hosted acceptance page opened), ' +
-      'CONSENT (acceptances + objections), ADMINISTRATION (all admin/system actions). All filters run ' +
-      'BEFORE pagination, so `total` is the filtered count. A date-only `to` is treated as end-of-day.',
+      'A single newest-first event list for legal tracing — for the whole system or one customer — ' +
+      'read from the append-only Event table the core writes on each successful action (dual-write ' +
+      'alongside the unchanged evidence stores). Categories: COMMUNICATION (e-mail sent/delivered), ' +
+      'ACCESS (hosted acceptance page opened), CONSENT (acceptances + objections), ADMINISTRATION ' +
+      '(all admin/system actions). All filters run BEFORE pagination, so `total` is the filtered ' +
+      'count. A date-only `to` is treated as end-of-day.',
   })
   @ApiQuery({ name: 'customerId', required: false, description: 'Exact customer id.' })
   @ApiQuery({

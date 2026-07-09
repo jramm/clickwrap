@@ -7,7 +7,9 @@ import {
   InMemoryAgreementDocumentRepo,
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
+  InMemoryEventRepo,
 } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { AcceptanceLinkAdminService } from './acceptance-link-admin.service';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
@@ -17,6 +19,7 @@ describe('AcceptanceLinkAdminService', () => {
   let audiences: InMemoryAudienceRepo;
   let links: InMemoryAcceptanceLinkRepo;
   let audit: InMemoryAdminAuditRepo;
+  let eventRepo: InMemoryEventRepo;
   let service: AcceptanceLinkAdminService;
   const envBackup = process.env.PUBLIC_BASE_URL;
 
@@ -27,7 +30,15 @@ describe('AcceptanceLinkAdminService', () => {
     audiences = new InMemoryAudienceRepo(documents, customers);
     links = new InMemoryAcceptanceLinkRepo();
     audit = new InMemoryAdminAuditRepo();
-    service = new AcceptanceLinkAdminService(customers, audiences, links, audit, new FixedClock(NOW));
+    eventRepo = new InMemoryEventRepo();
+    service = new AcceptanceLinkAdminService(
+      customers,
+      audiences,
+      links,
+      audit,
+      new FixedClock(NOW),
+      new EventRecorder(eventRepo, new FixedClock(NOW)),
+    );
     await customers.save(aCustomer());
     await audiences.save(anAudience());
   });
@@ -86,6 +97,16 @@ describe('AcceptanceLinkAdminService', () => {
     const token = result.url.split('/accept/')[1];
     expect(JSON.stringify(entries[0])).not.toContain(token);
     expect(JSON.stringify(entries[0])).not.toContain(acceptanceLinkTokenHash(token));
+  });
+
+  it('records an ACCEPTANCE_LINK_CREATED event', async () => {
+    await service.create('c-123', { audienceKey: 'customer' }, 'admin-1');
+    const { items } = await eventRepo.query({});
+    expect(items[0]).toMatchObject({
+      type: 'ACCEPTANCE_LINK_CREATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+    });
   });
 
   it('PUBLIC_BASE_URL unset → INVALID_STATE with an actionable message, nothing persisted', async () => {

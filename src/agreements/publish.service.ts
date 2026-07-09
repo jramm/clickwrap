@@ -1,6 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
+import { EventRecorder } from '../events/event-recorder';
 import { DomainError } from '../common/errors';
 import { validateForPublish } from '../domain/consent-rules';
+import { customerDisplayName } from '../domain/customer';
 import { supersede } from '../domain/state-machine';
 import { TOKENS } from '../persistence/tokens';
 import type { Clock } from '../domain/clock';
@@ -48,6 +50,7 @@ export class PublishService {
     @Inject(AGREEMENTS_TOKENS.RolloutNotifier) private readonly notifier: RolloutNotifier,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   async publish(versionId: string, adminUserId: string): Promise<PublishResult> {
@@ -80,6 +83,17 @@ export class PublishService {
       const predecessors = siblings.filter((v) => v.id !== version.id && v.status === 'PUBLISHED');
       for (const predecessor of predecessors) {
         await this.versions.save({ ...predecessor, status: 'RETIRED' });
+        await this.recorder?.record({
+          type: 'VERSION_RETIRED',
+          category: 'ADMINISTRATION',
+          actorKind: 'ADMIN',
+          actorLabel: adminUserId,
+          versionId: predecessor.id,
+          documentType: document.type,
+          audience: document.audience,
+          versionLabel: predecessor.versionLabel,
+          summary: `Version ${predecessor.versionLabel} retired`,
+        });
         const openStates = await this.states.findOpenByVersion(predecessor.id);
         for (const openState of openStates) {
           const { state: superseded, wasBlocking } = supersede(openState);
@@ -104,6 +118,21 @@ export class PublishService {
         carryOverBlocking: carryOverBlocking ? true : undefined,
       };
       await this.states.save(state);
+      // Authoritative "customer put under obligation" record — crucial for customers without a
+      // contact e-mail (no EMAIL_SENT fires for them). One per created PENDING_NOTIFICATION state.
+      await this.recorder?.record({
+        type: 'OBLIGATION_ROLLED_OUT',
+        category: 'CONSENT',
+        actorKind: 'ADMIN',
+        actorLabel: adminUserId,
+        customerId: customer.id,
+        customerName: customerDisplayName(customer),
+        versionId: version.id,
+        documentType: document.type,
+        audience: document.audience,
+        versionLabel: version.versionLabel,
+        summary: `Customer put under obligation for version ${version.versionLabel}`,
+      });
       await this.notifier.notifyVersionPublished(customer, published);
     }
 
@@ -115,6 +144,19 @@ export class PublishService {
       targetId: version.id,
       metadata: { documentId: document.id, rolloutCustomers: targets.length },
       createdAt: publishedAt,
+    });
+
+    await this.recorder?.record({
+      type: 'VERSION_PUBLISHED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      versionId: version.id,
+      documentType: document.type,
+      audience: document.audience,
+      versionLabel: version.versionLabel,
+      summary: `Version ${version.versionLabel} published`,
+      metadata: { documentId: document.id, rolloutCustomers: targets.length },
     });
 
     return { versionId: version.id, status: 'PUBLISHED', rolloutCustomers: targets.length, publishedAt };

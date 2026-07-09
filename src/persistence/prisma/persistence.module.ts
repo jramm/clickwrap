@@ -10,6 +10,7 @@ import { Module } from '@nestjs/common';
 import { ADMIN_AUDIT_TOKEN } from '../../agreements/audit';
 import { ESCALATION_LOG } from '../../common/escalation/escalation-log';
 import { CONSENT_TOKENS } from '../../consent/ports';
+import { EventRecorder } from '../../events/event-recorder';
 import { SystemClock } from '../../domain/clock';
 import { EMAIL_TOKENS } from '../../plugins/email/core/email-delivery-provider';
 import { TOKENS } from '../tokens';
@@ -24,6 +25,7 @@ import { PrismaCustomerVersionStateRepo } from './customer-version-state.repo';
 import { PrismaDocumentTypeRepo } from './document-type.repo';
 import { PrismaEmailTemplateRepo } from './email-template.repo';
 import { PrismaEscalationLog } from './escalation-log.repo';
+import { PrismaEventRepo } from './event.repo';
 import { PrismaIdempotencyStore } from './idempotency-store.repo';
 import { PrismaNotificationEventRepo } from './notification-event.repo';
 import { PrismaObjectionRepo } from './objection.repo';
@@ -46,11 +48,13 @@ import { PrismaService } from './prisma.service';
     { provide: TOKENS.NotificationEventRepo, useClass: PrismaNotificationEventRepo },
     { provide: TOKENS.AcceptanceLinkRepo, useClass: PrismaAcceptanceLinkRepo },
     { provide: TOKENS.SignedDocumentRepo, useClass: PrismaSignedDocumentRepo },
+    { provide: TOKENS.EventRepo, useClass: PrismaEventRepo },
     { provide: TOKENS.Clock, useClass: SystemClock },
     { provide: ADMIN_AUDIT_TOKEN, useClass: PrismaAdminAuditRepo },
     { provide: CONSENT_TOKENS.IdempotencyStore, useClass: PrismaIdempotencyStore },
     { provide: EMAIL_TOKENS.OutboundEmailRepo, useClass: PrismaOutboundEmailRepo },
     { provide: ESCALATION_LOG, useClass: PrismaEscalationLog },
+    EventRecorder,
   ],
   exports: [
     PrismaService,
@@ -66,11 +70,13 @@ import { PrismaService } from './prisma.service';
     TOKENS.NotificationEventRepo,
     TOKENS.AcceptanceLinkRepo,
     TOKENS.SignedDocumentRepo,
+    TOKENS.EventRepo,
     TOKENS.Clock,
     ADMIN_AUDIT_TOKEN,
     CONSENT_TOKENS.IdempotencyStore,
     EMAIL_TOKENS.OutboundEmailRepo,
     ESCALATION_LOG,
+    EventRecorder,
   ],
 })
 export class PersistenceModule {}

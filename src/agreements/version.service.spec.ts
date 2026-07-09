@@ -1,5 +1,7 @@
 import { DomainError } from '../common/errors';
-import { InMemoryAgreementDocumentRepo, InMemoryAgreementVersionRepo } from '../persistence/inmemory';
+import { FixedClock } from '../domain/clock';
+import { InMemoryAgreementDocumentRepo, InMemoryAgreementVersionRepo, InMemoryEventRepo } from '../persistence/inmemory';
+import { EventRecorder } from '../events/event-recorder';
 import { InMemoryPdfStorage } from './pdf-storage.inmemory';
 import { VersionService, type CreateDraftInput } from './version.service';
 
@@ -24,13 +26,15 @@ describe('VersionService', () => {
   let documents: InMemoryAgreementDocumentRepo;
   let versions: InMemoryAgreementVersionRepo;
   let pdf: InMemoryPdfStorage;
+  let events: InMemoryEventRepo;
   let service: VersionService;
 
   beforeEach(async () => {
     documents = new InMemoryAgreementDocumentRepo();
     versions = new InMemoryAgreementVersionRepo(documents);
     pdf = new InMemoryPdfStorage();
-    service = new VersionService(versions, documents, pdf);
+    events = new InMemoryEventRepo();
+    service = new VersionService(versions, documents, pdf, new EventRecorder(events, new FixedClock(new Date('2026-07-07T09:00:00Z')), versions, documents));
     await documents.save({ id: 'doc-1', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
   });
 
@@ -47,6 +51,28 @@ describe('VersionService', () => {
 
     it('unknown document → INVALID_STATE', async () => {
       await expectCode(service.createDraft(draftInput({ documentId: 'doc-unknown' })), 'INVALID_STATE');
+    });
+
+    it('records a VERSION_DRAFT_CREATED event (ADMINISTRATION, ADMIN) with the resolved documentType', async () => {
+      const version = await service.createDraft(draftInput(), 'admin-3');
+
+      const { items } = await events.query({});
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        type: 'VERSION_DRAFT_CREATED',
+        category: 'ADMINISTRATION',
+        actorKind: 'ADMIN',
+        actorLabel: 'admin-3',
+        versionId: version.id,
+        documentType: 'dpa',
+        audience: 'customer',
+        versionLabel: 'June 2026 edition',
+      });
+    });
+
+    it('records NO event when creation fails (unknown document)', async () => {
+      await expectCode(service.createDraft(draftInput({ documentId: 'doc-unknown' })), 'INVALID_STATE');
+      expect((await events.query({})).total).toBe(0);
     });
   });
 
@@ -78,6 +104,28 @@ describe('VersionService', () => {
 
     it('unknown version → VERSION_NOT_FOUND', async () => {
       await expectCode(service.patchDraft('v-unknown', {}), 'VERSION_NOT_FOUND');
+    });
+
+    it('records a VERSION_UPDATED event (ADMINISTRATION, ADMIN) on a successful patch', async () => {
+      const version = await service.createDraft(draftInput());
+      await service.patchDraft(version.id, { versionLabel: 'July 2026 edition' }, undefined, 'admin-9');
+
+      const updated = (await events.query({})).items.filter((e) => e.type === 'VERSION_UPDATED');
+      expect(updated).toHaveLength(1);
+      expect(updated[0]).toMatchObject({
+        category: 'ADMINISTRATION',
+        actorKind: 'ADMIN',
+        actorLabel: 'admin-9',
+        versionId: version.id,
+        versionLabel: 'July 2026 edition',
+      });
+    });
+
+    it('records NO VERSION_UPDATED when the patch fails (immutable)', async () => {
+      const version = await service.createDraft(draftInput());
+      await versions.save({ ...version, status: 'PUBLISHED' });
+      await expectCode(service.patchDraft(version.id, { versionLabel: 'x' }), 'VERSION_IMMUTABLE');
+      expect((await events.query({})).items.filter((e) => e.type === 'VERSION_UPDATED')).toHaveLength(0);
     });
   });
 

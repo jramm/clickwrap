@@ -101,11 +101,17 @@ License: **Apache-2.0**.
   identity is self-declared (typed name + e-mail) and recorded as such in the evidence chain.
   Rendering the page counts as provable access, so deadlines start exactly like with the popup.
 - **Legal event / audit log** — a single normalized, chronological (newest-first), paginated,
-  filterable **Events** list (`GET /admin/events`) that aggregates the existing append-only sources
-  (admin audit log, acceptances, objections, notification events) so a legal user can trace, for the
-  whole system or one customer, which e-mails were sent to whom & when, who accessed/viewed what,
-  when agreements were accepted/objected, and every admin/system action. Filter by customer, date
-  range, category (COMMUNICATION / ACCESS / CONSENT / ADMINISTRATION), document type or version.
+  filterable **Events** list (`GET /admin/events`) backed by a dedicated, append-only `Event` table
+  the core writes on each successful action (dual-write via `EventRecorder`, alongside the unchanged
+  evidence/audit stores) so a legal user can trace, for the whole system or one customer, which
+  e-mails were sent/delivered/bounced to whom & when, who accessed/viewed what, when agreements were
+  accepted/objected, and every admin/system action. Filter by customer, date range, category
+  (COMMUNICATION / ACCESS / CONSENT / ADMINISTRATION), document type or version.
+  **Every state-changing action produces an event** — including the automatic (cron/webhook)
+  transitions: passive/tacit acceptance and deadline expiry (deadline sweeper), scheduled version
+  activation / retirement and block carry-over (activation sweeper), and e-mail delivery/bounce
+  (provider webhook). The full event-type catalogue (grouped by category, with which are
+  system/cron-driven) is in [docs/API.md](docs/API.md#event-catalogue-traceability-guarantee).
 - **Admin web UI** — React + Google SSO front end for managing documents, versions, rollouts,
   the per-version acceptance dashboard, per-customer history, the legal event log, manual
   (back-dated) recording, acceptance links, and the dynamic categories. See [`admin-ui/`](admin-ui/).

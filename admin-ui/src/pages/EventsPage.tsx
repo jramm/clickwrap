@@ -9,6 +9,7 @@ import { ApiError, errorMessageKey } from '../api/errors';
 import { useCustomers, useDocumentTypes, useEvents } from '../api/hooks';
 import type { Event, EventActorKind, EventCategory } from '../api/hooks';
 import { customerDisplayName } from '../lib/customerDisplayName';
+import { documentLabel } from '../lib/eventDocumentLabel';
 import { useTranslation } from '../i18n';
 import { Button, Card, DataTable, PageHeader, Select, TextField, useIsMobile } from '../ui';
 import type { GridColDef, SelectOption } from '../ui';
@@ -80,6 +81,10 @@ export function EventsPage() {
     allOption,
     ...documentTypes.map((d) => ({ value: d.key, label: d.name })),
   ];
+  const documentTypeName = useMemo(() => {
+    const map = new Map(documentTypes.map((d) => [d.key, d.name]));
+    return (key: string) => map.get(key) ?? key;
+  }, [documentTypes]);
 
   const rows = data?.items ?? [];
   const total = data?.total ?? 0;
@@ -143,7 +148,7 @@ export function EventsPage() {
         flex: 1,
         minWidth: 160,
         sortable: false,
-        valueGetter: (_value, row: Event) => documentLabel(row),
+        valueGetter: (_value, row: Event) => documentLabel(row, documentTypeName),
       },
       {
         field: 'details',
@@ -154,7 +159,7 @@ export function EventsPage() {
         valueGetter: (_value, row: Event) => row.summary,
       },
     ],
-    [language, t],
+    [language, t, documentTypeName],
   );
 
   return (
@@ -240,11 +245,6 @@ export function EventsPage() {
     </Box>
   );
 }
-
-const documentLabel = (event: Event): string => {
-  const parts = [event.documentType, event.versionLabel].filter((value): value is string => Boolean(value));
-  return parts.join(' · ');
-};
 
 function CategoryChip({ category }: { category: EventCategory }) {
   const { t } = useTranslation();

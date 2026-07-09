@@ -16,11 +16,13 @@
  * Delivery is best-effort: a failure (template/PDF/provider) is caught and logged and NEVER
  * propagates — recording the acceptance must not fail because a confirmation mail could not be sent.
  */
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { PLUGIN_DI_TOKENS, type FileStorage } from '../../../plugin-sdk';
 import type { Clock } from '../../../domain/clock';
+import { customerDisplayName } from '../../../domain/customer';
 import type { CustomerRepo } from '../../../domain/ports';
 import type { Acceptance, AgreementVersion, Customer } from '../../../domain/types';
+import { EventRecorder } from '../../../events/event-recorder';
 import { TOKENS } from '../../../persistence/tokens';
 import { EmailContentService } from './email-content.service';
 import { EMAIL_TOKENS, type EmailDeliveryProvider } from './email-delivery-provider';
@@ -39,6 +41,7 @@ export class AcceptanceConfirmationService {
     @Inject(PLUGIN_DI_TOKENS.FileStorage) private readonly fileStorage: FileStorage,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     private readonly content: EmailContentService,
+    @Optional() private readonly recorder?: EventRecorder,
   ) {}
 
   /**
@@ -112,6 +115,20 @@ export class AcceptanceConfirmationService {
         versionId: version.id,
         recipient,
         sentAt: this.clock.now(),
+      });
+      await this.recorder?.record({
+        type: 'EMAIL_SENT',
+        category: 'COMMUNICATION',
+        actorKind: 'SYSTEM',
+        actorLabel: 'system',
+        customerId: customer.id,
+        customerName: customerDisplayName(customer),
+        versionId: version.id,
+        versionLabel: version.versionLabel,
+        channel: 'EMAIL',
+        recipient,
+        summary: `Acceptance-confirmation e-mail sent to ${recipient} (version ${version.versionLabel})`,
+        metadata: { providerRef, kind: 'ACCEPTANCE_CONFIRMATION' },
       });
     }
   }

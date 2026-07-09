@@ -1,6 +1,8 @@
 import { FixedClock } from '../../../domain/clock';
 import { isAcceptanceLinkUsable } from '../../../domain/acceptance-links';
 import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo';
+import { InMemoryEventRepo } from '../../../persistence/inmemory';
+import { EventRecorder } from '../../../events/event-recorder';
 import type { NotificationConfig } from './email-delivery-provider';
 import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service';
 
@@ -13,12 +15,14 @@ const config: NotificationConfig = {
 describe('PermanentAcceptanceLinkService', () => {
   let links: InMemoryAcceptanceLinkRepo;
   let clock: FixedClock;
+  let eventRepo: InMemoryEventRepo;
   let service: PermanentAcceptanceLinkService;
 
   beforeEach(() => {
     links = new InMemoryAcceptanceLinkRepo();
     clock = new FixedClock(new Date('2026-07-08T09:00:00Z'));
-    service = new PermanentAcceptanceLinkService(links, clock, config);
+    eventRepo = new InMemoryEventRepo();
+    service = new PermanentAcceptanceLinkService(links, clock, config, new EventRecorder(eventRepo, clock));
   });
 
   it('creates one permanent, non-expiring link and reuses it across calls (same customer)', async () => {
@@ -29,6 +33,17 @@ describe('PermanentAcceptanceLinkService', () => {
     expect(first.kind).toBe('PERMANENT');
     expect(first.expiresAt).toBeUndefined();
     expect(await links.listByCustomer('c-1')).toHaveLength(1);
+  });
+
+  it('records ACCEPTANCE_LINK_CREATED once on first creation and not on the idempotent second call', async () => {
+    await service.ensureForCustomer('c-1');
+
+    const afterFirst = await eventRepo.query({});
+    expect(afterFirst.total).toBe(1);
+    expect(afterFirst.items[0]).toMatchObject({ type: 'ACCEPTANCE_LINK_CREATED', actorKind: 'SYSTEM' });
+
+    await service.ensureForCustomer('c-1');
+    expect((await eventRepo.query({})).total).toBe(1);
   });
 
   it('the permanent link never expires (usable far in the future)', async () => {

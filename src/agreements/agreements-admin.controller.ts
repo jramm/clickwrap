@@ -8,10 +8,12 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
@@ -39,6 +41,10 @@ import {
 } from './openapi.models';
 import type { PdfUpload } from './ports';
 import { VersionService, type PatchDraftInput } from './version.service';
+
+/** AdminGuard populates `adminActor` on the request; the admin user id defaults to 'admin'. */
+type AdminRequest = Request & { adminActor?: { userId: string } };
+const adminUserId = (req: AdminRequest): string => req.adminActor?.userId ?? 'admin';
 
 interface CreateDocumentBody {
   /** Document type key (dynamic entity, validated by DocumentService). */
@@ -131,8 +137,8 @@ export class AgreementsAdminController {
   @ApiBody({ type: CreateDocumentBodyModel })
   @ApiCreatedResponse({ type: DocumentModel })
   @ApiErrorResponses({ 422: 'INVALID_STATE (duplicate) · UNKNOWN_DOCUMENT_TYPE · UNKNOWN_AUDIENCE' })
-  async createDocument(@Body() body: CreateDocumentBody) {
-    return this.documentService.create({ type: body.type, audience: body.audience, name: body.name });
+  async createDocument(@Body() body: CreateDocumentBody, @Req() req: AdminRequest) {
+    return this.documentService.create({ type: body.type, audience: body.audience, name: body.name }, adminUserId(req));
   }
 
   @Get('documents')
@@ -159,6 +165,7 @@ export class AgreementsAdminController {
   async createVersion(
     @Param('id') documentId: string,
     @Body() body: CreateVersionBody,
+    @Req() req: AdminRequest,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const base64File = typeof body.file === 'string' ? body.file : undefined;
@@ -166,17 +173,20 @@ export class AgreementsAdminController {
     if (!upload) {
       throw new BadRequestException('PDF missing: multipart field `file` or base64 `file`+`fileName` required');
     }
-    const version = await this.versionService.createDraft({
-      documentId,
-      versionLabel: body.versionLabel,
-      changeSummary: body.changeSummary,
-      acceptanceMode: body.acceptanceMode,
-      consentText: body.consentText,
-      objectionPeriodDays: toOptionalNumber(body.objectionPeriodDays),
-      gracePeriodDays: toOptionalNumber(body.gracePeriodDays),
-      validFrom: new Date(body.validFrom),
-      file: upload,
-    });
+    const version = await this.versionService.createDraft(
+      {
+        documentId,
+        versionLabel: body.versionLabel,
+        changeSummary: body.changeSummary,
+        acceptanceMode: body.acceptanceMode,
+        consentText: body.consentText,
+        objectionPeriodDays: toOptionalNumber(body.objectionPeriodDays),
+        gracePeriodDays: toOptionalNumber(body.gracePeriodDays),
+        validFrom: new Date(body.validFrom),
+        file: upload,
+      },
+      adminUserId(req),
+    );
     return {
       versionId: version.id,
       status: version.status,
@@ -203,6 +213,7 @@ export class AgreementsAdminController {
   async patchVersion(
     @Param('id') versionId: string,
     @Body() body: PatchVersionBody,
+    @Req() req: AdminRequest,
     @UploadedFile() multipartFile?: Express.Multer.File,
   ) {
     const { file, fileName, validFrom, objectionPeriodDays, gracePeriodDays, ...rest } = body;
@@ -213,7 +224,7 @@ export class AgreementsAdminController {
       ...(gracePeriodDays !== undefined ? { gracePeriodDays: toOptionalNumber(gracePeriodDays) } : {}),
     };
     const upload = resolveUpload(multipartFile, typeof file === 'string' ? file : undefined, fileName);
-    return this.versionService.patchDraft(versionId, patch, upload);
+    return this.versionService.patchDraft(versionId, patch, upload, adminUserId(req));
   }
 
   @Delete('versions/:id')
