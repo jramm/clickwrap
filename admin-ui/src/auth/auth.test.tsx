@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
 import { server } from '../test/server';
 import { renderWithProviders } from '../test/renderWithProviders';
-import { clearToken, setToken } from './tokenStore';
+import { clearToken, setDevAdminToken, setToken } from './tokenStore';
 
 const BASE = 'http://localhost:3000';
 
@@ -22,6 +22,17 @@ describe('Auth flow', () => {
     renderWithProviders(<App />, { route: '/' });
 
     expect(await screen.findByText(/Please sign in to continue/i)).toBeInTheDocument();
+  });
+
+  it('restores a persisted static/dev admin token session on reload (no re-login)', async () => {
+    // Simulates a fresh page load with the dev token already in localStorage: the
+    // session must be restored straight to the dashboard, never bounced to login.
+    setDevAdminToken('dev-secret');
+
+    renderWithProviders(<App />, { route: '/' });
+
+    expect(await screen.findByTestId('dashboard-grid')).toBeInTheDocument();
+    expect(screen.queryByText(/Please sign in to continue/i)).not.toBeInTheDocument();
   });
 
   it('logs out on 401 and shows the login page again', async () => {

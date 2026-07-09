@@ -13,7 +13,6 @@ import { Button, TextField, useToast } from '../ui';
 import { useAuth } from './AuthContext';
 import { fetchAuthMethods } from './authMethods';
 import type { AuthMethod } from './authMethods';
-import { setDevAdminToken } from './tokenStore';
 
 /**
  * Login screen. Discovers the available admin login methods from the
@@ -139,16 +138,15 @@ function LoginMethod({ method }: { method: AuthMethod }) {
 
 function TokenMethod({ label }: { label: string }) {
   const { t } = useTranslation();
-  const { login } = useAuth();
+  const { loginWithAdminToken } = useAuth();
   const [token, setToken] = useState('');
 
   const submit = () => {
     const value = token.trim();
     if (!value) return;
-    // Store as the dev admin token (sent as x-admin-token) and as the session
-    // token so the route guard lets the admin through.
-    setDevAdminToken(value);
-    login(value);
+    // Persist as the dev admin token (sent as x-admin-token) and mark the session
+    // authenticated; it is restored from localStorage on reload.
+    loginWithAdminToken(value);
   };
 
   return (
