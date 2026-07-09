@@ -6,6 +6,9 @@
 import type { CustomerListResponseModel } from './CustomerListResponseModel.ts';
 import type { ErrorResponseDto } from './ErrorResponseDto.ts';
 
+export type AdminControllerListCustomersQueryParamsComplianceEnum =
+  'compliant' | 'non_compliant' | 'pending' | 'blocked' | 'objected';
+
 export type AdminControllerListCustomersQueryParams = {
   /**
    * @description 1-based page (50 rows per page).
@@ -17,6 +20,21 @@ export type AdminControllerListCustomersQueryParams = {
    * @type string | undefined
    */
   search?: string;
+  /**
+   * @description Audience key — scopes the compliance evaluation to that audience / matching role.
+   * @type string | undefined
+   */
+  audience?: string;
+  /**
+   * @description Document type key — scopes the compliance evaluation to that type.
+   * @type string | undefined
+   */
+  documentType?: string;
+  /**
+   * @description Keep only customers whose (scoped) compliance matches this status.
+   * @type string | undefined
+   */
+  compliance?: AdminControllerListCustomersQueryParamsComplianceEnum;
 };
 
 export type AdminControllerListCustomers200 = CustomerListResponseModel;

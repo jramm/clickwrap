@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { createdCustomerFixture } from '../test/handlers';
+import { createdCustomerFixture, customersFixture } from '../test/handlers';
 import { setMatchMediaMatches } from '../test/matchMedia';
 import { server } from '../test/server';
 import { renderWithProviders } from '../test/renderWithProviders';
@@ -87,6 +87,55 @@ describe('CustomersPage', () => {
     await waitFor(() => expect(searches).toContain('acme'));
     // Shows a search-specific empty state when nothing matches.
     expect(await screen.findByText(/No customers match "acme"/)).toBeInTheDocument();
+  });
+
+  it('renders a per-row compliance chip from the list response', async () => {
+    renderWithProviders(<CustomersPage />);
+    await screen.findByText('Example Utility Ltd');
+    expect(await screen.findByTestId('compliance-chip-blocked')).toBeInTheDocument();
+  });
+
+  it('sends the compliance filter as a request param and resets to page 1', async () => {
+    const requests: URL[] = [];
+    server.use(
+      http.get(`${BASE}/admin/customers`, ({ request }) => {
+        requests.push(new URL(request.url));
+        return HttpResponse.json(customersFixture);
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderWithProviders(<CustomersPage />);
+    await screen.findByText('Example Utility Ltd');
+
+    // Open the Compliance select and choose "Non-compliant".
+    await user.click(screen.getByLabelText('Compliance'));
+    await user.click(await screen.findByRole('option', { name: 'Non-compliant' }));
+
+    await waitFor(() =>
+      expect(requests.some((u) => u.searchParams.get('compliance') === 'non_compliant')).toBe(true),
+    );
+  });
+
+  it('sends the document-type and audience scope filters as request params', async () => {
+    const requests: URL[] = [];
+    server.use(
+      http.get(`${BASE}/admin/customers`, ({ request }) => {
+        requests.push(new URL(request.url));
+        return HttpResponse.json(customersFixture);
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderWithProviders(<CustomersPage />);
+    await screen.findByText('Example Utility Ltd');
+
+    await user.click(screen.getByLabelText('Audience'));
+    await user.click(await screen.findByRole('option', { name: 'Operator' }));
+
+    await waitFor(() =>
+      expect(requests.some((u) => u.searchParams.get('audience') === 'operator')).toBe(true),
+    );
   });
 
   it('clears the search term with the clear button', async () => {

@@ -106,6 +106,7 @@ export type {
   AdminControllerListCustomers401,
   AdminControllerListCustomersQuery,
   AdminControllerListCustomersQueryParams,
+  AdminControllerListCustomersQueryParamsComplianceEnum,
   AdminControllerListCustomersQueryResponse,
 } from './AdminControllerListCustomers.ts';
 export type {
@@ -296,7 +297,10 @@ export type { AuthMethodsResponseModel } from './AuthMethodsResponseModel.ts';
 export type { CreateAcceptanceLinkBodyModel } from './CreateAcceptanceLinkBodyModel.ts';
 export type { CreateAcceptanceLinkResponseModel } from './CreateAcceptanceLinkResponseModel.ts';
 export type { CreateCustomerBodyModel } from './CreateCustomerBodyModel.ts';
-export type { CreateCustomerResponseModel } from './CreateCustomerResponseModel.ts';
+export type {
+  CreateCustomerResponseModel,
+  CreateCustomerResponseModelComplianceStatusEnum,
+} from './CreateCustomerResponseModel.ts';
 export type { CreateDocumentBodyModel } from './CreateDocumentBodyModel.ts';
 export type { CreateDocumentTypeBodyModel } from './CreateDocumentTypeBodyModel.ts';
 export type {
@@ -314,7 +318,7 @@ export type {
 } from './CreateVersionResponseModel.ts';
 export type { CustomerHistoryResponseModel } from './CustomerHistoryResponseModel.ts';
 export type { CustomerListResponseModel } from './CustomerListResponseModel.ts';
-export type { CustomerRowModel } from './CustomerRowModel.ts';
+export type { CustomerRowModel, CustomerRowModelComplianceStatusEnum } from './CustomerRowModel.ts';
 export type {
   CustomerVersionStateModel,
   CustomerVersionStateModelStateEnum,

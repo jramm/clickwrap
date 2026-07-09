@@ -96,7 +96,11 @@ tappable **card lists** instead of the desktop DataGrid; and all dialogs go
   (`GET /admin/versions/:id/customers` + `/stats`): who has (not) accepted **that**
   version, filterable by state, with the matching stats header.
 - **Customers** `/customers` — list (display name, external ref, role chips,
-  contact e-mails) with pagination (`GET /admin/customers`); **New customer**
+  contact e-mails, **compliance chip**) with pagination (`GET /admin/customers`)
+  and a filter bar next to the search: **document type**, **audience** and
+  **compliance status** (`compliant | non_compliant | pending | blocked | objected`)
+  — the three filters the removed global Overview page offered, now folded in here;
+  they scope the per-row compliance indicator and filter the rows. **New customer**
   (`POST /admin/customers`) with `firstName`/`lastName` + optional `companyName`,
   roles (from `GET /admin/audiences`), contact e-mail chips and a signed-offer
   **"already accepted documents"** section (`acceptedVersions` IMPORT); **Edit**

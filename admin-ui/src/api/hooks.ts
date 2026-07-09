@@ -43,6 +43,8 @@ import {
   signedDocumentsAdminControllerListQueryOptions,
 } from '../gen';
 import type {
+  AdminControllerListCustomersQueryParams,
+  AdminControllerListCustomersQueryParamsComplianceEnum as ComplianceFilter,
   AdminControllerVersionCustomersQueryParams,
   CreateAcceptanceLinkResponseModel,
   CreateCustomerBodyModel,
@@ -68,6 +70,7 @@ import type {
 export type {
   CustomerHistoryResponseModel as CustomerHistory,
   CustomerRowModel as CustomerRow,
+  CustomerRowModelComplianceStatusEnum as ComplianceStatus,
   DocumentListEntryModel as AgreementDocument,
   DocumentTypeModel as DocumentType,
   EmailTemplateModel as EmailTemplate,
@@ -426,10 +429,21 @@ export function useManualAcceptance(customerId: string) {
 }
 
 // --- Customers -----------------------------------------------------------
-export function useCustomers(page?: number, search?: string) {
-  const params: { page?: string; search?: string } = {};
+export type { ComplianceFilter };
+
+export interface CustomerListFilters {
+  audience?: string;
+  documentType?: string;
+  compliance?: ComplianceFilter;
+}
+
+export function useCustomers(page?: number, search?: string, filters: CustomerListFilters = {}) {
+  const params: AdminControllerListCustomersQueryParams = {};
   if (page !== undefined) params.page = String(page);
   if (search) params.search = search;
+  if (filters.audience) params.audience = filters.audience;
+  if (filters.documentType) params.documentType = filters.documentType;
+  if (filters.compliance) params.compliance = filters.compliance;
   return useQuery(
     adminControllerListCustomersQueryOptions({
       params: Object.keys(params).length > 0 ? params : undefined,

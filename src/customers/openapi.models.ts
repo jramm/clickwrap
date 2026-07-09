@@ -28,6 +28,21 @@ export class CustomerRowModel {
 
   @ApiProperty({ type: [String], example: ['legal@acme.example'] })
   contactEmails!: string[];
+
+  @ApiPropertyOptional({
+    example: true,
+    description:
+      'Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by ' +
+      'the audience/documentType query params.',
+  })
+  compliant?: boolean;
+
+  @ApiPropertyOptional({
+    enum: ['compliant', 'pending', 'objected', 'blocked'],
+    example: 'compliant',
+    description: 'Compact per-row compliance status for the list chip. Present on list rows only.',
+  })
+  complianceStatus?: 'compliant' | 'pending' | 'objected' | 'blocked';
 }
 
 export class CustomerListResponseModel {

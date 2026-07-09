@@ -449,6 +449,7 @@
     },
     "/admin/customers": {
       "get": {
+        "description": "Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` scope that evaluation (an unknown key narrows it to nothing); `compliance` additionally filters the rows. search + compliance filters run before pagination, so `total` is the filtered count.",
         "operationId": "AdminController_listCustomers",
         "parameters": [
           {
@@ -466,6 +467,40 @@
             "in": "query",
             "description": "Case-insensitive substring match on name, externalRef and contactEmails. Applied before pagination; `total` reflects the filtered count.",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Audience key — scopes the compliance evaluation to that audience / matching role.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentType",
+            "required": false,
+            "in": "query",
+            "description": "Document type key — scopes the compliance evaluation to that type.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compliance",
+            "required": false,
+            "in": "query",
+            "description": "Keep only customers whose (scoped) compliance matches this status.",
+            "schema": {
+              "enum": [
+                "compliant",
+                "non_compliant",
+                "pending",
+                "blocked",
+                "objected"
+              ],
               "type": "string"
             }
           }
@@ -2849,6 +2884,22 @@
             "items": {
               "type": "string"
             }
+          },
+          "compliant": {
+            "type": "boolean",
+            "example": true,
+            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params."
+          },
+          "complianceStatus": {
+            "type": "string",
+            "enum": [
+              "compliant",
+              "pending",
+              "objected",
+              "blocked"
+            ],
+            "example": "compliant",
+            "description": "Compact per-row compliance status for the list chip. Present on list rows only."
           }
         },
         "required": [
@@ -3018,6 +3069,22 @@
             "items": {
               "type": "string"
             }
+          },
+          "compliant": {
+            "type": "boolean",
+            "example": true,
+            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params."
+          },
+          "complianceStatus": {
+            "type": "string",
+            "enum": [
+              "compliant",
+              "pending",
+              "objected",
+              "blocked"
+            ],
+            "example": "compliant",
+            "description": "Compact per-row compliance status for the list chip. Present on list rows only."
           },
           "importedAcceptances": {
             "type": "array",

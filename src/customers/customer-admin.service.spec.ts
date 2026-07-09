@@ -6,7 +6,7 @@ import { DomainError } from '../common/errors';
 import { PendingAgreementsService } from '../compliance/pending-agreements.service';
 import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider';
 import { FixedClock } from '../domain/clock';
-import { anAudience, aVersion } from '../domain/testing/fixtures';
+import { anAudience, aState, aVersion } from '../domain/testing/fixtures';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -66,9 +66,10 @@ describe('CustomerAdminService', () => {
 
       const result = await service.list();
       expect(result.total).toBe(2);
+      // No documents exist here, so every customer is compliant with nothing outstanding.
       expect(result.items).toEqual([
-        { id: 'c-a', externalRef: 'ext-a', firstName: '', lastName: '', companyName: 'Alpha', roles: ['partner'], contactEmails: ['a@x.io'] },
-        { id: 'c-b', externalRef: 'ext-b', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [] },
+        { id: 'c-a', externalRef: 'ext-a', firstName: '', lastName: '', companyName: 'Alpha', roles: ['partner'], contactEmails: ['a@x.io'], compliant: true, complianceStatus: 'compliant' },
+        { id: 'c-b', externalRef: 'ext-b', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [], compliant: true, complianceStatus: 'compliant' },
       ]);
     });
 
@@ -120,6 +121,108 @@ describe('CustomerAdminService', () => {
 
       it('an empty search behaves like no search', async () => {
         expect((await service.list(undefined, '')).total).toBe(3);
+      });
+    });
+
+    describe('compliance filter and indicator', () => {
+      // Three documents so documentType/audience scoping can be exercised: DPA + Terms for
+      // customers, DPA for partners. One current published version per document.
+      beforeEach(async () => {
+        await documents.save({ id: 'doc-dpa-c', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
+        await documents.save({ id: 'doc-terms-c', type: 'terms', audience: 'customer', name: 'Terms — Customers' });
+        await documents.save({ id: 'doc-dpa-p', type: 'dpa', audience: 'partner', name: 'DPA — Partners' });
+        await versions.save(aVersion({ id: 'v-dpa-c', documentId: 'doc-dpa-c', status: 'PUBLISHED' }));
+        await versions.save(aVersion({ id: 'v-terms-c', documentId: 'doc-terms-c', status: 'PUBLISHED' }));
+        await versions.save(aVersion({ id: 'v-dpa-p', documentId: 'doc-dpa-p', status: 'PUBLISHED' }));
+
+        // One customer per compliance category, all on the customer DPA version.
+        await customers.save({ id: 'c-compliant', externalRef: 'ext-ok', firstName: '', lastName: '', companyName: 'A Compliant', roles: ['customer'], contactEmails: [] });
+        await customers.save({ id: 'c-pending', externalRef: 'ext-pend', firstName: '', lastName: '', companyName: 'B Pending', roles: ['customer'], contactEmails: [] });
+        await customers.save({ id: 'c-blocked', externalRef: 'ext-block', firstName: '', lastName: '', companyName: 'C Blocked', roles: ['customer'], contactEmails: [] });
+        await customers.save({ id: 'c-objected', externalRef: 'ext-obj', firstName: '', lastName: '', companyName: 'D Objected', roles: ['customer'], contactEmails: [] });
+        await states.save(aState({ id: 's-ok', customerId: 'c-compliant', versionId: 'v-dpa-c', state: 'ACCEPTED' }));
+        await states.save(aState({ id: 's-pend', customerId: 'c-pending', versionId: 'v-dpa-c', state: 'NOTIFIED', notifiedAt: T0, deadlineAt: new Date('2026-07-21T09:00:00Z') }));
+        await states.save(aState({ id: 's-block', customerId: 'c-blocked', versionId: 'v-dpa-c', state: 'EXPIRED_BLOCKING' }));
+        await states.save(aState({ id: 's-obj', customerId: 'c-objected', versionId: 'v-dpa-c', state: 'OBJECTED' }));
+      });
+
+      it('attaches a per-row compliance indicator (compliant + complianceStatus) to every row', async () => {
+        const byId = new Map((await service.list()).items.map((r) => [r.id, r]));
+        expect(byId.get('c-compliant')).toMatchObject({ compliant: true, complianceStatus: 'compliant' });
+        expect(byId.get('c-pending')).toMatchObject({ compliant: true, complianceStatus: 'pending' });
+        expect(byId.get('c-blocked')).toMatchObject({ compliant: false, complianceStatus: 'blocked' });
+        expect(byId.get('c-objected')).toMatchObject({ compliant: true, complianceStatus: 'objected' });
+      });
+
+      it('compliance=compliant keeps only customers with nothing outstanding', async () => {
+        const { items, total } = await service.list(undefined, undefined, { compliance: 'compliant' });
+        expect(items.map((r) => r.id)).toEqual(['c-compliant']);
+        expect(total).toBe(1);
+      });
+
+      it('compliance=non_compliant keeps only customers whose gate is closed', async () => {
+        const { items } = await service.list(undefined, undefined, { compliance: 'non_compliant' });
+        expect(items.map((r) => r.id)).toEqual(['c-blocked']);
+      });
+
+      it('compliance=pending keeps only customers with a PENDING/NOTIFIED state', async () => {
+        const { items } = await service.list(undefined, undefined, { compliance: 'pending' });
+        expect(items.map((r) => r.id)).toEqual(['c-pending']);
+      });
+
+      it('compliance=blocked keeps only customers with an EXPIRED_BLOCKING state', async () => {
+        const { items } = await service.list(undefined, undefined, { compliance: 'blocked' });
+        expect(items.map((r) => r.id)).toEqual(['c-blocked']);
+      });
+
+      it('compliance=objected keeps only customers with an OBJECTED state', async () => {
+        const { items } = await service.list(undefined, undefined, { compliance: 'objected' });
+        expect(items.map((r) => r.id)).toEqual(['c-objected']);
+      });
+
+      it('combines the compliance filter with search (filter first, then paginate)', async () => {
+        const { items, total } = await service.list(undefined, 'Pending', { compliance: 'pending' });
+        expect(items.map((r) => r.id)).toEqual(['c-pending']);
+        expect(total).toBe(1);
+        // A search that excludes the only pending customer yields nothing.
+        expect((await service.list(undefined, 'Blocked', { compliance: 'pending' })).total).toBe(0);
+      });
+
+      it('documentType scopes the evaluation: a Terms objection is invisible under documentType=dpa', async () => {
+        await customers.save({ id: 'c-terms-obj', externalRef: 'ext-tobj', firstName: '', lastName: '', companyName: 'E Terms', roles: ['customer'], contactEmails: [] });
+        await states.save(aState({ id: 's-dpa-acc', customerId: 'c-terms-obj', versionId: 'v-dpa-c', state: 'ACCEPTED' }));
+        await states.save(aState({ id: 's-terms-obj', customerId: 'c-terms-obj', versionId: 'v-terms-c', state: 'OBJECTED' }));
+
+        const dpaObjected = await service.list(undefined, 'Terms', { documentType: 'dpa', compliance: 'objected' });
+        expect(dpaObjected.items.map((r) => r.id)).toEqual([]);
+        const termsObjected = await service.list(undefined, 'Terms', { documentType: 'terms', compliance: 'objected' });
+        expect(termsObjected.items.map((r) => r.id)).toEqual(['c-terms-obj']);
+      });
+
+      it('audience scopes the evaluation to the matching role documents', async () => {
+        await customers.save({ id: 'c-both', externalRef: 'ext-both', firstName: '', lastName: '', companyName: 'F Both', roles: ['customer', 'partner'], contactEmails: [] });
+        // Compliant as a customer (accepted), blocked as a partner.
+        await states.save(aState({ id: 's-both-c', customerId: 'c-both', versionId: 'v-dpa-c', state: 'ACCEPTED' }));
+        await states.save(aState({ id: 's-both-p', customerId: 'c-both', versionId: 'v-dpa-p', state: 'EXPIRED_BLOCKING' }));
+
+        const asPartner = await service.list(undefined, 'Both', { audience: 'partner', compliance: 'non_compliant' });
+        expect(asPartner.items.map((r) => r.id)).toEqual(['c-both']);
+        const asCustomer = await service.list(undefined, 'Both', { audience: 'customer', compliance: 'non_compliant' });
+        expect(asCustomer.items.map((r) => r.id)).toEqual([]);
+      });
+
+      it('pagination reflects the compliance-filtered total', async () => {
+        for (let i = 0; i < 55; i++) {
+          const n = String(i).padStart(3, '0');
+          await customers.save({ id: `cx-${n}`, externalRef: `bulk-${n}`, firstName: '', lastName: '', companyName: `Bulk ${n}`, roles: ['customer'], contactEmails: [] });
+          await states.save(aState({ id: `sx-${n}`, customerId: `cx-${n}`, versionId: 'v-dpa-c', state: 'EXPIRED_BLOCKING' }));
+        }
+        // 55 bulk blocked customers + the fixture c-blocked = 56.
+        const page1 = await service.list(1, undefined, { compliance: 'blocked' });
+        expect(page1.items).toHaveLength(50);
+        expect(page1.total).toBe(56);
+        const page2 = await service.list(2, undefined, { compliance: 'blocked' });
+        expect(page2.items).toHaveLength(6);
       });
     });
   });

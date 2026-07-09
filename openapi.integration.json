@@ -1494,6 +1494,22 @@
               "type": "string"
             }
           },
+          "compliant": {
+            "type": "boolean",
+            "example": true,
+            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params."
+          },
+          "complianceStatus": {
+            "type": "string",
+            "enum": [
+              "compliant",
+              "pending",
+              "objected",
+              "blocked"
+            ],
+            "example": "compliant",
+            "description": "Compact per-row compliance status for the list chip. Present on list rows only."
+          },
           "importedAcceptances": {
             "type": "array",
             "items": {

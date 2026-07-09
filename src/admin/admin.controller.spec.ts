@@ -345,13 +345,28 @@ describe('AdminController', () => {
       await customers.save(aCustomer({ id: 'c-1', externalRef: 'ext-1', firstName: '', lastName: '', companyName: 'Alpha', roles: ['customer'], contactEmails: ['a@x.io'] }));
 
       const res = await request(app.getHttpServer()).get('/admin/customers').expect(200);
+      // No documents exist, so every row is compliant with nothing outstanding.
       expect(res.body).toEqual({
         items: [
-          { id: 'c-1', externalRef: 'ext-1', firstName: '', lastName: '', companyName: 'Alpha', roles: ['customer'], contactEmails: ['a@x.io'] },
-          { id: 'c-2', externalRef: 'ext-2', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [] },
+          { id: 'c-1', externalRef: 'ext-1', firstName: '', lastName: '', companyName: 'Alpha', roles: ['customer'], contactEmails: ['a@x.io'], compliant: true, complianceStatus: 'compliant' },
+          { id: 'c-2', externalRef: 'ext-2', firstName: '', lastName: '', companyName: 'Beta', roles: ['customer'], contactEmails: [], compliant: true, complianceStatus: 'compliant' },
         ],
         total: 2,
       });
+    });
+
+    it('GET ?compliance=blocked keeps only blocked customers, with the per-row indicator', async () => {
+      // Reuses the doc-dpa-customer seeded in the top-level beforeEach.
+      await versions.save(aVersion({ id: 'v-dpa-c', documentId: 'doc-dpa-customer', status: 'PUBLISHED' }));
+      await customers.save(aCustomer({ id: 'c-ok', externalRef: 'ext-ok', companyName: 'Alpha', roles: ['customer'], contactEmails: [] }));
+      await customers.save(aCustomer({ id: 'c-blocked', externalRef: 'ext-block', companyName: 'Beta', roles: ['customer'], contactEmails: [] }));
+      await states.save(aState({ id: 's-ok', customerId: 'c-ok', versionId: 'v-dpa-c', state: 'ACCEPTED' }));
+      await states.save(aState({ id: 's-block', customerId: 'c-blocked', versionId: 'v-dpa-c', state: 'EXPIRED_BLOCKING' }));
+
+      const res = await request(app.getHttpServer()).get('/admin/customers?compliance=blocked').expect(200);
+      expect(res.body.items.map((r: { id: string }) => r.id)).toEqual(['c-blocked']);
+      expect(res.body.items[0]).toMatchObject({ compliant: false, complianceStatus: 'blocked' });
+      expect(res.body.total).toBe(1);
     });
 
     it('GET ?search filters by a case-insensitive substring and reflects the filtered total', async () => {

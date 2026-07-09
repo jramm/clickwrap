@@ -307,7 +307,19 @@
     "acceptedChooseRoles": "Wählen Sie eine oder mehrere Rollen, um passende veröffentlichte Dokumente zu sehen.",
     "acceptedNone": "Keine veröffentlichten Dokumente passen zu den gewählten Rollen.",
     "acceptedAt": "Unterschriftsdatum",
-    "acceptedReference": "Referenz"
+    "acceptedReference": "Referenz",
+    "filterDocumentType": "Dokumententyp",
+    "filterAudience": "Zielgruppe",
+    "filterCompliance": "Compliance",
+    "filterAll": "Alle",
+    "complianceHeader": "Compliance",
+    "compliance": {
+      "compliant": "Konform",
+      "non_compliant": "Nicht konform",
+      "pending": "Ausstehend",
+      "blocked": "Blockiert",
+      "objected": "Widersprochen"
+    }
   },
   "emailTemplates": {
     "title": "E-Mail-Vorlagen",

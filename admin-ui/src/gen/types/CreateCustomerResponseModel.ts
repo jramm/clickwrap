@@ -5,6 +5,9 @@
 
 import type { ImportedAcceptanceModel } from './ImportedAcceptanceModel.ts';
 
+export type CreateCustomerResponseModelComplianceStatusEnum =
+  'compliant' | 'pending' | 'objected' | 'blocked';
+
 export type CreateCustomerResponseModel = {
   /**
    * @type string
@@ -39,6 +42,16 @@ export type CreateCustomerResponseModel = {
    * @type array
    */
   contactEmails: string[];
+  /**
+   * @description Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params.
+   * @type boolean | undefined
+   */
+  compliant?: boolean;
+  /**
+   * @description Compact per-row compliance status for the list chip. Present on list rows only.
+   * @type string | undefined
+   */
+  complianceStatus?: CreateCustomerResponseModelComplianceStatusEnum;
   /**
    * @type array
    */

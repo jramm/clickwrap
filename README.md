@@ -288,7 +288,9 @@ Full request/response shapes and the complete error-code table are in
 
 A React admin web interface lives in [`admin-ui/`](admin-ui/) (Vite + React + TypeScript + MUI).
 It authenticates via Google SSO and drives the `/admin/**` API: per-version acceptance dashboard,
-document/version management with PDF upload and publish, per-customer history with expandable
+document/version management with PDF upload and publish, a customers list with per-row compliance
+indicator and document-type / audience / compliance-status filters (fully replacing the former
+global Overview page), per-customer history with expandable
 evidence, manual
 acceptance, deadline extension / block suspension, reminders, and management of the dynamic
 audiences and document types. See [`admin-ui/README.md`](admin-ui/README.md) for setup.

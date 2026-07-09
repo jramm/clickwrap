@@ -24,6 +24,7 @@ import { PublishService } from '../agreements/publish.service';
 import type { Actor } from '../common/auth/actor';
 import {
   CustomerAdminService,
+  type ComplianceFilter,
   type CreateCustomerInput,
   type UpdateCustomerInput,
 } from '../customers/customer-admin.service';
@@ -122,7 +123,14 @@ export class AdminController {
   ) {}
 
   @Get('customers')
-  @ApiOperation({ summary: 'List customers (paginated, 50/page, sorted by name/externalRef).' })
+  @ApiOperation({
+    summary: 'List customers (paginated, 50/page, sorted by name/externalRef).',
+    description:
+      'Every row carries a compliance indicator (compliant + complianceStatus) computed over the ' +
+      "customer's states and the current published versions. `audience`/`documentType` scope that " +
+      'evaluation (an unknown key narrows it to nothing); `compliance` additionally filters the ' +
+      'rows. search + compliance filters run before pagination, so `total` is the filtered count.',
+  })
   @ApiQuery({ name: 'page', required: false, description: '1-based page (50 rows per page).' })
   @ApiQuery({
     name: 'search',
@@ -131,9 +139,35 @@ export class AdminController {
       'Case-insensitive substring match on name, externalRef and contactEmails. Applied before ' +
       'pagination; `total` reflects the filtered count.',
   })
+  @ApiQuery({
+    name: 'audience',
+    required: false,
+    description: 'Audience key — scopes the compliance evaluation to that audience / matching role.',
+  })
+  @ApiQuery({
+    name: 'documentType',
+    required: false,
+    description: 'Document type key — scopes the compliance evaluation to that type.',
+  })
+  @ApiQuery({
+    name: 'compliance',
+    required: false,
+    enum: ['compliant', 'non_compliant', 'pending', 'blocked', 'objected'],
+    description: 'Keep only customers whose (scoped) compliance matches this status.',
+  })
   @ApiOkResponse({ type: CustomerListResponseModel })
-  async listCustomers(@Query('page') page?: string, @Query('search') search?: string) {
-    return this.customerAdminService.list(page ? Number(page) : undefined, search);
+  async listCustomers(
+    @Query('page') page?: string,
+    @Query('search') search?: string,
+    @Query('audience') audience?: string,
+    @Query('documentType') documentType?: string,
+    @Query('compliance') compliance?: ComplianceFilter,
+  ) {
+    return this.customerAdminService.list(page ? Number(page) : undefined, search, {
+      audience,
+      documentType,
+      compliance,
+    });
   }
 
   @Get('customers/:id')

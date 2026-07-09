@@ -258,12 +258,26 @@ booked before `validFrom`.
 
 Customer administration (also see the integration variant `POST /customers`, §5).
 
-- `GET /admin/customers?page=&search=` — pages of 50, sorted by the derived display name then
-  `externalRef`:
-  `{ "items": [{ "id", "externalRef", "firstName", "lastName", "companyName?", "roles", "contactEmails" }], "total": 173 }`.
+- `GET /admin/customers?page=&search=&documentType=&audience=&compliance=` — pages of 50, sorted by
+  the derived display name then `externalRef`:
+  `{ "items": [{ "id", "externalRef", "firstName", "lastName", "companyName?", "roles", "contactEmails", "compliant", "complianceStatus" }], "total": 173 }`.
   The optional `search` is a case-insensitive substring match on `firstName`, `lastName`,
   `companyName`, `externalRef` and `contactEmails`; it is applied **before** pagination, so `total`
   reflects the filtered count.
+  Every row carries a **compliance indicator** — `compliant` (boolean; the domain compliance gate,
+  `false` = blocked) and `complianceStatus` (`compliant | pending | objected | blocked`, the worst
+  outstanding status for the list chip) — computed via the domain `computeCompliance` over the
+  customer's states and the current published versions. The three filters that the removed global
+  Overview page offered now live here and **fully replace** it:
+  - `documentType` (type key) / `audience` (audience key) **scope the compliance evaluation** (and
+    thus the indicator) to that document type / that audience's documents and the customer's matching
+    role. An unknown key simply narrows the evaluation to nothing (→ `compliant`, no outstanding docs).
+  - `compliance` — one of `compliant | non_compliant | pending | blocked | objected` — additionally
+    keeps only the customers whose (scoped) compliance matches: `non_compliant` = the gate is closed
+    (blocking, incl. block carry-over); `blocked` = a hard `EXPIRED_BLOCKING` state; `pending` = an
+    outstanding `PENDING_NOTIFICATION`/`NOTIFIED` state; `objected` = an `OBJECTED` state; `compliant`
+    = nothing outstanding. The compliance filter runs **before** pagination, so `total` reflects the
+    filtered count.
 - `GET /admin/customers/:id` — a single customer record
   `{ "id", "externalRef", "firstName", "lastName", "companyName", "roles", "contactEmails" }`
   (e.g. for the detail-page header); unknown id → `404 CUSTOMER_NOT_FOUND`.

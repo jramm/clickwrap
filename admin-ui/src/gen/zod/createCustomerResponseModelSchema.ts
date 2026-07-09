@@ -18,5 +18,17 @@ export const createCustomerResponseModelSchema = z.object({
   ),
   roles: z.array(z.string()).describe('Audience keys.'),
   contactEmails: z.array(z.string()),
+  compliant: z.optional(
+    z
+      .boolean()
+      .describe(
+        'Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params.',
+      ),
+  ),
+  complianceStatus: z.optional(
+    z
+      .enum(['compliant', 'pending', 'objected', 'blocked'])
+      .describe('Compact per-row compliance status for the list chip. Present on list rows only.'),
+  ),
   importedAcceptances: z.array(z.lazy(() => importedAcceptanceModelSchema)),
 }) as unknown as ToZod<CreateCustomerResponseModel>;

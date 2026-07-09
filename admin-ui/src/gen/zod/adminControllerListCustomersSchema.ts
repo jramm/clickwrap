@@ -24,6 +24,21 @@ export const adminControllerListCustomersQueryParamsSchema = z
           'Case-insensitive substring match on name, externalRef and contactEmails. Applied before pagination; `total` reflects the filtered count.',
         ),
     ),
+    audience: z.optional(
+      z
+        .string()
+        .describe(
+          'Audience key — scopes the compliance evaluation to that audience / matching role.',
+        ),
+    ),
+    documentType: z.optional(
+      z.string().describe('Document type key — scopes the compliance evaluation to that type.'),
+    ),
+    compliance: z.optional(
+      z
+        .enum(['compliant', 'non_compliant', 'pending', 'blocked', 'objected'])
+        .describe('Keep only customers whose (scoped) compliance matches this status.'),
+    ),
   })
   .optional() as unknown as ToZod<AdminControllerListCustomersQueryParams>;
 

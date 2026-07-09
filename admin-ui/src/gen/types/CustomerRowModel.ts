@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+export type CustomerRowModelComplianceStatusEnum = 'compliant' | 'pending' | 'objected' | 'blocked';
+
 export type CustomerRowModel = {
   /**
    * @type string
@@ -37,4 +39,14 @@ export type CustomerRowModel = {
    * @type array
    */
   contactEmails: string[];
+  /**
+   * @description Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params.
+   * @type boolean | undefined
+   */
+  compliant?: boolean;
+  /**
+   * @description Compact per-row compliance status for the list chip. Present on list rows only.
+   * @type string | undefined
+   */
+  complianceStatus?: CustomerRowModelComplianceStatusEnum;
 };

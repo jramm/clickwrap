@@ -5,19 +5,32 @@ import Typography from '@mui/material/Typography';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
-import { useAudiences, useCustomers } from '../api/hooks';
-import type { CustomerRow } from '../api/hooks';
+import { useAudiences, useCustomers, useDocumentTypes } from '../api/hooks';
+import type { ComplianceFilter, ComplianceStatus, CustomerRow } from '../api/hooks';
 import { CustomerFormDialog } from '../components/CustomerFormDialog';
 import { customerDisplayName } from '../lib/customerDisplayName';
 import { useTranslation } from '../i18n';
-import { Button, Card, DataTable, PageHeader, SearchField, useDebouncedValue, useIsMobile } from '../ui';
-import type { GridColDef } from '../ui';
+import { Button, Card, DataTable, PageHeader, SearchField, Select, useDebouncedValue, useIsMobile } from '../ui';
+import type { GridColDef, SelectOption } from '../ui';
 
 /**
  * Customers list with pagination and a create dialog (edit lives on the detail page). On desktop a DataGrid;
  * on phones/tablets a tappable card list. Row/card click navigates to the customer detail page; edit is a button there.
+ *
+ * A filter bar (next to the search) scopes the per-row compliance indicator and filters the rows: a
+ * document-type select, an audience select and a compliance-status select — the three filters the
+ * former global Overview page offered, now folded into the customers list.
  */
 const PAGE_SIZE = 50;
+
+const COMPLIANCE_FILTERS: ComplianceFilter[] = ['compliant', 'non_compliant', 'pending', 'blocked', 'objected'];
+
+const COMPLIANCE_CHIP_COLOR: Record<ComplianceStatus, 'success' | 'warning' | 'info' | 'error'> = {
+  compliant: 'success',
+  pending: 'warning',
+  objected: 'info',
+  blocked: 'error',
+};
 
 export function CustomersPage() {
   const { t } = useTranslation();
@@ -25,21 +38,37 @@ export function CustomersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
+  const [documentType, setDocumentType] = useState('');
+  const [audience, setAudience] = useState('');
+  const [compliance, setCompliance] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const navigate = useNavigate();
 
-  // A new search term always resets to the first page (the old page may not exist in the result).
+  // A new search term or filter always resets to the first page (the old page may not exist in the result).
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, documentType, audience, compliance]);
 
-  const { data, isLoading, isError, error } = useCustomers(page, debouncedSearch);
+  const { data, isLoading, isError, error } = useCustomers(page, debouncedSearch, {
+    documentType: documentType || undefined,
+    audience: audience || undefined,
+    compliance: (compliance || undefined) as ComplianceFilter | undefined,
+  });
   const { data: audiences = [] } = useAudiences();
+  const { data: documentTypes = [] } = useDocumentTypes();
 
   const audienceName = useMemo(() => {
     const map = new Map(audiences.map((a) => [a.key, a.name]));
     return (key: string) => map.get(key) ?? key;
   }, [audiences]);
+
+  const allOption: SelectOption = { value: '', label: t('customers.filterAll') };
+  const documentTypeOptions: SelectOption[] = [allOption, ...documentTypes.map((d) => ({ value: d.key, label: d.name }))];
+  const audienceOptions: SelectOption[] = [allOption, ...audiences.map((a) => ({ value: a.key, label: a.name }))];
+  const complianceOptions: SelectOption[] = [
+    allOption,
+    ...COMPLIANCE_FILTERS.map((value) => ({ value, label: t(`customers.compliance.${value}`) })),
+  ];
 
   const rows = data?.items ?? [];
   const total = data?.total ?? 0;
@@ -72,6 +101,14 @@ export function CustomersPage() {
         sortable: false,
         valueGetter: (_value, row: CustomerRow) => (row.contactEmails ?? []).join(', '),
       },
+      {
+        field: 'complianceStatus',
+        headerName: t('customers.complianceHeader'),
+        flex: 0.8,
+        minWidth: 140,
+        sortable: false,
+        renderCell: (params) => <ComplianceChip status={(params.row as CustomerRow).complianceStatus} />,
+      },
     ],
     [audienceName, t],
   );
@@ -84,15 +121,46 @@ export function CustomersPage() {
         actions={<Button onClick={() => setCreateOpen(true)}>{t('customers.newCustomer')}</Button>}
       />
 
-      <Box sx={{ mb: 2, maxWidth: 420 }}>
-        <SearchField
-          label={t('customers.searchLabel')}
-          placeholder={t('customers.searchPlaceholder')}
-          clearLabel={t('customers.searchClear')}
-          value={search}
-          onChange={setSearch}
-        />
-      </Box>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{ mb: 2 }}
+        alignItems={{ xs: 'stretch', md: 'flex-start' }}
+      >
+        <Box sx={{ flex: 1, maxWidth: { md: 420 } }}>
+          <SearchField
+            label={t('customers.searchLabel')}
+            placeholder={t('customers.searchPlaceholder')}
+            clearLabel={t('customers.searchClear')}
+            value={search}
+            onChange={setSearch}
+          />
+        </Box>
+        <Box sx={{ minWidth: { md: 180 } }}>
+          <Select
+            label={t('customers.filterDocumentType')}
+            options={documentTypeOptions}
+            value={documentType}
+            onChange={(event) => setDocumentType(event.target.value)}
+          />
+        </Box>
+        <Box sx={{ minWidth: { md: 180 } }}>
+          <Select
+            label={t('customers.filterAudience')}
+            options={audienceOptions}
+            value={audience}
+            onChange={(event) => setAudience(event.target.value)}
+          />
+        </Box>
+        <Box sx={{ minWidth: { md: 180 } }}>
+          <Select
+            label={t('customers.filterCompliance')}
+            options={complianceOptions}
+            value={compliance}
+            onChange={(event) => setCompliance(event.target.value)}
+          />
+        </Box>
+      </Stack>
 
       <Box>
         {isError ? (
@@ -199,9 +267,12 @@ function CustomerCardList({ rows, audienceName, loading, onOpen }: CustomerCardL
           sx={{ cursor: 'pointer', minHeight: 44 }}
         >
           <Card>
-            <Typography variant="h5" component="h2">
-              {customerDisplayName(customer) || customer.externalRef}
-            </Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+              <Typography variant="h5" component="h2">
+                {customerDisplayName(customer) || customer.externalRef}
+              </Typography>
+              <ComplianceChip status={customer.complianceStatus} />
+            </Stack>
             <Typography variant="body2" color="text.secondary">
               {customer.externalRef}
             </Typography>
@@ -219,5 +290,20 @@ function CustomerCardList({ rows, audienceName, loading, onOpen }: CustomerCardL
         </Box>
       ))}
     </Stack>
+  );
+}
+
+/** Compact per-row compliance indicator; renders nothing when the row carries no status. */
+function ComplianceChip({ status }: { status?: ComplianceStatus }) {
+  const { t } = useTranslation();
+  if (!status) return null;
+  return (
+    <Chip
+      label={t(`customers.compliance.${status}`)}
+      color={COMPLIANCE_CHIP_COLOR[status]}
+      size="small"
+      variant="filled"
+      data-testid={`compliance-chip-${status}`}
+    />
   );
 }

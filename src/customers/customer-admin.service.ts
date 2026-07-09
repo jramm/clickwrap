@@ -5,6 +5,7 @@ import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
 import type { Actor } from '../common/auth/actor';
 import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
+import { computeCompliance, type ComplianceResult, type CurrentVersionEntry } from '../domain/compliance';
 import { customerDisplayName } from '../domain/customer';
 import type {
   AcceptanceRepo,
@@ -14,7 +15,7 @@ import type {
   CustomerRepo,
   CustomerVersionStateRepo,
 } from '../domain/ports';
-import type { AgreementVersion, Customer } from '../domain/types';
+import type { AgreementVersion, Customer, CustomerVersionStateValue } from '../domain/types';
 import { TOKENS } from '../persistence/tokens';
 import { matchesCustomerSearch } from './customer-search';
 
@@ -54,6 +55,31 @@ export interface UpdateCustomerInput {
   contactEmails?: string[];
 }
 
+/**
+ * Compliance filter of the customer list — reuses the states the domain already knows. Mirrors the
+ * old global overview status filter plus the per-version customer view vocabulary:
+ * `non_compliant` = the domain compliance gate is closed (blocking, incl. block carry-over);
+ * `pending` = an outstanding PENDING_NOTIFICATION/NOTIFIED state; `blocked` = a hard
+ * EXPIRED_BLOCKING state; `objected` = an OBJECTED state; `compliant` = nothing outstanding
+ * (all relevant documents accepted or not yet rolled out — the gate is open and clean).
+ */
+export type ComplianceFilter = 'compliant' | 'non_compliant' | 'pending' | 'blocked' | 'objected';
+
+/** Compact per-row status shown as a chip; the worst outstanding status wins. */
+export type CustomerComplianceStatus = 'compliant' | 'pending' | 'objected' | 'blocked';
+
+/**
+ * Optional compliance-scoping filters for the customer list. `audience`/`documentType` restrict the
+ * compliance evaluation (and thus the per-row indicator) to that audience's documents / that type;
+ * an unknown key simply narrows the evaluation to nothing (→ `compliant`, no outstanding docs).
+ * `compliance` additionally filters the rows to customers matching that status.
+ */
+export interface CustomerListFilters {
+  audience?: string;
+  documentType?: string;
+  compliance?: ComplianceFilter;
+}
+
 export interface CustomerRow {
   id: string;
   externalRef: string;
@@ -62,12 +88,18 @@ export interface CustomerRow {
   companyName?: string;
   roles: string[];
   contactEmails: string[];
+  /** Compliance gate (domain semantics: false = blocked). Present only on list rows. */
+  compliant?: boolean;
+  /** Compact status for the list chip. Present only on list rows. */
+  complianceStatus?: CustomerComplianceStatus;
 }
 
 export interface CustomerListResult {
   items: CustomerRow[];
   total: number;
 }
+
+const OUTSTANDING_PENDING: readonly CustomerVersionStateValue[] = ['PENDING_NOTIFICATION', 'NOTIFIED'];
 
 export interface ImportedAcceptance {
   versionId: string;
@@ -123,20 +155,87 @@ export class CustomerAdminService {
   /**
    * Paginated customer list (50/page), sorted by name then externalRef. An optional `search` term
    * is applied FIRST (case-insensitive substring on name / externalRef / contactEmails — see
-   * {@link matchesCustomerSearch}); `total` reflects the filtered count, and pagination runs over
-   * the filtered set.
+   * {@link matchesCustomerSearch}). Every row carries a compliance indicator (computed via the pure
+   * domain {@link computeCompliance} over the customer's states + the current published versions,
+   * optionally scoped by `filters.documentType`/`filters.audience`). When `filters.compliance` is
+   * set the rows are additionally filtered to customers matching that status. In all cases the
+   * search + compliance filter run BEFORE pagination, so `total` reflects the filtered count.
    */
-  async list(page?: number, search?: string): Promise<CustomerListResult> {
+  async list(page?: number, search?: string, filters: CustomerListFilters = {}): Promise<CustomerListResult> {
     const all = await this.customers.findAll();
-    const filtered = search ? all.filter((c) => matchesCustomerSearch(c, search)) : all;
-    filtered.sort((a, b) => {
+    const searched = search ? all.filter((c) => matchesCustomerSearch(c, search)) : all;
+    searched.sort((a, b) => {
       const byName = customerDisplayName(a).localeCompare(customerDisplayName(b));
       return byName !== 0 ? byName : a.externalRef.localeCompare(b.externalRef);
     });
-    const total = filtered.length;
+
+    const scopedEntries = await this.scopedCurrentVersions(filters.documentType);
     const p = page && page > 0 ? page : 1;
-    const items = filtered.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE).map(toRow);
+
+    if (filters.compliance) {
+      // Filter-first: compute compliance for the whole searched set, keep the matching rows, then
+      // paginate — `total` must reflect the compliance-filtered count.
+      const matched: CustomerRow[] = [];
+      for (const customer of searched) {
+        const compliance = await this.evaluateCompliance(customer, scopedEntries, filters.audience);
+        if (this.matchesCompliance(filters.compliance, compliance)) {
+          matched.push(toRow(customer, compliance));
+        }
+      }
+      return { items: matched.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE), total: matched.length };
+    }
+
+    // No compliance filter: paginate first, then attach the indicator only to the page rows.
+    const total = searched.length;
+    const pageCustomers = searched.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE);
+    const items: CustomerRow[] = [];
+    for (const customer of pageCustomers) {
+      const compliance = await this.evaluateCompliance(customer, scopedEntries, filters.audience);
+      items.push(toRow(customer, compliance));
+    }
     return { items, total };
+  }
+
+  /** Current published version per document, optionally narrowed to a single document type. */
+  private async scopedCurrentVersions(documentType?: string): Promise<CurrentVersionEntry[]> {
+    const now = this.clock.now();
+    const entries: CurrentVersionEntry[] = [];
+    for (const document of await this.documents.findAll()) {
+      if (documentType && document.type !== documentType) {
+        continue;
+      }
+      const version = await this.versions.findCurrentPublished(document.type, document.audience, now);
+      if (version) {
+        entries.push({ document, version });
+      }
+    }
+    return entries;
+  }
+
+  private async evaluateCompliance(
+    customer: Customer,
+    scopedEntries: CurrentVersionEntry[],
+    audience?: string,
+  ): Promise<ComplianceResult> {
+    const states = await this.states.findByCustomer(customer.id);
+    return computeCompliance(customer, scopedEntries, states, audience);
+  }
+
+  private matchesCompliance(filter: ComplianceFilter, compliance: ComplianceResult): boolean {
+    const details = Object.values(compliance.details);
+    switch (filter) {
+      case 'non_compliant':
+        return !compliance.compliant;
+      case 'blocked':
+        return details.some((d) => d.state === 'EXPIRED_BLOCKING');
+      case 'objected':
+        return details.some((d) => d.state === 'OBJECTED');
+      case 'pending':
+        return details.some((d) => d.state !== undefined && OUTSTANDING_PENDING.includes(d.state));
+      case 'compliant':
+        // "Clean": the gate is open AND nothing is outstanding (all relevant docs accepted / none).
+        return compliance.compliant && details.every((d) => d.state === undefined || d.state === 'ACCEPTED');
+    }
   }
 
   /** Single customer by id (for the detail page header). Unknown id → CUSTOMER_NOT_FOUND. */
@@ -417,7 +516,7 @@ export class CustomerAdminService {
   }
 }
 
-const toRow = (customer: Customer): CustomerRow => ({
+const toRow = (customer: Customer, compliance?: ComplianceResult): CustomerRow => ({
   id: customer.id,
   externalRef: customer.externalRef,
   firstName: customer.firstName ?? '',
@@ -425,4 +524,22 @@ const toRow = (customer: Customer): CustomerRow => ({
   companyName: customer.companyName?.trim() ? customer.companyName : undefined,
   roles: [...customer.roles],
   contactEmails: [...customer.contactEmails],
+  ...(compliance
+    ? { compliant: compliance.compliant, complianceStatus: summarizeCompliance(compliance) }
+    : {}),
 });
+
+/** Worst outstanding status wins: blocked (gate closed) > objected > pending > compliant. */
+const summarizeCompliance = (compliance: ComplianceResult): CustomerComplianceStatus => {
+  const details = Object.values(compliance.details);
+  if (!compliance.compliant) {
+    return 'blocked';
+  }
+  if (details.some((d) => d.state === 'OBJECTED')) {
+    return 'objected';
+  }
+  if (details.some((d) => d.state !== undefined && OUTSTANDING_PENDING.includes(d.state))) {
+    return 'pending';
+  }
+  return 'compliant';
+};

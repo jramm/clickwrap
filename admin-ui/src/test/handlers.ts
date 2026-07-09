@@ -269,6 +269,8 @@ export const customersFixture = customerListResponseModelSchema.parse({
       companyName: 'Example Utility Ltd',
       roles: ['operator'],
       contactEmails: ['legal@example.test'],
+      compliant: false,
+      complianceStatus: 'blocked',
     },
   ],
   total: 1,

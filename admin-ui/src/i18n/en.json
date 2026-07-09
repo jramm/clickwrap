@@ -307,7 +307,19 @@
     "acceptedChooseRoles": "Choose one or more roles to see the matching published documents.",
     "acceptedNone": "No published documents match the selected roles.",
     "acceptedAt": "Signature date",
-    "acceptedReference": "Reference"
+    "acceptedReference": "Reference",
+    "filterDocumentType": "Document type",
+    "filterAudience": "Audience",
+    "filterCompliance": "Compliance",
+    "filterAll": "All",
+    "complianceHeader": "Compliance",
+    "compliance": {
+      "compliant": "Compliant",
+      "non_compliant": "Non-compliant",
+      "pending": "Pending",
+      "blocked": "Blocked",
+      "objected": "Objected"
+    }
   },
   "emailTemplates": {
     "title": "E-mail templates",
