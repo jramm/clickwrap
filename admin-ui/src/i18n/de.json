@@ -273,7 +273,9 @@
     "signer": "Unterzeichner",
     "reference": "Referenz",
     "uploadedBy": "Hochgeladen von",
-    "backToCustomers": "Zurück zur Kundenliste"
+    "backToCustomers": "Zurück zur Kundenliste",
+    "deletedBadge": "Gelöscht (synchronisiert)",
+    "deletedNotice": "Dieser Kunde wurde aus der externen Quelle entfernt und am {{date}} soft-gelöscht. Nachweise und Historie bleiben erhalten."
   },
   "customers": {
     "title": "Kunden",
@@ -377,6 +379,7 @@
       "ACCEPTANCE_LINK_CREATED": "Annahme-Link erstellt",
       "CUSTOMER_CREATED": "Kunde angelegt",
       "CUSTOMER_UPDATED": "Kunde aktualisiert",
+      "CUSTOMER_DELETED": "Kunde gelöscht",
       "DOCUMENT_CREATED": "Dokument angelegt",
       "VERSION_DRAFT_CREATED": "Entwurfsversion angelegt",
       "VERSION_UPDATED": "Version aktualisiert",

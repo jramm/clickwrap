@@ -67,4 +67,19 @@ describeIfDb('PrismaCustomerRepo (against real Postgres)', () => {
     expect((await repo.findAllByExternalRef('X')).map((c) => c.id).sort()).toEqual(['c-c', 'c-p']);
     expect(await repo.findAllByExternalRef('missing')).toEqual([]);
   });
+
+  it('findBySource returns customers of that source incl. soft-deleted; softDelete stamps deletedAt', async () => {
+    await repo.save(aCustomer({ id: 'c-crm-1', externalRef: 'e1', source: 'metergrid' }));
+    await repo.save(aCustomer({ id: 'c-crm-2', externalRef: 'e2', source: 'metergrid' }));
+    await repo.save(aCustomer({ id: 'c-manual', externalRef: 'e3', source: 'manual' }));
+
+    const at = new Date('2026-07-09T10:00:00Z');
+    await repo.softDelete('c-crm-2', at);
+
+    expect((await repo.findBySource('metergrid')).map((c) => c.id).sort()).toEqual(['c-crm-1', 'c-crm-2']);
+    expect((await repo.findById('c-crm-2'))?.deletedAt?.toISOString()).toBe(at.toISOString());
+    expect((await repo.findBySource('manual')).map((c) => c.id)).toEqual(['c-manual']);
+    // Unknown id → silent no-op (updateMany, not update).
+    await expect(repo.softDelete('missing', at)).resolves.toBeUndefined();
+  });
 });

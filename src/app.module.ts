@@ -8,6 +8,7 @@ import { AdminAuthModule } from './common/auth/admin-auth.module';
 import { DomainErrorFilter } from './common/http/domain-error.filter';
 import { ComplianceModule } from './compliance/compliance.module';
 import { ConsentModule } from './consent/consent.module';
+import { CustomerSyncModule } from './customer-sync/customer-sync.module';
 import { EventsModule } from './events/events.module';
 import { RepositoryModule } from './persistence/repository.module';
 import { EmailModule } from './plugins/email/email.module';
@@ -43,6 +44,7 @@ import { SweeperModule } from './sweeper/sweeper.module';
     AcceptModule,
     EmailModule.forRoot(),
     SweeperModule,
+    CustomerSyncModule.forRoot(),
     AdminModule,
     EventsModule,
   ],

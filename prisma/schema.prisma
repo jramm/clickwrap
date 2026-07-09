@@ -257,6 +257,15 @@ model Customer {
   // in the escalation report as unreachable).
   contactEmails String[] @default([])
 
+  // Provenance: null/'manual' = admin/integration-created (never touched by the sync); otherwise
+  // the customer-source plugin key that owns this record. Only source-tagged customers are
+  // updated/soft-deleted by the scheduled sync (see CustomerSyncService).
+  source String?
+  // Soft-delete marker (preserves the evidence chain): set when the sync removes a source-managed
+  // customer that disappeared from the source. Excluded from the admin list/dashboard/compliance,
+  // but the detail/history stays viewable; cleared on reactivation.
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -265,6 +274,7 @@ model Customer {
   objections    Objection[]
 
   @@index([externalRef])
+  @@index([source])
 }
 
 /// Rollout state per customer x published version (domain state machine).

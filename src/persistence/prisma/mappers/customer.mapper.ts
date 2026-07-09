@@ -1,5 +1,6 @@
 import type { Customer as PrismaCustomer } from '@prisma/client';
 import type { Customer } from '../../../domain/types';
+import { nullToUndefined } from './null';
 
 /** Prisma row → domain type (createdAt/updatedAt are infrastructure-only fields). */
 export const toDomain = (row: PrismaCustomer): Customer => ({
@@ -10,6 +11,8 @@ export const toDomain = (row: PrismaCustomer): Customer => ({
   companyName: row.companyName ?? undefined,
   roles: row.roles,
   contactEmails: row.contactEmails,
+  source: nullToUndefined(row.source),
+  deletedAt: nullToUndefined(row.deletedAt),
 });
 
 /** Domain type → Prisma create/update data. */
@@ -22,6 +25,8 @@ export const toUpsertData = (
   companyName: string | null;
   roles: string[];
   contactEmails: string[];
+  source: string | null;
+  deletedAt: Date | null;
 } => ({
   externalRef: customer.externalRef,
   firstName: customer.firstName ?? '',
@@ -29,4 +34,6 @@ export const toUpsertData = (
   companyName: customer.companyName ?? null,
   roles: customer.roles,
   contactEmails: customer.contactEmails,
+  source: customer.source ?? null,
+  deletedAt: customer.deletedAt ?? null,
 });

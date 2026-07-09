@@ -18,6 +18,14 @@ export const createCustomerResponseModelSchema = z.object({
   ),
   roles: z.array(z.string()).describe('Audience keys.'),
   contactEmails: z.array(z.string()),
+  deletedAt: z.optional(
+    z
+      .string()
+      .datetime()
+      .describe(
+        'Set only on a customer that was soft-deleted by the customer sync (removed from the external source). The detail page badges it; such customers are excluded from the list and never blocking.',
+      ),
+  ),
   compliant: z.optional(
     z
       .boolean()

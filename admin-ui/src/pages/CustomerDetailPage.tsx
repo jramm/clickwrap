@@ -114,7 +114,16 @@ export function CustomerDetailPage() {
         >
           {t('customerDetail.customerId', { id })}
         </Typography>
+        {customer?.deletedAt && (
+          <Chip size="small" color="warning" variant="outlined" label={t('customerDetail.deletedBadge')} />
+        )}
       </Stack>
+
+      {customer?.deletedAt && (
+        <Typography color="warning.main" variant="body2" sx={{ mb: 2 }} data-testid="customer-deleted-notice">
+          {t('customerDetail.deletedNotice', { date: fmt(customer.deletedAt, language) })}
+        </Typography>
+      )}
 
       {isError && (
         <Typography color="error">

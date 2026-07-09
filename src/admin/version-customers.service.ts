@@ -94,6 +94,7 @@ export class VersionCustomersService {
     for (const state of relevant) {
       const customer = customersById.get(state.customerId);
       if (!customer) continue; // defensive: a state without a customer record
+      if (customer.deletedAt !== undefined) continue; // soft-deleted (sync-removed) — not applicable
       if (allowed && !allowed.includes(state.state)) continue;
       if (query.search && !matchesCustomerSearch(customer, query.search)) continue;
 

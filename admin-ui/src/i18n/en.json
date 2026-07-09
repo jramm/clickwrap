@@ -273,7 +273,9 @@
     "signer": "Signer",
     "reference": "Reference",
     "uploadedBy": "Uploaded by",
-    "backToCustomers": "Back to customers"
+    "backToCustomers": "Back to customers",
+    "deletedBadge": "Deleted (synced)",
+    "deletedNotice": "This customer was removed from the external source and soft-deleted on {{date}}. The evidence and history are preserved."
   },
   "customers": {
     "title": "Customers",
@@ -377,6 +379,7 @@
       "ACCEPTANCE_LINK_CREATED": "Acceptance link created",
       "CUSTOMER_CREATED": "Customer created",
       "CUSTOMER_UPDATED": "Customer updated",
+      "CUSTOMER_DELETED": "Customer deleted",
       "DOCUMENT_CREATED": "Document created",
       "VERSION_DRAFT_CREATED": "Draft version created",
       "VERSION_UPDATED": "Version updated",

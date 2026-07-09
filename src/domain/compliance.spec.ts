@@ -22,6 +22,18 @@ const stateFor = (entry: CurrentVersionEntry, overrides: Partial<CustomerVersion
   aState({ id: `cvs-${entry.version.id}`, versionId: entry.version.id, ...overrides });
 
 describe('computeCompliance — semantics table', () => {
+  it('soft-deleted customer → compliant with no details (a removed customer is never blocking/pending)', () => {
+    const result = computeCompliance(
+      aCustomer({ deletedAt: new Date('2026-07-08T00:00:00Z') }),
+      [dpaCustomerActive],
+      // A blocking state that WOULD make an active customer non-compliant is ignored once deleted.
+      [stateFor(dpaCustomerActive, { state: 'EXPIRED_BLOCKING' })],
+      'customer',
+    );
+    expect(result.compliant).toBe(true);
+    expect(result.details).toEqual({});
+  });
+
   it('case 1: current version accepted → compliant', () => {
     const result = computeCompliance(
       aCustomer(),

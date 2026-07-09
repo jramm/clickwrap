@@ -192,6 +192,20 @@ export interface Customer {
    * shows up in the escalation report as "unreachable".
    */
   contactEmails: string[];
+  /**
+   * Provenance of the customer record. `'manual'` (the default) for admin/integration-API-created
+   * customers — NEVER touched by the sync. Otherwise the KEY of the customer-source plugin that
+   * owns this record (see CustomerSyncService): only source-tagged customers are updated/deleted
+   * by the scheduled sync.
+   */
+  source?: string;
+  /**
+   * Soft-delete marker (preserves the evidence chain). Set when the sync removes a source-managed
+   * customer that disappeared from the source. A soft-deleted customer is excluded from the admin
+   * list, dashboards and compliance ("never blocking/pending"), but its detail/history stays
+   * viewable. Cleared on reactivation (the customer reappears in the source).
+   */
+  deletedAt?: Date;
 }
 
 export type CustomerVersionStateValue =
@@ -347,6 +361,7 @@ export type EventType =
   | 'ACCEPTANCE_LINK_CREATED'
   | 'CUSTOMER_CREATED'
   | 'CUSTOMER_UPDATED'
+  | 'CUSTOMER_DELETED'
   | 'DOCUMENT_CREATED'
   | 'VERSION_DRAFT_CREATED'
   | 'VERSION_UPDATED'

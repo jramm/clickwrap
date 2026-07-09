@@ -3012,6 +3012,12 @@
               "type": "string"
             }
           },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-07-09T14:12:03.000Z",
+            "description": "Set only on a customer that was soft-deleted by the customer sync (removed from the external source). The detail page badges it; such customers are excluded from the list and never blocking."
+          },
           "compliant": {
             "type": "boolean",
             "example": true,
@@ -3196,6 +3202,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-07-09T14:12:03.000Z",
+            "description": "Set only on a customer that was soft-deleted by the customer sync (removed from the external source). The detail page badges it; such customers are excluded from the list and never blocking."
           },
           "compliant": {
             "type": "boolean",
@@ -4556,6 +4568,7 @@
               "ACCEPTANCE_LINK_CREATED",
               "CUSTOMER_CREATED",
               "CUSTOMER_UPDATED",
+              "CUSTOMER_DELETED",
               "DOCUMENT_CREATED",
               "VERSION_DRAFT_CREATED",
               "VERSION_UPDATED",

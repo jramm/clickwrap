@@ -593,7 +593,11 @@ Every state-changing action produces exactly one event, so the log is a complete
 - `DOCUMENT_CREATED` (ADMIN) — a document (type × audience container) was created.
 - `VERSION_DRAFT_CREATED` (ADMIN) — a DRAFT version was created.
 - `VERSION_UPDATED` (ADMIN) — a DRAFT version was patched.
-- `CUSTOMER_CREATED` / `CUSTOMER_UPDATED` (ADMIN) — customer master-data changes.
+- `CUSTOMER_CREATED` / `CUSTOMER_UPDATED` (ADMIN, or **SYSTEM** for the integration API and the
+  scheduled customer sync) — customer master-data changes.
+- `CUSTOMER_DELETED` (SYSTEM) — **cron**: the customer sync soft-deleted a source-managed customer
+  that disappeared from its external source (evidence chain preserved; see the metergrid follow-up
+  note in docs/PLUGINS.md). Only source-tagged customers are ever deleted — never manual ones.
 - `SIGNED_DOCUMENT_UPLOADED` (ADMIN) — an externally-signed document was archived.
 - `ACCEPTANCE_LINK_CREATED` (ADMIN) — a hosted acceptance link was minted.
 - `DOCUMENT_TYPE_*` / `AUDIENCE_*` / `EMAIL_TEMPLATE_*` (ADMIN) — config CRUD.

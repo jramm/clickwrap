@@ -19,7 +19,7 @@ At boot the host builds a **plugin registry** from three sources (all validated 
    `devDependencies` whose own package.json carries the manifest field:
 
    ```json
-   { "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth", "key": "<slug>" } }
+   { "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "customer-source", "key": "<slug>" } }
    ```
 
 3. **`CLICKWRAP_PLUGIN_PATHS`** — comma-separated local directories (each a package with a
@@ -38,6 +38,7 @@ Rules:
   | `EMAIL_PROVIDER` | `noop` | ONE active email-provider key |
   | `FILE_STORAGE` | `memory` | ONE active file-storage key |
   | `ADMIN_AUTH` | `google-sso,static-token` | ORDERED comma list of admin-auth keys |
+  | `CUSTOMER_SOURCE` | `none` | ONE active customer-source key (`none` = sync disabled) |
 
   An unknown key fails the boot with the list of available keys.
 
@@ -186,6 +187,65 @@ copyable reference for JWT/JWKS-style auth: it verifies SuperTokens access token
 from `sub` (+ `email`). How the fronting app hands the access token back to the admin UI after the
 `SUPERTOKENS_LOGIN_URL` redirect is deployment-specific — e.g. a shared-domain setup where
 SuperTokens header-based auth exposes the access token to the UI, or a small token relay page.
+
+### `customer-source` — `CustomerSource`
+
+```ts
+interface ExternalCustomer {
+  externalRef: string;      // stable id from the source — the reconciliation key
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  contactEmails: string[];
+}
+interface CustomerSourceSnapshot {
+  customers: ExternalCustomer[];    // FULL current set of ACTIVE source customers
+  deletedExternalRefs?: string[];   // optional explicit deletions (explicit deletion wins)
+}
+interface CustomerSource { fetchAll(): Promise<CustomerSourceSnapshot>; }
+```
+
+The read side of the **scheduled customer sync** (`CustomerSyncService`, cron every 12h). The host
+fetches the full snapshot and reconciles it into clickwrap, scoped strictly to customers tagged with
+the active source key (`Customer.source`): create new (`CUSTOMER_CREATED`), update changed identity
+fields — `firstName`/`lastName`/`companyName`/`contactEmails` only, never roles (`CUSTOMER_UPDATED`),
+reactivate a soft-deleted customer that reappears (`CUSTOMER_UPDATED`), and **soft-delete** (preserve
+the evidence chain) source-managed customers that disappeared or are listed in `deletedExternalRefs`
+(`CUSTOMER_DELETED`). Manually-created (`source='manual'`) customers are never touched. The reconcile
+is idempotent (an unchanged snapshot produces zero writes/events) with per-record error isolation.
+
+Activation + config:
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `CUSTOMER_SOURCE` | `none` | ONE active customer-source key; `none` (built-in) reports an empty snapshot ⇒ sync disabled |
+| `CUSTOMER_SYNC_DEFAULT_ROLES` | *(empty)* | Comma-separated audience keys assigned to newly-created customers (empty ⇒ no roles ⇒ no rollout) |
+| `CUSTOMER_SYNC_ENABLED` | `true` | Kill switch (mirrors `SWEEPER_ENABLED`); `false` disables the cron |
+
+A real adapter is an ordinary `customer-source` plugin (`create(ctx)` returns a `CustomerSource`
+doing the HTTP + auth + field mapping), activated via `CUSTOMER_SOURCE=<its-key>`.
+
+#### `metergrid` built-in
+
+Set `CUSTOMER_SOURCE=metergrid` (plus the vars below) to enable the 12-hourly sync against the
+metergrid partner API. It authenticates with SuperTokens in cookie mode (`POST /auth/signin`,
+emailpassword recipe), then pulls the full active customer set in a single
+`POST /api/configurator/customers?skip_total_items=true` call and maps each record to an
+`ExternalCustomer` (`id`→`externalRef`, `companyName`, `contactPerson.firstName/lastName`, and the
+unique trimmed non-empty `contactPerson.email` + `email` as `contactEmails`). Deletion is by absence
+— the snapshot carries no `deletedExternalRefs`; the reconcile engine soft-deletes source-managed
+customers that disappear.
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `METERGRID_BASE_URL` | `https://api-partners.metergrid.de` | Partner API base URL |
+| `METERGRID_USERNAME` | *(required)* | Service-account e-mail — boot error if missing |
+| `METERGRID_PASSWORD` | *(required)* | Service-account password — boot error if missing; never logged |
+
+Use a **dedicated service account** rather than a personal login. The password is never included in
+any error message or log line. Reference implementation:
+`src/plugins/customer-source/metergrid/metergrid.source.ts` (+ the built-in
+`src/plugins/builtins/metergrid-customer-source.plugin.ts`).
 
 ## Local development, publishing, activating
 

@@ -48,6 +48,11 @@ export interface CreateCustomerInput {
   contactEmails: string[];
   /** Optional: versions already accepted out-of-band, recorded as IMPORT acceptances. */
   acceptedVersions?: AcceptedVersionImport[];
+  /**
+   * Provenance of the record (see {@link Customer.source}). Defaults to `'manual'` — the customer
+   * sync passes its source key so the reconcile engine can later find/update/soft-delete it.
+   */
+  source?: string;
 }
 
 /**
@@ -98,6 +103,8 @@ export interface CustomerRow {
   companyName?: string;
   roles: string[];
   contactEmails: string[];
+  /** Set only on a soft-deleted (sync-removed) customer — the detail page badges it. */
+  deletedAt?: Date;
   /** Compliance gate (domain semantics: false = blocked). Present only on list rows. */
   compliant?: boolean;
   /** Compact status for the list chip. Present only on list rows. */
@@ -174,7 +181,9 @@ export class CustomerAdminService {
    * filtered count.
    */
   async list(page?: number, search?: string, filters: CustomerListFilters = {}): Promise<CustomerListResult> {
-    const all = await this.customers.findAll();
+    // The admin LIST excludes soft-deleted customers (sync-removed): they must not reappear as
+    // active rows. The detail page (get) and history still show them (deletedAt set).
+    const all = (await this.customers.findAll()).filter((c) => c.deletedAt === undefined);
     const searched = search ? all.filter((c) => matchesCustomerSearch(c, search)) : all;
     searched.sort((a, b) => {
       const byName = customerDisplayName(a).localeCompare(customerDisplayName(b));
@@ -287,6 +296,7 @@ export class CustomerAdminService {
       companyName: input.companyName?.trim() ? input.companyName : undefined,
       roles: input.roles,
       contactEmails: input.contactEmails,
+      source: input.source?.trim() ? input.source : 'manual',
     });
 
     const importedAcceptances: ImportedAcceptance[] = [];
@@ -322,7 +332,8 @@ export class CustomerAdminService {
     await this.recorder?.record({
       type: 'CUSTOMER_CREATED',
       category: 'ADMINISTRATION',
-      actorKind: 'ADMIN',
+      // Integration-triggered onboarding (incl. the customer sync) is a SYSTEM action; admin is ADMIN.
+      actorKind: source === 'integration' ? 'SYSTEM' : 'ADMIN',
       actorLabel: actor.userId,
       customerId: saved.id,
       customerName: customerDisplayName(saved),
@@ -333,10 +344,21 @@ export class CustomerAdminService {
     return { ...toRow(saved), importedAcceptances };
   }
 
-  async update(id: string, input: UpdateCustomerInput, actor: Actor): Promise<CustomerRow> {
+  async update(
+    id: string,
+    input: UpdateCustomerInput,
+    actor: Actor,
+    source: CustomerCreateSource = 'admin',
+  ): Promise<CustomerRow> {
     const existing = await this.customers.findById(id);
     if (!existing) {
       throw new DomainError('CUSTOMER_NOT_FOUND', `Customer ${id} not found`);
+    }
+    // A soft-deleted customer must never silently reappear in the active list via a normal edit.
+    // Reactivation is exclusively the sync's job (the customer reappears in the source) — see
+    // CustomerSyncService.
+    if (existing.deletedAt !== undefined) {
+      throw new DomainError('INVALID_STATE', `Customer ${id} is deleted and cannot be modified`);
     }
     if (input.roles !== undefined) {
       await this.assertRolesKnown(input.roles);
@@ -389,7 +411,7 @@ export class CustomerAdminService {
     await this.recorder?.record({
       type: 'CUSTOMER_UPDATED',
       category: 'ADMINISTRATION',
-      actorKind: 'ADMIN',
+      actorKind: source === 'integration' ? 'SYSTEM' : 'ADMIN',
       actorLabel: actor.userId,
       customerId: updated.id,
       customerName: customerDisplayName(updated),
@@ -649,6 +671,9 @@ const toRow = (customer: Customer, compliance?: ComplianceResult): CustomerRow =
   companyName: customer.companyName?.trim() ? customer.companyName : undefined,
   roles: [...customer.roles],
   contactEmails: [...customer.contactEmails],
+  // Only present on a soft-deleted (sync-removed) customer — surfaced on the detail page so the UI
+  // can badge it. Active customers carry no deletedAt key.
+  ...(customer.deletedAt ? { deletedAt: customer.deletedAt } : {}),
   ...(compliance
     ? { compliant: compliance.compliant, complianceStatus: summarizeCompliance(compliance) }
     : {}),

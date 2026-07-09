@@ -30,6 +30,16 @@ export class CustomerRowModel {
   contactEmails!: string[];
 
   @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    example: '2026-07-09T14:12:03.000Z',
+    description:
+      'Set only on a customer that was soft-deleted by the customer sync (removed from the external ' +
+      'source). The detail page badges it; such customers are excluded from the list and never blocking.',
+  })
+  deletedAt?: string;
+
+  @ApiPropertyOptional({
     example: true,
     description:
       'Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by ' +

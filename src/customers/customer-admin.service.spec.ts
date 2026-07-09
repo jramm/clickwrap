@@ -335,6 +335,30 @@ describe('CustomerAdminService', () => {
     it('CUSTOMER_NOT_FOUND for an unknown id', async () => {
       await expect(service.get('missing')).rejects.toMatchObject({ name: 'DomainError', code: 'CUSTOMER_NOT_FOUND' });
     });
+
+    it('still returns a soft-deleted customer (with deletedAt) so its history stays viewable', async () => {
+      const deletedAt = new Date('2026-07-08T00:00:00Z');
+      await customers.save({ id: 'c-del', externalRef: 'crm-9', firstName: 'Jo', lastName: 'Doe', roles: ['customer'], contactEmails: [], source: 'metergrid', deletedAt });
+      const row = await service.get('c-del');
+      expect(row.id).toBe('c-del');
+      expect(row.deletedAt).toEqual(deletedAt);
+    });
+  });
+
+  describe('soft-delete handling', () => {
+    it('list EXCLUDES soft-deleted customers', async () => {
+      await customers.save({ id: 'c-active', externalRef: 'a', firstName: '', lastName: '', companyName: 'Active', roles: ['customer'], contactEmails: [] });
+      await customers.save({ id: 'c-deleted', externalRef: 'd', firstName: '', lastName: '', companyName: 'Deleted', roles: ['customer'], contactEmails: [], source: 'metergrid', deletedAt: new Date('2026-07-08T00:00:00Z') });
+
+      const result = await service.list();
+      expect(result.total).toBe(1);
+      expect(result.items.map((r) => r.id)).toEqual(['c-active']);
+    });
+
+    it('update() rejects a soft-deleted customer (it must not silently reappear as active)', async () => {
+      await customers.save({ id: 'c-del', externalRef: 'crm-9', firstName: 'Jo', lastName: 'Doe', roles: ['customer'], contactEmails: [], source: 'metergrid', deletedAt: new Date('2026-07-08T00:00:00Z') });
+      await expect(service.update('c-del', { firstName: 'X' }, ADMIN)).rejects.toMatchObject({ code: 'INVALID_STATE' });
+    });
   });
 
   describe('create', () => {

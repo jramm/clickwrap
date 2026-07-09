@@ -76,10 +76,16 @@ License: **Apache-2.0**.
   per-customer, non-expiring (but revocable) hosted-acceptance link so notification/reminder mails
   never go stale; only the token's hash is stored at rest. See
   [`docs/INTEGRATION.md §6a`](docs/INTEGRATION.md).
-- **Plugin architecture** — e-mail delivery, file storage and admin auth are plugins,
-  auto-discovered from installed npm packages (built-ins: `postmark`/`smtp`/`noop`,
-  `memory`/`local`, `google-sso`/`static-token`/`supertokens`) and activated explicitly via env.
-  Third parties ship their own provider as an npm package — see [`docs/PLUGINS.md`](docs/PLUGINS.md).
+- **Plugin architecture** — e-mail delivery, file storage, admin auth and the customer source are
+  plugins, auto-discovered from installed npm packages (built-ins: `postmark`/`smtp`/`noop`,
+  `memory`/`local`, `google-sso`/`static-token`/`supertokens`, `none`/`metergrid`) and activated
+  explicitly via env. Third parties ship their own provider as an npm package — see
+  [`docs/PLUGINS.md`](docs/PLUGINS.md).
+- **Scheduled customer sync** — an optional `customer-source` plugin feeds a 12-hourly reconcile
+  (`CustomerSyncService`): create/update/soft-delete source-managed customers, idempotent, evidence
+  preserved (`CUSTOMER_CREATED`/`CUSTOMER_UPDATED`/`CUSTOMER_DELETED`). The `metergrid` built-in
+  (`CUSTOMER_SOURCE=metergrid`) pulls the active customer set from the metergrid partner API; the
+  default `none` source keeps the sync disabled.
 - **Scheduled effectiveness ("publish now, effective later")** — one or more versions may be
   published with a future `validFrom` (several future revisions can be scheduled simultaneously —
   they surface as the `upcomingVersions[]` array): the rollout happens immediately, so acceptance
@@ -148,7 +154,7 @@ with a **ports-and-adapters** boundary:
 - **Ports** — repository interfaces in `src/domain/ports.ts`. Both persistence drivers implement
   the same ports; the driver is chosen at boot via `REPOSITORY_DRIVER`.
 - **Plugin SDK & registry** — `src/plugin-sdk/` defines the plugin contracts (e-mail provider,
-  file storage, admin auth); `src/plugins/registry/` discovers plugins in the installed
+  file storage, admin auth, customer source); `src/plugins/registry/` discovers plugins in the installed
   dependencies (package.json `"clickwrap"` manifest) and `CLICKWRAP_PLUGIN_PATHS`. Built-ins live
   in `src/plugins/builtins/` and use the same mechanism. Activation is explicit:
   `EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`.
@@ -243,6 +249,12 @@ All configuration is via environment variables (see [`.env.example`](.env.exampl
 | `ADMIN_SUPERTOKENS_ROLE` | `admin` | Role required in the SuperTokens `st-role` claim. |
 | `ADMIN_UI_ORIGINS` | `http://localhost:5173,http://localhost:4173` | Comma-separated CORS origins of the admin UI (vite dev + preview ports); empty = CORS off (a bootstrap warning is logged). |
 | `SWEEPER_ENABLED` | `true` | Kill switch for the background sweeper. |
+| `CUSTOMER_SOURCE` | `none` | Customer-source plugin key for the 12-hourly customer sync. Built-ins: `none` (sync disabled) \| `metergrid`. |
+| `CUSTOMER_SYNC_DEFAULT_ROLES` | – | Comma-separated audience keys assigned to newly-synced customers (empty ⇒ no roles ⇒ no rollout). |
+| `CUSTOMER_SYNC_ENABLED` | `true` | Kill switch for the customer-sync cron. |
+| `METERGRID_BASE_URL` | `https://api-partners.metergrid.de` | metergrid partner API base URL (`CUSTOMER_SOURCE=metergrid`). |
+| `METERGRID_USERNAME` | – | metergrid service-account e-mail; REQUIRED when `metergrid` is active. |
+| `METERGRID_PASSWORD` | – | metergrid service-account password; REQUIRED when `metergrid` is active (never logged). |
 | `OPENAPI_DOCS_ENABLED` | `false` | `true` = serve Swagger UIs at `/docs/admin` and `/docs/integration`. |
 
 The server, the seed script and `pnpm openapi` load `.env` automatically (dotenv).

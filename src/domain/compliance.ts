@@ -50,6 +50,8 @@ const OPEN_STATES: readonly CustomerVersionStateValue[] = ['NOTIFIED', 'EXPIRED_
  * With audience: only documents of that audience, intersected with the customer's roles.
  * Without audience: aggregation (AND) across all roles of the customer.
  * Customer without any role: compliant=true, roles: [] — never blocked by missing master data.
+ * Soft-deleted customer (deletedAt set): compliant=true, no details — a removed (sync-deleted)
+ * customer is never blocking/pending.
  */
 export const computeCompliance = (
   customer: Customer,
@@ -57,6 +59,9 @@ export const computeCompliance = (
   states: readonly CustomerVersionState[],
   audience?: string,
 ): ComplianceResult => {
+  if (customer.deletedAt !== undefined) {
+    return { customerId: customer.id, audience, roles: [...customer.roles], compliant: true, details: {} };
+  }
   const relevantAudiences = audience
     ? customer.roles.filter((role) => role === audience)
     : customer.roles;

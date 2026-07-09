@@ -30,6 +30,7 @@ export const eventModelSchema = z.object({
     'ACCEPTANCE_LINK_CREATED',
     'CUSTOMER_CREATED',
     'CUSTOMER_UPDATED',
+    'CUSTOMER_DELETED',
     'DOCUMENT_CREATED',
     'VERSION_DRAFT_CREATED',
     'VERSION_UPDATED',

@@ -43,6 +43,11 @@ export type CreateCustomerResponseModel = {
    */
   contactEmails: string[];
   /**
+   * @description Set only on a customer that was soft-deleted by the customer sync (removed from the external source). The detail page badges it; such customers are excluded from the list and never blocking.
+   * @type string | undefined, date-time
+   */
+  deletedAt?: string;
+  /**
    * @description Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params (which also narrow the list to assigned/role-matching customers).
    * @type boolean | undefined
    */

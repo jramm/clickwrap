@@ -1,10 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { DomainError } from '../common/errors';
 import type { Clock } from '../domain/clock';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
   AgreementVersionRepo,
+  CustomerRepo,
   CustomerVersionStateRepo,
 } from '../domain/ports';
 import { TOKENS } from '../persistence/tokens';
@@ -77,10 +78,14 @@ export class DashboardService {
     @Inject(TOKENS.CustomerVersionStateRepo) private readonly states: CustomerVersionStateRepo,
     @Inject(TOKENS.AcceptanceRepo) private readonly acceptances: AcceptanceRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
+    // Optional so the many direct-instantiation unit tests keep working; when absent no customer is
+    // treated as deleted (the states of soft-deleted, sync-removed customers are then still counted).
+    @Optional() @Inject(TOKENS.CustomerRepo) private readonly customers?: CustomerRepo,
   ) {}
 
   async dashboard(): Promise<DashboardResult> {
     const now = this.clock.now();
+    const deletedIds = await this.deletedCustomerIds();
     const items: VersionStats[] = [];
     for (const document of await this.documents.findAll()) {
       const relevant = [
@@ -89,7 +94,7 @@ export class DashboardService {
       ];
       for (const version of relevant) {
         if (version) {
-          items.push(await this.buildStats(version, document, now));
+          items.push(await this.buildStats(version, document, now, deletedIds));
         }
       }
     }
@@ -111,15 +116,25 @@ export class DashboardService {
     if (!document) {
       throw new DomainError('INVALID_STATE', `Document ${version.documentId} does not exist`);
     }
-    return this.buildStats(version, document, this.clock.now());
+    return this.buildStats(version, document, this.clock.now(), await this.deletedCustomerIds());
+  }
+
+  /** Ids of soft-deleted (sync-removed) customers — their states never count towards a version's stats. */
+  private async deletedCustomerIds(): Promise<Set<string>> {
+    if (!this.customers) {
+      return new Set();
+    }
+    const all = await this.customers.findAll();
+    return new Set(all.filter((c) => c.deletedAt !== undefined).map((c) => c.id));
   }
 
   private async buildStats(
     version: AgreementVersion,
     document: AgreementDocument,
     now: Date,
+    deletedIds: Set<string>,
   ): Promise<VersionStats> {
-    const stats = await this.computeStats(version.id);
+    const stats = await this.computeStats(version.id, deletedIds);
     return {
       versionId: version.id,
       documentName: document.name,
@@ -133,8 +148,10 @@ export class DashboardService {
     };
   }
 
-  private async computeStats(versionId: string): Promise<VersionAcceptanceStats> {
-    const relevant = (await this.states.findByVersion(versionId)).filter((s) => s.state !== 'SUPERSEDED');
+  private async computeStats(versionId: string, deletedIds: Set<string>): Promise<VersionAcceptanceStats> {
+    const relevant = (await this.states.findByVersion(versionId)).filter(
+      (s) => s.state !== 'SUPERSEDED' && !deletedIds.has(s.customerId),
+    );
     const acceptedCustomerIds = new Set(
       relevant.filter((s) => s.state === 'ACCEPTED').map((s) => s.customerId),
     );
