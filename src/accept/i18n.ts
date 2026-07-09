@@ -22,6 +22,8 @@ export interface AcceptPageStrings {
   upcomingValidFrom: string;
   blockingWarning: string;
   passiveInfo: string;
+  /** Button on a PASSIVE item to opt in early, before the objection deadline (no consent checkbox). */
+  passiveAcceptButton: string;
   acceptButton: string;
   acceptedBadge: string;
   allDoneTitle: string;
@@ -56,6 +58,7 @@ export const ACCEPT_PAGE_STRINGS: Record<AcceptPageLang, AcceptPageStrings> = {
     blockingWarning: 'Access is currently blocked until this document is accepted.',
     passiveInfo:
       'This document takes effect automatically unless an objection is raised before the deadline. No action is required here.',
+    passiveAcceptButton: 'Accept now',
     acceptButton: 'I agree — accept',
     acceptedBadge: 'Accepted — thank you!',
     allDoneTitle: 'Everything is accepted',
@@ -89,6 +92,7 @@ export const ACCEPT_PAGE_STRINGS: Record<AcceptPageLang, AcceptPageStrings> = {
     blockingWarning: 'Der Zugang ist derzeit gesperrt, bis dieses Dokument akzeptiert wurde.',
     passiveInfo:
       'Dieses Dokument tritt automatisch in Kraft, sofern nicht vor Ablauf der Frist widersprochen wird. Hier ist keine Aktion erforderlich.',
+    passiveAcceptButton: 'Jetzt akzeptieren',
     acceptButton: 'Ich stimme zu — akzeptieren',
     acceptedBadge: 'Akzeptiert — vielen Dank!',
     allDoneTitle: 'Alles akzeptiert',

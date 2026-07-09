@@ -8,7 +8,9 @@ import { z, ZodSchema } from 'zod';
 export const acceptanceBodySchema = z
   .object({
     versionId: z.string().min(1),
-    displayedConsentText: z.string(),
+    // Optional: required for ACTIVE versions (consent-text cross-check), omitted for a PASSIVE
+    // early acceptance. The ACTIVE requirement is enforced in AcceptanceService, not by the schema.
+    displayedConsentText: z.string().optional(),
   })
   .strict();
 export type AcceptanceBody = z.infer<typeof acceptanceBodySchema>;

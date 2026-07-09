@@ -38,7 +38,12 @@ export type InteractiveAcceptanceChannel = 'PORTAL' | 'LINK';
 export interface AcceptanceInput {
   customerId: string;
   versionId: string;
-  displayedConsentText: string;
+  /**
+   * The consent text as displayed — REQUIRED for ACTIVE versions (cross-checked against the
+   * server-side text, CONSENT_TEXT_MISMATCH). Omitted for a PASSIVE early acceptance, which has no
+   * consent checkbox; the requirement is enforced here in the service, not only in the DTO schema.
+   */
+  displayedConsentText?: string;
   idempotencyKey: string;
   context: CustomerContext;
   /** Default PORTAL (popup); LINK = hosted acceptance page. */
@@ -46,6 +51,13 @@ export interface AcceptanceInput {
   /** LINK only: marks the self-declared identity ("identity self-declared via acceptance link …"). */
   evidenceNote?: string;
 }
+
+/**
+ * Evidence affirmation recorded for a PASSIVE version accepted actively BEFORE its objection
+ * deadline. A PASSIVE acceptance has no checkbox consent text, so this fixed note documents the
+ * deliberate early opt-in in the evidence chain.
+ */
+const PASSIVE_EARLY_AFFIRMATION = 'Actively accepted before the objection deadline';
 
 export interface AcceptanceResponse {
   acceptanceId: string;
@@ -114,7 +126,15 @@ export class AcceptanceService {
     }
     assertCustomerHasRole(customer, document.audience);
 
-    assertDisplayedConsentTextMatches(version, input.displayedConsentText);
+    // Consent-text cross-check is ACTIVE-only: an ACTIVE version has a checkbox consent text that
+    // must match verbatim; a PASSIVE version has none, so an early active acceptance omits it.
+    const requiresConsentText = version.acceptanceMode === 'ACTIVE';
+    if (requiresConsentText) {
+      if (input.displayedConsentText === undefined) {
+        throw new DomainError('CONSENT_TEXT_REQUIRED', `Version ${version.id} requires the displayed consent text`);
+      }
+      assertDisplayedConsentTextMatches(version, input.displayedConsentText);
+    }
     const channel = input.channel ?? 'PORTAL';
     assertMethodChannelAllowed('ACTIVE_CONSENT', channel);
 
@@ -154,12 +174,15 @@ export class AcceptanceService {
       acceptedAt: this.clock.now(),
       actor: input.context.actor,
       isEffective: true,
-      consentText: version.consentText,
-      consentTextHash: consentTextHashFor(version),
+      // PASSIVE early acceptance: no consent text/hash; a fixed affirmation goes to the evidence note.
+      consentText: requiresConsentText ? version.consentText : undefined,
+      consentTextHash: requiresConsentText ? consentTextHashFor(version) : undefined,
       contentHash: version.contentHash,
       ipAddress: input.context.ipAddress,
       userAgent: input.context.userAgent,
-      evidenceNote: input.evidenceNote,
+      evidenceNote: requiresConsentText
+        ? input.evidenceNote
+        : [input.evidenceNote, PASSIVE_EARLY_AFFIRMATION].filter(Boolean).join(' — '),
     };
     // TODO(prisma): the acceptance append + state transition run as two separate writes here —
     // in REPOSITORY_DRIVER=prisma mode they are not wrapped in ONE transaction (no cross-repo

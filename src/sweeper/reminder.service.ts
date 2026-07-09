@@ -15,6 +15,11 @@ const REMINDER_THRESHOLDS_DAYS: readonly number[] = [7, 2];
  * case — the customer was never accessed but the deadline still applies, so we remind toward it.
  * (PASSIVE never-accessed PENDING states carry no deadlineAt and never become candidates.)
  *
+ * Reminders are ACTIVE-ONLY: a PASSIVE version's objection period runs silently (no action is
+ * required from the customer — tacit consent), so we never nag toward a PASSIVE deadline. A PASSIVE
+ * candidate that slips through the repo filter (e.g. a NOTIFIED PASSIVE state carrying a deadlineAt)
+ * is skipped in {@link remindOne} by its `version.acceptanceMode`.
+ *
  * Idempotency decision: `remindersSent` counts how many of the (ascending-sorted) thresholds have
  * already been sent — index `remindersSent` is always the next still-open threshold. This is the
  * simplest correct approach with the existing field: an additional `lastReminderAt` would be
@@ -45,6 +50,10 @@ export class ReminderService {
 
   private async remindOne(candidate: ReminderCandidate, now: Date): Promise<void> {
     const { state, customer, version, recipient } = candidate;
+    // Reminders are ACTIVE-only — a PASSIVE version's objection period is silent (tacit consent).
+    if (version.acceptanceMode === 'PASSIVE') {
+      return;
+    }
     if (state.deadlineAt === undefined) {
       return;
     }

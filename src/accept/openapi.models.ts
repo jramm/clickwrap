@@ -35,11 +35,13 @@ export class LinkAcceptanceBodyModel {
   @ApiProperty({ example: 'v-9' })
   versionId!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'I have read the new revision and agree.',
-    description: 'Exact consent text as displayed — cross-checked server-side (CONSENT_TEXT_MISMATCH).',
+    description:
+      'Exact consent text as displayed — cross-checked server-side (CONSENT_TEXT_MISMATCH). ' +
+      'Required for ACTIVE versions; omitted for a PASSIVE early acceptance (no consent checkbox).',
   })
-  displayedConsentText!: string;
+  displayedConsentText?: string;
 
   @ApiProperty({ example: 'Max Mustermann', description: 'Self-declared signer name (typed by the recipient).' })
   signerName!: string;

@@ -11,6 +11,7 @@ import {
   anActiveVersion,
   anAudience,
   aState,
+  aVersion,
 } from '../domain/testing/fixtures';
 import { PDF_URL_PROVIDER } from '../compliance/ports/pdf-url-provider';
 import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider';
@@ -173,6 +174,23 @@ describe('AcceptPageController (HTTP)', () => {
         userAgent: 'Mobile Safari test',
       });
       expect(acceptance?.ipAddress).toBeTruthy();
+    });
+
+    it('201: accepts a PASSIVE version early with NO displayedConsentText (self-declared signer, no consent text)', async () => {
+      // Overwrite v-1 with a PASSIVE version (default aVersion() is PASSIVE).
+      await versions.save(aVersion({ id: 'v-1' }));
+      await seedLink();
+
+      const res = await request(app.getHttpServer())
+        .post(`/accept/${TOKEN}/acceptances`)
+        .send({ versionId: 'v-1', signerName: 'Max Mustermann', signerEmail: 'max@acme.example' })
+        .expect(201);
+
+      expect(res.body).toMatchObject({ state: 'ACCEPTED' });
+      const acceptance = await acceptances.findEffective('c-123', 'v-1');
+      expect(acceptance).toMatchObject({ method: 'ACTIVE_CONSENT', channel: 'LINK' });
+      expect(acceptance?.consentText).toBeUndefined();
+      expect(acceptance?.evidenceNote).toContain('Actively accepted before the objection deadline');
     });
 
     it('400 on missing signer fields (strict schema)', async () => {

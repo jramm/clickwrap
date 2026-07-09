@@ -1,7 +1,7 @@
 import { FixedClock } from '../domain/clock';
 import { defaultEmailTemplates } from '../domain/email-template';
 import type { CustomerVersionStateRepo } from '../domain/ports';
-import { aCustomer, aDocument, aState, aVersion } from '../domain/testing/fixtures';
+import { aCustomer, aDocument, anActiveVersion, aState, aVersion } from '../domain/testing/fixtures';
 import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types';
 import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo';
 import {
@@ -25,7 +25,8 @@ import { ReminderService } from './reminder.service';
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const T0 = new Date('2026-07-07T09:00:00Z');
 const CUSTOMER = aCustomer();
-const VERSION = aVersion({ id: 'v-1' });
+// Reminders are ACTIVE-only, so the reminded candidate carries an ACTIVE version.
+const VERSION = anActiveVersion({ id: 'v-1' });
 const RECIPIENT = 'max@customer.example';
 
 /** Fake: reads the state live from the CustomerVersionStateRepo — reflects that a reminder run sees
@@ -278,6 +279,23 @@ describe('ReminderService', () => {
 
     expect(mailer.calls).toHaveLength(0);
     const state = await stateRepo.findById('cvs-1');
+    expect(state?.remindersSent).toBe(0);
+  });
+
+  it('does NOT remind a PASSIVE NOTIFIED state within the 7/2-day window (reminders are ACTIVE-only)', async () => {
+    const stateRepo = new InMemoryCustomerVersionStateRepo();
+    const deadlineAt = new Date(T0.getTime() + 2 * MS_PER_DAY);
+    await stateRepo.save(aState({ id: 'cvs-1', state: 'NOTIFIED', notifiedAt: T0, deadlineAt, remindersSent: 0 }));
+    const passiveVersion = aVersion({ id: 'v-1' }); // acceptanceMode PASSIVE
+    const candidateRepo = new FakeReminderCandidateRepo(stateRepo, 'cvs-1', CUSTOMER, passiveVersion, RECIPIENT);
+    const mailer = new FakeReminderMailer();
+    const service = new ReminderService(candidateRepo, mailer, stateRepo, new FixedClock(T0));
+
+    await service.run();
+
+    expect(mailer.calls).toHaveLength(0);
+    const state = await stateRepo.findById('cvs-1');
+    expect(state?.state).toBe('NOTIFIED'); // untouched
     expect(state?.remindersSent).toBe(0);
   });
 

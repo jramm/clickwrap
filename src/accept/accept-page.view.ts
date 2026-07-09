@@ -87,14 +87,25 @@ const renderItem = (item: AcceptPageItem, s: AcceptPageStrings, lang: AcceptPage
     : '';
   const blocking = item.blocking ? `<div class="warning">${escapeHtml(s.blockingWarning)}</div>` : '';
   const active = item.mode === 'ACTIVE' && item.consentText !== undefined;
-  const action = active
-    ? `<div class="consent">
+  const messageEl = `<p class="msg-error" data-message hidden></p>`;
+  let action: string;
+  if (active) {
+    // ACTIVE: consent checkbox (verbatim text) + accept button.
+    action = `<div class="consent">
         <input type="checkbox" id="consent-${escapeHtml(item.versionId)}" data-consent-checkbox>
         <label for="consent-${escapeHtml(item.versionId)}">${escapeHtml(item.consentText ?? '')}</label>
       </div>
       <button type="button" data-accept-button>${escapeHtml(s.acceptButton)}</button>
-      <p class="msg-error" data-message hidden></p>`
-    : `<div class="info">${escapeHtml(s.passiveInfo)}</div>`;
+      ${messageEl}`;
+  } else if (item.mode === 'PASSIVE') {
+    // PASSIVE: takes effect automatically, but may be opted into early — a button, NO checkbox and
+    // NO consent text (the acceptance POST omits displayedConsentText for PASSIVE items).
+    action = `<div class="info">${escapeHtml(s.passiveInfo)}</div>
+      <button type="button" data-accept-button>${escapeHtml(s.passiveAcceptButton)}</button>
+      ${messageEl}`;
+  } else {
+    action = `<div class="info">${escapeHtml(s.passiveInfo)}</div>`;
+  }
   return `<section class="card" data-accept-card data-version-id="${escapeHtml(item.versionId)}">
     <h2>${escapeHtml(item.documentName)}</h2>
     <p class="meta">${escapeHtml(s.versionLabel)}: ${escapeHtml(item.versionLabel)}${deadline}</p>
@@ -147,7 +158,8 @@ const PAGE_SCRIPT = `
       var signerEmail = (emailInput.value || '').trim();
       if (!signerName || !signerEmail) return showError(data.strings.errorMissingSigner);
       if (!emailPattern.test(signerEmail)) return showError(data.strings.errorInvalidEmail);
-      if (!checkbox.checked) return showError(data.strings.errorConsentRequired);
+      // PASSIVE items have no consent checkbox — the checkbox-required check only applies when one exists.
+      if (checkbox && !checkbox.checked) return showError(data.strings.errorConsentRequired);
 
       button.disabled = true;
       var idempotencyKey = (window.crypto && crypto.randomUUID)
@@ -197,14 +209,18 @@ export const renderAcceptPage = (view: AcceptPageView, lang: AcceptPageLang): st
     );
   }
 
-  const hasActiveItems = view.items.some((item) => item.mode === 'ACTIVE' && item.consentText !== undefined);
+  // Any acceptable item (an ACTIVE one with consent text, or a PASSIVE one that can be opted into
+  // early) needs the self-declared signer block for the POST.
+  const hasAcceptableItems = view.items.some(
+    (item) => (item.mode === 'ACTIVE' && item.consentText !== undefined) || item.mode === 'PASSIVE',
+  );
   // Prefill (convenience only — the recorded identity stays self-declared and editable).
   const prefillName = `${view.firstName} ${view.lastName}`.trim();
   const companyContext =
     view.companyName.trim() !== ''
       ? `<p class="muted">${escapeHtml(s.companyContext.replace('{company}', view.companyName))}</p>`
       : '';
-  const signerBlock = hasActiveItems
+  const signerBlock = hasAcceptableItems
     ? `<section class="card">
         ${companyContext}
         <label class="field"><span>${escapeHtml(s.signerName)}</span>

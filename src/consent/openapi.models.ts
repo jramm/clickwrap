@@ -8,11 +8,13 @@ export class AcceptanceBodyModel {
   @ApiProperty({ example: 'v-9' })
   versionId!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'I have read the new revision and agree.',
-    description: 'Cross-check only — the evidence uses the server-side versioned consentText.',
+    description:
+      'Cross-check only — the evidence uses the server-side versioned consentText. Required for ' +
+      'ACTIVE versions; omitted for a PASSIVE early acceptance.',
   })
-  displayedConsentText!: string;
+  displayedConsentText?: string;
 }
 
 export class AcceptanceResponseModel {

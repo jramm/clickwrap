@@ -1241,12 +1241,11 @@
           "displayedConsentText": {
             "type": "string",
             "example": "I have read the new revision and agree.",
-            "description": "Cross-check only — the evidence uses the server-side versioned consentText."
+            "description": "Cross-check only — the evidence uses the server-side versioned consentText. Required for ACTIVE versions; omitted for a PASSIVE early acceptance."
           }
         },
         "required": [
-          "versionId",
-          "displayedConsentText"
+          "versionId"
         ]
       },
       "AcceptanceResponseModel": {
@@ -1778,7 +1777,7 @@
           "displayedConsentText": {
             "type": "string",
             "example": "I have read the new revision and agree.",
-            "description": "Exact consent text as displayed — cross-checked server-side (CONSENT_TEXT_MISMATCH)."
+            "description": "Exact consent text as displayed — cross-checked server-side (CONSENT_TEXT_MISMATCH). Required for ACTIVE versions; omitted for a PASSIVE early acceptance (no consent checkbox)."
           },
           "signerName": {
             "type": "string",
@@ -1793,7 +1792,6 @@
         },
         "required": [
           "versionId",
-          "displayedConsentText",
           "signerName",
           "signerEmail"
         ]

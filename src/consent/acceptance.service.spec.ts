@@ -5,6 +5,7 @@ import {
   aDocument,
   anActiveVersion,
   aState,
+  aVersion,
   testActor,
 } from '../domain/testing/fixtures';
 import type { AgreementVersion } from '../domain/types';
@@ -289,6 +290,71 @@ describe('AcceptanceService', () => {
     await expect(
       service.accept(acceptInput({ displayedConsentText: 'different text' })),
     ).rejects.toMatchObject({ code: 'CONSENT_TEXT_MISMATCH' });
+  });
+
+  it('ACTIVE version still requires the displayed consent text — omitting it throws CONSENT_TEXT_REQUIRED', async () => {
+    await seedVersion();
+
+    await expect(
+      service.accept(acceptInput({ displayedConsentText: undefined })),
+    ).rejects.toMatchObject({ code: 'CONSENT_TEXT_REQUIRED' });
+  });
+
+  describe('PASSIVE early active acceptance (before the objection deadline)', () => {
+    // Default aVersion() is PASSIVE (acceptanceMode PASSIVE, no consentText).
+    const seedPassiveVersion = async () => versions.save(aVersion({ id: 'v-1' }));
+
+    it('accepts with no consentText, records method ACTIVE_CONSENT + the fixed affirmation, no CONSENT_TEXT_REQUIRED', async () => {
+      await seedPassiveVersion();
+      await states.save(aState({ state: 'NOTIFIED', notifiedAt: NOW }));
+
+      const response = await service.accept(acceptInput({ displayedConsentText: undefined }));
+
+      expect(response.state).toBe('ACCEPTED');
+      const acceptance = await acceptances.findEffective('c-123', 'v-1');
+      expect(acceptance).toMatchObject({
+        method: 'ACTIVE_CONSENT',
+        channel: 'PORTAL',
+        evidenceNote: 'Actively accepted before the objection deadline',
+      });
+      expect(acceptance?.consentText).toBeUndefined();
+      expect(acceptance?.consentTextHash).toBeUndefined();
+    });
+
+    it('via LINK: keeps the self-declared evidence note AND appends the affirmation', async () => {
+      await seedPassiveVersion();
+      await states.save(aState({ state: 'NOTIFIED', notifiedAt: NOW }));
+
+      await service.accept(
+        acceptInput({
+          displayedConsentText: undefined,
+          channel: 'LINK',
+          evidenceNote: 'identity self-declared via acceptance link al-1',
+        }),
+      );
+
+      const acceptance = await acceptances.findEffective('c-123', 'v-1');
+      expect(acceptance?.evidenceNote).toBe(
+        'identity self-declared via acceptance link al-1 — Actively accepted before the objection deadline',
+      );
+    });
+
+    it('still fires VERSION_ACCEPTED (CONSENT / CUSTOMER)', async () => {
+      await seedPassiveVersion();
+      await states.save(aState({ state: 'NOTIFIED', notifiedAt: NOW }));
+
+      await service.accept(acceptInput({ displayedConsentText: undefined }));
+
+      const { items } = await events.query({});
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        type: 'VERSION_ACCEPTED',
+        category: 'CONSENT',
+        actorKind: 'CUSTOMER',
+        channel: 'PORTAL',
+        versionId: 'v-1',
+      });
+    });
   });
 
   it('CUSTOMER_NOT_FOUND for an unknown customer', async () => {

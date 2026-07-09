@@ -10,7 +10,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const linkAcceptanceBodySchema = z
   .object({
     versionId: z.string().min(1),
-    displayedConsentText: z.string(),
+    // Optional: ACTIVE versions echo the displayed consent text (cross-checked server-side); a
+    // PASSIVE early acceptance has no consent checkbox and omits it. The ACTIVE requirement is
+    // enforced in AcceptanceService, not by the schema.
+    displayedConsentText: z.string().optional(),
     signerName: z.string().trim().min(1),
     signerEmail: z.string().trim().regex(EMAIL_PATTERN, 'invalid e-mail address'),
   })

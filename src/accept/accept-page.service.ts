@@ -70,7 +70,8 @@ export interface AcceptPageView {
 
 export interface LinkAcceptanceRequest {
   versionId: string;
-  displayedConsentText: string;
+  /** ACTIVE only — a PASSIVE early acceptance has no consent checkbox and omits it. */
+  displayedConsentText?: string;
   signerName: string;
   signerEmail: string;
   ipAddress?: string;

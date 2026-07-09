@@ -96,13 +96,26 @@ describe('renderAcceptPage', () => {
     expect(html).toContain('\\u003c/script> inside.');
   });
 
-  it('PASSIVE items are informational: no checkbox/button, deadline shown', () => {
+  it('PASSIVE items render an accept button (no checkbox, no consent text) and keep the info + deadline', () => {
     const html = renderAcceptPage(aView({ items: [anItem({ mode: 'PASSIVE', consentText: undefined })] }), 'en');
-    expect(html).not.toContain('<button');
-    expect(html).not.toContain('type="checkbox"');
-    expect(html).not.toContain('id="signer-name"'); // no ACTIVE item → no signer block
+    expect(html).toContain('data-accept-button');
+    expect(html).toContain('Accept now');
+    expect(html).not.toContain('type="checkbox"'); // no consent checkbox rendered for PASSIVE
     expect(html).toContain('takes effect automatically');
     expect(html).toContain('2026-07-22');
+  });
+
+  it('a PASSIVE-only view still shows the signer block (needed for the early-acceptance POST)', () => {
+    const html = renderAcceptPage(aView({ items: [anItem({ mode: 'PASSIVE', consentText: undefined })] }), 'en');
+    expect(html).toContain('id="signer-name"');
+    expect(html).toContain('id="signer-email"');
+    // No consent text is embedded for a PASSIVE item.
+    expect(html).toContain('"consentTexts":{}');
+  });
+
+  it('renders the German PASSIVE accept button label', () => {
+    const html = renderAcceptPage(aView({ items: [anItem({ mode: 'PASSIVE', consentText: undefined })] }), 'de');
+    expect(html).toContain('Jetzt akzeptieren');
   });
 
   it('blocking items carry the block warning', () => {
