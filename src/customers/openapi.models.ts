@@ -33,7 +33,8 @@ export class CustomerRowModel {
     example: true,
     description:
       'Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by ' +
-      'the audience/documentType query params.',
+      'the audience/documentType query params (which also narrow the list to assigned/role-matching ' +
+      'customers).',
   })
   compliant?: boolean;
 

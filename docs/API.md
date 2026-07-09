@@ -269,9 +269,19 @@ Customer administration (also see the integration variant `POST /customers`, §5
   outstanding status for the list chip) — computed via the domain `computeCompliance` over the
   customer's states and the current published versions. The three filters that the removed global
   Overview page offered now live here and **fully replace** it:
-  - `documentType` (type key) / `audience` (audience key) **scope the compliance evaluation** (and
-    thus the indicator) to that document type / that audience's documents and the customer's matching
-    role. An unknown key simply narrows the evaluation to nothing (→ `compliant`, no outstanding docs).
+  - `documentType` (type key) / `audience` (audience key) **narrow the returned rows** to customers
+    who actually have a matching document/role assigned — and additionally scope the per-row
+    compliance indicator to that type / audience. "Assigned" means the customer's role matches a
+    document's audience:
+    - `audience=A` keeps only customers whose `roles` include `A` (role-based — a document need not
+      exist for that audience).
+    - `documentType=T` keeps only customers with a type-`T` document assigned (∃ document of type `T`
+      whose audience is one of the customer's roles). A customer whose roles match no type-`T`
+      document is excluded.
+    - both → the intersection (role `A` present **and** a type-`T` document with audience `A` exists).
+    An unknown `documentType`/`audience` matches nothing, so the list is empty (lenient — no error).
+    Narrowing runs **before** the compliance filter and pagination, so `total` reflects the narrowed
+    count.
   - `compliance` — one of `compliant | non_compliant | pending | blocked | objected` — additionally
     keeps only the customers whose (scoped) compliance matches: `non_compliant` = the gate is closed
     (blocking, incl. block carry-over); `blocked` = a hard `EXPIRED_BLOCKING` state; `pending` = an

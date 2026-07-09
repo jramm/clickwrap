@@ -99,8 +99,10 @@ tappable **card lists** instead of the desktop DataGrid; and all dialogs go
   contact e-mails, **compliance chip**) with pagination (`GET /admin/customers`)
   and a filter bar next to the search: **document type**, **audience** and
   **compliance status** (`compliant | non_compliant | pending | blocked | objected`)
-  — the three filters the removed global Overview page offered, now folded in here;
-  they scope the per-row compliance indicator and filter the rows. **New customer**
+  — the three filters the removed global Overview page offered, now folded in here.
+  Document type and audience **narrow the list** to customers who actually have a
+  matching document/role assigned (and scope the per-row indicator); compliance
+  status filters the rows. **New customer**
   (`POST /admin/customers`) with `firstName`/`lastName` + optional `companyName`,
   roles (from `GET /admin/audiences`), contact e-mail chips and a signed-offer
   **"already accepted documents"** section (`acceptedVersions` IMPORT); **Edit**

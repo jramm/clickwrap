@@ -28,11 +28,15 @@ export const adminControllerListCustomersQueryParamsSchema = z
       z
         .string()
         .describe(
-          'Audience key — scopes the compliance evaluation to that audience / matching role.',
+          'Audience key — NARROWS the list to customers whose roles include this audience (and scopes the per-row compliance indicator to that audience). Unknown key → empty list.',
         ),
     ),
     documentType: z.optional(
-      z.string().describe('Document type key — scopes the compliance evaluation to that type.'),
+      z
+        .string()
+        .describe(
+          "Document type key — NARROWS the list to customers who have a document of this type assigned (a document whose audience matches one of the customer's roles) and scopes the per-row compliance indicator to that type. Unknown key → empty list.",
+        ),
     ),
     compliance: z.optional(
       z

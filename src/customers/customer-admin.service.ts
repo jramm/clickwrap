@@ -15,7 +15,7 @@ import type {
   CustomerRepo,
   CustomerVersionStateRepo,
 } from '../domain/ports';
-import type { AgreementVersion, Customer, CustomerVersionStateValue } from '../domain/types';
+import type { AgreementDocument, AgreementVersion, Customer, CustomerVersionStateValue } from '../domain/types';
 import { TOKENS } from '../persistence/tokens';
 import { matchesCustomerSearch } from './customer-search';
 
@@ -69,10 +69,12 @@ export type ComplianceFilter = 'compliant' | 'non_compliant' | 'pending' | 'bloc
 export type CustomerComplianceStatus = 'compliant' | 'pending' | 'objected' | 'blocked';
 
 /**
- * Optional compliance-scoping filters for the customer list. `audience`/`documentType` restrict the
- * compliance evaluation (and thus the per-row indicator) to that audience's documents / that type;
- * an unknown key simply narrows the evaluation to nothing (→ `compliant`, no outstanding docs).
- * `compliance` additionally filters the rows to customers matching that status.
+ * Optional filters for the customer list. `audience`/`documentType` do TWO things: they NARROW the
+ * returned rows to customers who actually have a matching document/role assigned (see
+ * {@link CustomerAdminService.matchesAssignment}) AND they scope the per-row compliance evaluation
+ * (and thus the indicator) to that audience's documents / that type. An unknown key matches no
+ * document/role, so the list is empty (lenient — no error). `compliance` additionally filters the
+ * (narrowed) rows to customers matching that status.
  */
 export interface CustomerListFilters {
   audience?: string;
@@ -159,7 +161,8 @@ export class CustomerAdminService {
    * domain {@link computeCompliance} over the customer's states + the current published versions,
    * optionally scoped by `filters.documentType`/`filters.audience`). When `filters.compliance` is
    * set the rows are additionally filtered to customers matching that status. In all cases the
-   * search + compliance filter run BEFORE pagination, so `total` reflects the filtered count.
+   * search + row narrowing + compliance filter run BEFORE pagination, so `total` reflects the
+   * filtered count.
    */
   async list(page?: number, search?: string, filters: CustomerListFilters = {}): Promise<CustomerListResult> {
     const all = await this.customers.findAll();
@@ -169,14 +172,21 @@ export class CustomerAdminService {
       return byName !== 0 ? byName : a.externalRef.localeCompare(b.externalRef);
     });
 
-    const scopedEntries = await this.scopedCurrentVersions(filters.documentType);
+    // Fetch documents ONCE and reuse them for both the row-narrowing predicate and the scoped
+    // current-version lookup (compliance chip) to avoid a double findAll().
+    const documents = await this.documents.findAll();
+    // Row narrowing by audience/documentType — applied to the searched set BEFORE the compliance
+    // filter and pagination, so `total` reflects the narrowed count.
+    const narrowed = searched.filter((c) => matchesAssignment(c, documents, filters));
+
+    const scopedEntries = await this.scopedCurrentVersions(documents, filters.documentType);
     const p = page && page > 0 ? page : 1;
 
     if (filters.compliance) {
-      // Filter-first: compute compliance for the whole searched set, keep the matching rows, then
+      // Filter-first: compute compliance for the whole narrowed set, keep the matching rows, then
       // paginate — `total` must reflect the compliance-filtered count.
       const matched: CustomerRow[] = [];
-      for (const customer of searched) {
+      for (const customer of narrowed) {
         const compliance = await this.evaluateCompliance(customer, scopedEntries, filters.audience);
         if (this.matchesCompliance(filters.compliance, compliance)) {
           matched.push(toRow(customer, compliance));
@@ -186,8 +196,8 @@ export class CustomerAdminService {
     }
 
     // No compliance filter: paginate first, then attach the indicator only to the page rows.
-    const total = searched.length;
-    const pageCustomers = searched.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE);
+    const total = narrowed.length;
+    const pageCustomers = narrowed.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE);
     const items: CustomerRow[] = [];
     for (const customer of pageCustomers) {
       const compliance = await this.evaluateCompliance(customer, scopedEntries, filters.audience);
@@ -197,10 +207,13 @@ export class CustomerAdminService {
   }
 
   /** Current published version per document, optionally narrowed to a single document type. */
-  private async scopedCurrentVersions(documentType?: string): Promise<CurrentVersionEntry[]> {
+  private async scopedCurrentVersions(
+    documents: AgreementDocument[],
+    documentType?: string,
+  ): Promise<CurrentVersionEntry[]> {
     const now = this.clock.now();
     const entries: CurrentVersionEntry[] = [];
-    for (const document of await this.documents.findAll()) {
+    for (const document of documents) {
       if (documentType && document.type !== documentType) {
         continue;
       }
@@ -515,6 +528,42 @@ export class CustomerAdminService {
     return { versionId: item.version.id, acceptanceId: saved.id };
   }
 }
+
+/**
+ * Row-narrowing predicate for the customer list. "Assigned" means the customer's role matches a
+ * document's audience (a document is `{type, audience, name}`; a customer's `roles` are audience
+ * keys — see `computeCompliance`). Applied BEFORE the compliance filter and pagination.
+ *
+ * - Neither `audience` nor `documentType` set → no narrowing (keep the customer).
+ * - `audience=A` → keep only customers whose `roles` include `A` (role-based; a document need NOT
+ *   exist for that audience — the admin's explicit choice).
+ * - `documentType=T` → keep only customers who have a document of type `T` assigned: ∃ document `D`
+ *   with `D.type === T` and `D.audience ∈ roles`.
+ * - Both → intersection: role `A` present AND ∃ type-`T` document whose audience is `A`.
+ *
+ * An unknown documentType/audience matches no document/role, so the customer is dropped (lenient).
+ */
+const matchesAssignment = (
+  customer: Customer,
+  documents: readonly AgreementDocument[],
+  { audience, documentType }: CustomerListFilters,
+): boolean => {
+  if (audience && !customer.roles.includes(audience)) {
+    return false;
+  }
+  if (documentType) {
+    const hasAssignedDoc = documents.some(
+      (d) =>
+        d.type === documentType &&
+        customer.roles.includes(d.audience) &&
+        (!audience || d.audience === audience),
+    );
+    if (!hasAssignedDoc) {
+      return false;
+    }
+  }
+  return true;
+};
 
 const toRow = (customer: Customer, compliance?: ComplianceResult): CustomerRow => ({
   id: customer.id,

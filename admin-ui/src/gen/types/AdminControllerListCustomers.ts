@@ -21,12 +21,12 @@ export type AdminControllerListCustomersQueryParams = {
    */
   search?: string;
   /**
-   * @description Audience key — scopes the compliance evaluation to that audience / matching role.
+   * @description Audience key — NARROWS the list to customers whose roles include this audience (and scopes the per-row compliance indicator to that audience). Unknown key → empty list.
    * @type string | undefined
    */
   audience?: string;
   /**
-   * @description Document type key — scopes the compliance evaluation to that type.
+   * @description Document type key — NARROWS the list to customers who have a document of this type assigned (a document whose audience matches one of the customer\'s roles) and scopes the per-row compliance indicator to that type. Unknown key → empty list.
    * @type string | undefined
    */
   documentType?: string;

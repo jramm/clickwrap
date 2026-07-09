@@ -43,7 +43,7 @@ export type CreateCustomerResponseModel = {
    */
   contactEmails: string[];
   /**
-   * @description Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params.
+   * @description Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params (which also narrow the list to assigned/role-matching customers).
    * @type boolean | undefined
    */
   compliant?: boolean;

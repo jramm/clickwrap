@@ -28,7 +28,7 @@ export type AdminControllerListCustomersQueryKey = ReturnType<
 >;
 
 /**
- * @description Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` scope that evaluation (an unknown key narrows it to nothing); `compliance` additionally filters the rows. search + compliance filters run before pagination, so `total` is the filtered count.
+ * @description Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` NARROW the list to the customers who actually have a matching role/document assigned (and also scope the per-row indicator); an unknown key matches nothing → empty list. `compliance` additionally filters the rows. search + narrowing + compliance filter run before pagination, so `total` is the filtered count.
  * @summary List customers (paginated, 50/page, sorted by name/externalRef).
  * {@link /admin/customers}
  */
@@ -68,7 +68,7 @@ export function adminControllerListCustomersQueryOptions(
 }
 
 /**
- * @description Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` scope that evaluation (an unknown key narrows it to nothing); `compliance` additionally filters the rows. search + compliance filters run before pagination, so `total` is the filtered count.
+ * @description Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` NARROW the list to the customers who actually have a matching role/document assigned (and also scope the per-row indicator); an unknown key matches nothing → empty list. `compliance` additionally filters the rows. search + narrowing + compliance filter run before pagination, so `total` is the filtered count.
  * @summary List customers (paginated, 50/page, sorted by name/externalRef).
  * {@link /admin/customers}
  */

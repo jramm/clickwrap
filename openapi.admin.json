@@ -449,7 +449,7 @@
     },
     "/admin/customers": {
       "get": {
-        "description": "Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` scope that evaluation (an unknown key narrows it to nothing); `compliance` additionally filters the rows. search + compliance filters run before pagination, so `total` is the filtered count.",
+        "description": "Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` NARROW the list to the customers who actually have a matching role/document assigned (and also scope the per-row indicator); an unknown key matches nothing → empty list. `compliance` additionally filters the rows. search + narrowing + compliance filter run before pagination, so `total` is the filtered count.",
         "operationId": "AdminController_listCustomers",
         "parameters": [
           {
@@ -474,7 +474,7 @@
             "name": "audience",
             "required": false,
             "in": "query",
-            "description": "Audience key — scopes the compliance evaluation to that audience / matching role.",
+            "description": "Audience key — NARROWS the list to customers whose roles include this audience (and scopes the per-row compliance indicator to that audience). Unknown key → empty list.",
             "schema": {
               "type": "string"
             }
@@ -483,7 +483,7 @@
             "name": "documentType",
             "required": false,
             "in": "query",
-            "description": "Document type key — scopes the compliance evaluation to that type.",
+            "description": "Document type key — NARROWS the list to customers who have a document of this type assigned (a document whose audience matches one of the customer's roles) and scopes the per-row compliance indicator to that type. Unknown key → empty list.",
             "schema": {
               "type": "string"
             }
@@ -2888,7 +2888,7 @@
           "compliant": {
             "type": "boolean",
             "example": true,
-            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params."
+            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params (which also narrow the list to assigned/role-matching customers)."
           },
           "complianceStatus": {
             "type": "string",
@@ -3073,7 +3073,7 @@
           "compliant": {
             "type": "boolean",
             "example": true,
-            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params."
+            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params (which also narrow the list to assigned/role-matching customers)."
           },
           "complianceStatus": {
             "type": "string",

@@ -127,9 +127,11 @@ export class AdminController {
     summary: 'List customers (paginated, 50/page, sorted by name/externalRef).',
     description:
       'Every row carries a compliance indicator (compliant + complianceStatus) computed over the ' +
-      "customer's states and the current published versions. `audience`/`documentType` scope that " +
-      'evaluation (an unknown key narrows it to nothing); `compliance` additionally filters the ' +
-      'rows. search + compliance filters run before pagination, so `total` is the filtered count.',
+      "customer's states and the current published versions. `audience`/`documentType` NARROW the " +
+      'list to the customers who actually have a matching role/document assigned (and also scope the ' +
+      'per-row indicator); an unknown key matches nothing → empty list. `compliance` additionally ' +
+      'filters the rows. search + narrowing + compliance filter run before pagination, so `total` ' +
+      'is the filtered count.',
   })
   @ApiQuery({ name: 'page', required: false, description: '1-based page (50 rows per page).' })
   @ApiQuery({
@@ -142,12 +144,17 @@ export class AdminController {
   @ApiQuery({
     name: 'audience',
     required: false,
-    description: 'Audience key — scopes the compliance evaluation to that audience / matching role.',
+    description:
+      'Audience key — NARROWS the list to customers whose roles include this audience (and scopes ' +
+      'the per-row compliance indicator to that audience). Unknown key → empty list.',
   })
   @ApiQuery({
     name: 'documentType',
     required: false,
-    description: 'Document type key — scopes the compliance evaluation to that type.',
+    description:
+      'Document type key — NARROWS the list to customers who have a document of this type assigned ' +
+      "(a document whose audience matches one of the customer's roles) and scopes the per-row " +
+      'compliance indicator to that type. Unknown key → empty list.',
   })
   @ApiQuery({
     name: 'compliance',

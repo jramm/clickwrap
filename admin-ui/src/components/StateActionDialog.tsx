@@ -34,13 +34,18 @@ export function StateActionDialog({ customerId, state, mode, open, onClose }: Pr
   const handleSubmit = () => {
     setFieldError(null);
     if (!reason.trim()) return setFieldError(t('stateAction.validationReason'));
-    if (mode === 'extend' && !deadlineAt) return setFieldError(t('stateAction.validationDeadline'));
+    // A new deadline is mandatory in BOTH modes: extending sets it, and suspending a block
+    // (EXPIRED_BLOCKING → NOTIFIED) requires a fresh deadline server-side.
+    if (!deadlineAt) return setFieldError(t('stateAction.validationDeadline'));
 
     patch.mutate(
       {
         stateId: state.id,
         reason: reason.trim(),
-        deadlineAt: mode === 'extend' ? deadlineAt : undefined,
+        // <input type="date"> yields a date-only string ("YYYY-MM-DD"), but the API contract
+        // requires a full ISO-8601 date-time — widen it to UTC midnight before sending, or the
+        // generated client's request-body validation rejects it (→ generic "Action failed").
+        deadlineAt: new Date(deadlineAt).toISOString(),
         suspendBlock: mode === 'unblock' ? true : undefined,
       },
       {
@@ -75,15 +80,14 @@ export function StateActionDialog({ customerId, state, mode, open, onClose }: Pr
         <Typography variant="body2" color="text.secondary">
           {[state.documentType, state.versionLabel ?? state.versionId].filter(Boolean).join(' · ')}
         </Typography>
-        {mode === 'extend' && (
-          <TextField
-            label={t('stateAction.newDeadline')}
-            type="date"
-            value={deadlineAt}
-            onChange={(event) => setDeadlineAt(event.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-        )}
+        {/* A new deadline is needed in both modes — extending sets it, unblocking requires it. */}
+        <TextField
+          label={t('stateAction.newDeadline')}
+          type="date"
+          value={deadlineAt}
+          onChange={(event) => setDeadlineAt(event.target.value)}
+          InputLabelProps={{ shrink: true }}
+        />
         <TextField
           label={t('stateAction.reason')}
           value={reason}

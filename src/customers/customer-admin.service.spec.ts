@@ -225,6 +225,92 @@ describe('CustomerAdminService', () => {
         expect(page2.items).toHaveLength(6);
       });
     });
+
+    describe('row narrowing by documentType/audience (only ASSIGNED customers)', () => {
+      // Documents: terms/customer, dpa/customer, terms/partner (no dpa/partner). "Assigned" = the
+      // customer's role matches a document's audience.
+      beforeEach(async () => {
+        await documents.save({ id: 'doc-terms-c', type: 'terms', audience: 'customer', name: 'Terms — Customers' });
+        await documents.save({ id: 'doc-dpa-c', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
+        await documents.save({ id: 'doc-terms-p', type: 'terms', audience: 'partner', name: 'Terms — Partners' });
+
+        await customers.save({ id: 'c-cust', externalRef: 'ext-cust', firstName: '', lastName: '', companyName: 'A Customer', roles: ['customer'], contactEmails: [] });
+        await customers.save({ id: 'c-part', externalRef: 'ext-part', firstName: '', lastName: '', companyName: 'B Partner', roles: ['partner'], contactEmails: [] });
+        await customers.save({ id: 'c-both', externalRef: 'ext-both', firstName: '', lastName: '', companyName: 'C Both', roles: ['customer', 'partner'], contactEmails: [] });
+        await customers.save({ id: 'c-none', externalRef: 'ext-none', firstName: '', lastName: '', companyName: 'D None', roles: [], contactEmails: [] });
+      });
+
+      const ids = (result: { items: { id: string }[] }): string[] => result.items.map((r) => r.id).sort();
+
+      it('no documentType/audience → no narrowing (all customers returned)', async () => {
+        const result = await service.list();
+        expect(ids(result)).toEqual(['c-both', 'c-cust', 'c-none', 'c-part']);
+        expect(result.total).toBe(4);
+      });
+
+      it('documentType=terms returns only customers assigned a type-terms document', async () => {
+        // terms/customer + terms/partner exist → customer and partner roles are both assigned.
+        const result = await service.list(undefined, undefined, { documentType: 'terms' });
+        expect(ids(result)).toEqual(['c-both', 'c-cust', 'c-part']);
+        expect(result.total).toBe(3);
+      });
+
+      it('documentType=dpa EXCLUDES a partner-only customer (no dpa/partner document) — the core regression', async () => {
+        // Only dpa/customer exists; c-part (role partner) matches no dpa document and must be gone.
+        const result = await service.list(undefined, undefined, { documentType: 'dpa' });
+        expect(ids(result)).toEqual(['c-both', 'c-cust']);
+        expect(result.total).toBe(2);
+      });
+
+      it('audience=partner returns only customers whose roles include partner', async () => {
+        const result = await service.list(undefined, undefined, { audience: 'partner' });
+        expect(ids(result)).toEqual(['c-both', 'c-part']);
+        expect(result.total).toBe(2);
+      });
+
+      it('audience=customer excludes a customer without the customer role', async () => {
+        const result = await service.list(undefined, undefined, { audience: 'customer' });
+        expect(ids(result)).toEqual(['c-both', 'c-cust']);
+        expect(result.total).toBe(2);
+      });
+
+      it('both documentType=terms & audience=partner narrows to the intersection', async () => {
+        // Role partner present AND a terms document with audience partner exists (terms/partner).
+        const result = await service.list(undefined, undefined, { documentType: 'terms', audience: 'partner' });
+        expect(ids(result)).toEqual(['c-both', 'c-part']);
+        expect(result.total).toBe(2);
+      });
+
+      it('both documentType=dpa & audience=partner → empty (no dpa/partner document exists)', async () => {
+        const result = await service.list(undefined, undefined, { documentType: 'dpa', audience: 'partner' });
+        expect(result.items).toEqual([]);
+        expect(result.total).toBe(0);
+      });
+
+      it('unknown documentType → empty (no matching document)', async () => {
+        const result = await service.list(undefined, undefined, { documentType: 'ghost' });
+        expect(result.items).toEqual([]);
+        expect(result.total).toBe(0);
+      });
+
+      it('unknown audience → empty (no customer has that role)', async () => {
+        const result = await service.list(undefined, undefined, { audience: 'ghost' });
+        expect(result.items).toEqual([]);
+        expect(result.total).toBe(0);
+      });
+
+      it('narrowing runs before the compliance filter and pagination (total is the narrowed+filtered count)', async () => {
+        await versions.save(aVersion({ id: 'v-dpa-c', documentId: 'doc-dpa-c', status: 'PUBLISHED' }));
+        // c-cust is blocked on the customer DPA; c-both is compliant there.
+        await states.save(aState({ id: 's-cust-block', customerId: 'c-cust', versionId: 'v-dpa-c', state: 'EXPIRED_BLOCKING' }));
+        await states.save(aState({ id: 's-both-ok', customerId: 'c-both', versionId: 'v-dpa-c', state: 'ACCEPTED' }));
+
+        // documentType=dpa narrows to {c-cust, c-both}; compliance=blocked keeps only c-cust.
+        const result = await service.list(undefined, undefined, { documentType: 'dpa', compliance: 'blocked' });
+        expect(ids(result)).toEqual(['c-cust']);
+        expect(result.total).toBe(1);
+      });
+    });
   });
 
   describe('get', () => {

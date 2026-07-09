@@ -21,7 +21,7 @@ export const customerRowModelSchema = z.object({
     z
       .boolean()
       .describe(
-        'Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params.',
+        'Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params (which also narrow the list to assigned/role-matching customers).',
       ),
   ),
   complianceStatus: z.optional(
