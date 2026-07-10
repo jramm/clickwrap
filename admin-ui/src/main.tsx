@@ -29,7 +29,7 @@ createRoot(rootElement).render(
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <ToastProvider>
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <BrowserRouter>
               <AuthProvider>
                 <App />
               </AuthProvider>
