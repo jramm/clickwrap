@@ -10,6 +10,7 @@ import { localFileStoragePlugin } from './local-file-storage.plugin';
 import { memoryFileStoragePlugin } from './memory-file-storage.plugin';
 import { noopEmailPlugin } from './noop-email.plugin';
 import { postmarkEmailPlugin } from './postmark-email.plugin';
+import { s3FileStoragePlugin } from './s3-file-storage.plugin';
 import { smtpEmailPlugin } from './smtp-email.plugin';
 import { staticTokenAdminAuthPlugin } from './static-token-admin-auth.plugin';
 import { supertokensAdminAuthPlugin } from './supertokens-admin-auth.plugin';
@@ -20,6 +21,7 @@ export const builtinPlugins: AnyClickwrapPlugin[] = [
   smtpEmailPlugin,
   memoryFileStoragePlugin,
   localFileStoragePlugin,
+  s3FileStoragePlugin,
   googleSsoAdminAuthPlugin,
   staticTokenAdminAuthPlugin,
   supertokensAdminAuthPlugin,

@@ -2,7 +2,7 @@
 
 clickwrap-server is extensible through npm packages: a third party can ship an **e-mail provider**,
 a **file storage**, an **admin-auth method**, or an **acceptance-page renderer** as their own
-package — without touching this repo. The built-ins (postmark/smtp/noop, memory/local,
+package — without touching this repo. The built-ins (postmark/smtp/noop, memory/local/s3,
 google-sso/static-token/supertokens, default) go through the exact same mechanism; there is no
 special path.
 
@@ -144,8 +144,17 @@ interface FileStorage {
 - `getPresignedUrl` and `retrieve` must reject unknown keys.
 - `retrieve` loads the whole file into memory — the host uses it to attach the accepted document PDF
   to the acceptance-confirmation mail.
-- An **S3 plugin** is `store` = `PutObject`, `getPresignedUrl` = `getSignedUrl(GetObject, { expiresIn: 900 })`,
-  `retrieve` = `GetObject` — no `module()` needed, S3 serves the URL itself.
+- The **`s3` built-in** (`src/plugins/builtins/s3-file-storage.plugin.ts` +
+  `src/plugins/file-storage/s3/`) stores blobs in an S3 (or S3-compatible, e.g. MinIO) bucket:
+  `store` = `PutObject` under a generated `<keyPrefix>/<uuid>` key, `getPresignedUrl` =
+  `getSignedUrl(GetObject, { expiresIn: 900 })` (a `HeadObject` first rejects unknown keys),
+  `retrieve` = `GetObject` — no `module()` needed, S3 serves the URL itself. Activate with
+  `FILE_STORAGE=s3`; env: `FILE_STORAGE_S3_BUCKET` + `FILE_STORAGE_S3_REGION` (required),
+  `FILE_STORAGE_S3_ENDPOINT` (optional S3-compatible endpoint → path-style addressing),
+  `FILE_STORAGE_S3_ACCESS_KEY_ID`/`FILE_STORAGE_S3_SECRET_ACCESS_KEY` (optional — omit BOTH to use
+  the AWS SDK default credential chain, e.g. an IAM role), `FILE_STORAGE_S3_KEY_PREFIX` (optional
+  key namespace), `FILE_STORAGE_S3_FORCE_PATH_STYLE` (optional `true`/`false`, overrides the
+  endpoint default). Missing bucket/region while active is a boot error.
 - The **`local` built-in** (`src/plugins/builtins/local-file-storage.plugin.ts` +
   `src/plugins/file-storage/local/`) is the copyable reference for storages that must serve files
   themselves: generated uuid-only keys (strict pattern check before any fs access), HMAC-signed

@@ -45,8 +45,8 @@ describe('FileStorageModule.forRoot controller gating', () => {
   });
 
   it('unknown FILE_STORAGE key → boot error listing the available keys', () => {
-    withEnv({ FILE_STORAGE: 's3' }, () => {
-      expect(() => FileStorageModule.forRoot()).toThrow(/Unknown FILE_STORAGE "s3".*local.*memory/);
+    withEnv({ FILE_STORAGE: 'gcs' }, () => {
+      expect(() => FileStorageModule.forRoot()).toThrow(/Unknown FILE_STORAGE "gcs".*local.*memory.*s3/);
     });
   });
 });
