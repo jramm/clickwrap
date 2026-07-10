@@ -5,6 +5,9 @@
   "type": "module",
   "description": "Admin web UI for clickwrap-server (agreement acceptance management)",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=26"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

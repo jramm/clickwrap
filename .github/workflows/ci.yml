@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
       - name: Enable pnpm via corepack
         run: corepack enable
       - name: Cache pnpm store
@@ -61,7 +61,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
       - run: corepack enable
       - uses: actions/cache@v6
         with:
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
       - run: corepack enable
       - uses: actions/cache@v6
         with:
@@ -124,7 +124,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
       - run: corepack enable
       - uses: actions/cache@v6
         with:
