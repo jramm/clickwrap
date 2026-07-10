@@ -8,6 +8,7 @@ import {
 /** Synthetic raw customer — no real names/emails. */
 const syntheticRaw = (overrides: Partial<MetergridRawCustomer> = {}): MetergridRawCustomer => ({
   id: 42,
+  crmId: '28947694817',
   companyName: 'Example GmbH',
   email: 'billing@example.test',
   contactPerson: { firstName: 'Ada', lastName: 'Tester', email: 'ada@example.test' },
@@ -28,14 +29,19 @@ const fakeResponse = (init: { ok: boolean; status: number; json?: unknown; setCo
   }) as unknown as Response;
 
 describe('mapMetergridCustomer', () => {
-  it('maps the full record (numeric id → string, company/name/emails)', () => {
+  it('maps the full record (externalRef = HubSpot crmId, company/name/emails)', () => {
     expect(mapMetergridCustomer(syntheticRaw())).toEqual({
-      externalRef: '42',
+      externalRef: '28947694817',
       companyName: 'Example GmbH',
       firstName: 'Ada',
       lastName: 'Tester',
       contactEmails: ['ada@example.test', 'billing@example.test'],
     });
+  });
+
+  it('falls back to the game id when crmId is missing/blank', () => {
+    expect(mapMetergridCustomer(syntheticRaw({ crmId: null })).externalRef).toBe('42');
+    expect(mapMetergridCustomer(syntheticRaw({ crmId: '   ' })).externalRef).toBe('42');
   });
 
   it('guards a missing contactPerson (firstName/lastName undefined, company email still used)', () => {
@@ -111,7 +117,9 @@ describe('MetergridCustomerSource.fetchAll', () => {
     fetchMock
       .mockResolvedValueOnce(signinOk())
       .mockResolvedValueOnce(itemsResponse([wonProject(42)]))
-      .mockResolvedValueOnce(itemsResponse([syntheticRaw(), syntheticRaw({ id: 99 })]));
+      .mockResolvedValueOnce(
+        itemsResponse([syntheticRaw({ crmId: 'hs-42' }), syntheticRaw({ id: 99, crmId: 'hs-99' })]),
+      );
 
     const source = new MetergridCustomerSource(config);
     const snapshot = await source.fetchAll();
@@ -120,7 +128,7 @@ describe('MetergridCustomerSource.fetchAll', () => {
     expect(snapshot).toEqual({
       customers: [
         {
-          externalRef: '42',
+          externalRef: 'hs-42',
           companyName: 'Example GmbH',
           firstName: 'Ada',
           lastName: 'Tester',
@@ -141,7 +149,9 @@ describe('MetergridCustomerSource.fetchAll', () => {
       { id: 700, customerId: null, tenantElectricity: { status: 'WON' } }, // null customerId → ignored
       { id: 800, customerId: 6, tenantElectricity: null }, // no stage → ignored (customer 6 excluded)
     ];
-    const customers = [1, 2, 3, 4, 5, 6].map((id) => syntheticRaw({ id, companyName: `Company ${id}` }));
+    const customers = [1, 2, 3, 4, 5, 6].map((id) =>
+      syntheticRaw({ id, crmId: `hs-${id}`, companyName: `Company ${id}` }),
+    );
     fetchMock
       .mockResolvedValueOnce(signinOk())
       .mockResolvedValueOnce(itemsResponse(projects))
@@ -150,7 +160,7 @@ describe('MetergridCustomerSource.fetchAll', () => {
     const snapshot = await new MetergridCustomerSource(config).fetchAll();
 
     // Customers 1 and 3 are won; 2 (lost), 4 (no project), 5 (qualification), 6 (null stage) are out.
-    expect(snapshot.customers.map((c) => c.externalRef)).toEqual(['1', '3']);
+    expect(snapshot.customers.map((c) => c.externalRef)).toEqual(['hs-1', 'hs-3']);
   });
 
   it('sends the correct sign-in request (URL, headers, formFields body)', async () => {

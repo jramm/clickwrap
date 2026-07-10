@@ -11,6 +11,12 @@ export interface MetergridConfig {
 /** The subset of a metergrid customer record this adapter maps. Unknown fields are ignored. */
 export interface MetergridRawCustomer {
   id: number;
+  /**
+   * HubSpot Company ID (the deal's `provider`-type company). This is the cross-system join key
+   * shared with HubSpot and the main portal, so it is preferred as the clickwrap externalRef.
+   * Nullable in the source; falls back to the game-internal `id` when absent.
+   */
+  crmId: string | null;
   companyName: string | null;
   email: string | null;
   contactPerson: {
@@ -82,7 +88,8 @@ export const mapMetergridCustomer = (raw: MetergridRawCustomer): ExternalCustome
     }
   }
   return {
-    externalRef: String(raw.id),
+    // Prefer the HubSpot Company ID (cross-system key); fall back to the game id if it is missing.
+    externalRef: raw.crmId?.trim() ? raw.crmId.trim() : String(raw.id),
     companyName: raw.companyName ?? undefined,
     firstName: raw.contactPerson?.firstName ?? undefined,
     lastName: raw.contactPerson?.lastName ?? undefined,
