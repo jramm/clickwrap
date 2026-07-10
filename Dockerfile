@@ -4,7 +4,7 @@
 # any static host / reverse proxy, see README "Deployment").
 
 # ---------- backend build ----------
-FROM node:22-slim AS backend-build
+FROM node:26-slim AS backend-build
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
@@ -17,7 +17,7 @@ RUN pnpm exec prisma generate \
   && test -f dist/main.js
 
 # ---------- admin-ui build ----------
-FROM node:22-slim AS adminui-build
+FROM node:26-slim AS adminui-build
 WORKDIR /ui
 RUN corepack enable
 COPY admin-ui/package.json admin-ui/pnpm-lock.yaml admin-ui/pnpm-workspace.yaml* ./
@@ -29,7 +29,7 @@ ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm build
 
 # ---------- runtime ----------
-FROM node:22-slim
+FROM node:26-slim
 WORKDIR /app
 ENV NODE_ENV=production
 # Prisma engines need OpenSSL at runtime.
