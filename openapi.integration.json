@@ -658,6 +658,119 @@
         ]
       }
     },
+    "/customers/by-external-ref/{externalRef}/acceptances": {
+      "post": {
+        "description": "Resolves the ACTIVE customer by (`externalRef`, `audience`) — the record carrying `externalRef` whose roles include the required `audience` query param — and records the portal user's active consent through the SAME acceptance flow as POST /customers/:customerId/acceptances (idempotency via Idempotency-Key, version-current check, ACTIVE consent-text cross-check; PASSIVE versions carry no consent text). The acting identity comes from `signerName`/`signerEmail` in the body and/or the `x-actor-*` headers; channel = PORTAL. Backs the Betreiberportal native accept overlay.",
+        "operationId": "IntegrationAcceptanceController_acceptByExternalRef",
+        "parameters": [
+          {
+            "name": "externalRef",
+            "required": true,
+            "in": "path",
+            "description": "Caller's stable external reference.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": true,
+            "in": "query",
+            "description": "Audience key (resolution discriminator).",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationAcceptanceBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptanceResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing `audience` / Idempotency-Key, or body validation failed (strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND — no active customer for this (externalRef, audience) · VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ALREADY_ACCEPTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VERSION_NOT_CURRENT · CONSENT_TEXT_MISMATCH · ROLE_MISMATCH · UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Record active consent by external reference (inbound integration)",
+        "tags": [
+          "integration-consent"
+        ]
+      }
+    },
     "/customers/{id}/signed-documents": {
       "post": {
         "description": "Archives an externally-signed PDF (e.g. a counter-signed offer) against a customer. The documentType MUST be an external type (422 DOCUMENT_TYPE_NOT_EXTERNAL otherwise — non-external types use the version/clickwrap flow). Signed documents are a pure evidence archive and NEVER affect the compliance gate.",
@@ -1003,6 +1116,94 @@
         "summary": "Compliance gate by external reference (inbound integration)",
         "tags": [
           "integration-compliance"
+        ]
+      }
+    },
+    "/customers/by-external-ref/{externalRef}/pending-agreements": {
+      "get": {
+        "description": "Resolves the ACTIVE customer by (`externalRef`, `audience`) — the record carrying `externalRef` whose roles include the required `audience` query param — and returns the outstanding agreements for that customer (empty array = nothing to show). The response is the SAME shape as GET /customers/:customerId/pending-agreements: current PUBLISHED versions with an open state plus UPCOMING published versions (advance acceptance). Backs the Betreiberportal native accept overlay.",
+        "operationId": "IntegrationPendingAgreementsController_getPendingAgreementsByExternalRef",
+        "parameters": [
+          {
+            "name": "externalRef",
+            "required": true,
+            "in": "path",
+            "description": "Caller's stable external reference.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": true,
+            "in": "query",
+            "description": "Audience key (resolution discriminator + scope).",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PendingAgreementItemModel"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing `audience` query parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND — no active customer for this (externalRef, audience).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Outstanding agreements by external reference (inbound integration)",
+        "tags": [
+          "integration-consent"
         ]
       }
     },
@@ -1876,6 +2077,33 @@
           "lastName",
           "roles",
           "contactEmails"
+        ]
+      },
+      "IntegrationAcceptanceBodyModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-9"
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Bob Portal",
+            "description": "The portal user's self-declared name. Recorded as the acceptance actor's name; falls back to the `x-actor-name` header when omitted."
+          },
+          "signerEmail": {
+            "type": "string",
+            "example": "bob@operator.example",
+            "description": "The portal user's self-declared e-mail. Recorded as the acceptance actor's e-mail; falls back to the `x-actor-email` header when omitted."
+          },
+          "displayedConsentText": {
+            "type": "string",
+            "example": "I have read the new revision and agree.",
+            "description": "Cross-check only — the evidence uses the server-side versioned consentText. Required for ACTIVE versions; omitted for a PASSIVE early acceptance."
+          }
+        },
+        "required": [
+          "versionId"
         ]
       },
       "SignedDocumentUploadBodyModel": {

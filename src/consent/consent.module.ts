@@ -11,6 +11,7 @@ import { SignedDocumentsIntegrationController } from '../signed-documents/signed
 import { AcceptanceService } from './acceptance.service';
 import { ConsentController } from './consent.controller';
 import { CustomerOnboardingController } from './customer-onboarding.controller';
+import { IntegrationAcceptanceController } from './integration-acceptance.controller';
 import { UuidIdGenerator } from './inmemory';
 import { NotificationService } from './notification.service';
 import { ObjectionService } from './objection.service';
@@ -18,7 +19,12 @@ import { CONSENT_TOKENS } from './ports';
 
 @Module({
   imports: [CustomerServiceModule, SignedDocumentsModule],
-  controllers: [ConsentController, CustomerOnboardingController, SignedDocumentsIntegrationController],
+  controllers: [
+    ConsentController,
+    CustomerOnboardingController,
+    IntegrationAcceptanceController,
+    SignedDocumentsIntegrationController,
+  ],
   providers: [
     AcceptanceService,
     ObjectionService,

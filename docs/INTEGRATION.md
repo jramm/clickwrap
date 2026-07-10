@@ -141,6 +141,53 @@ same result as [§3](#3-gate-access--get-customersidcomplianceaudience) is retur
   (access is never blocked on it). clickwrap returns the real compliance result or a `404` — it
   never guesses. Only an explicit `compliant: false` blocks.
 
+### `GET /customers/by-external-ref/:externalRef/pending-agreements?audience=…` → 200 (outstanding agreements by external ref)
+
+The outstanding-agreements feed for a caller that only knows the customer by its own external
+reference (not clickwrap's internal id). Auth: the shared `x-service-token` only (no
+`x-customer-id`). The **required `?audience=`** query param is the resolution discriminator: the
+ACTIVE customer carrying `externalRef` whose `roles` include `audience` is resolved, then the same
+result as [§4](#4-show-the-popup--get-customersidpending-agreementsaudience) is returned unchanged
+(the open items — `type`/`documentType`, `audience`, `versionId`, `versionLabel`, `changeSummary`,
+presigned `pdfUrl`, `mode`, `deadlineAt?`, `blocking`, `upcoming`, `validFrom`; `[]` = nothing to
+show).
+
+This is what backs the metergrid Main Portal (**Betreiberportal**) **native accept overlay**: the
+portal renders the outstanding AGBs itself with `mg-ui` from this response instead of embedding the
+hosted page.
+
+- Errors: `404 CUSTOMER_NOT_FOUND` when no active customer matches (unknown/soft-deleted
+  `externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
+  UNKNOWN_AUDIENCE`; `400` if `audience` is missing; `401` without the service token.
+
+### `POST /customers/by-external-ref/:externalRef/acceptances?audience=…` → 201 (record acceptance by external ref)
+
+Records the portal user's acceptance from the native overlay for a caller that only knows the
+customer by its external reference. Auth: the shared `x-service-token` only (no `x-customer-id`) plus
+the **`Idempotency-Key`** header (as in the per-customerId accept flow). The **required
+`?audience=`** query param resolves the ACTIVE customer by (`externalRef`, `audience`); the
+acceptance is then recorded through the **same** `AcceptanceService` as
+[§5](#5-report-display--record-consent) — same idempotency, version-current check and consent-text
+rules.
+
+```json
+{ "versionId": "v-9", "signerName": "Bob Portal", "signerEmail": "bob@operator.example",
+  "displayedConsentText": "I have read the new revision and agree." }
+```
+
+- The **actor/identity** is the Betreiberportal user the Main Portal passes: `signerName`/
+  `signerEmail` in the body take precedence, falling back to the forwarded `x-actor-*` headers; the
+  recorded `channel` is `PORTAL`.
+- ACTIVE versions **require** `displayedConsentText` (cross-checked against the server-side text →
+  `422 CONSENT_TEXT_MISMATCH`); PASSIVE early acceptances omit it. The server-side `consentText` is
+  always authoritative. Unknown body fields → `400` (strict schema).
+- **201** returns `{ "acceptanceId", "state": "ACCEPTED" }`; a replay with the same
+  `Idempotency-Key` returns the identical response.
+- Errors: `404 CUSTOMER_NOT_FOUND` (no active match) / `404 VERSION_NOT_FOUND`; `422
+  VERSION_NOT_CURRENT · CONSENT_TEXT_MISMATCH · ROLE_MISMATCH · UNKNOWN_AUDIENCE`; `400` if
+  `audience` or `Idempotency-Key` is missing; `409 ALREADY_ACCEPTED`; `401` without the service
+  token.
+
 ## 3. Gate access — `GET /customers/:id/compliance?audience=…`
 
 Query with **your** audience key. `compliant=false` only for `EXPIRED_BLOCKING` (or a blocking

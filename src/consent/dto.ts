@@ -15,6 +15,24 @@ export const acceptanceBodySchema = z
   .strict();
 export type AcceptanceBody = z.infer<typeof acceptanceBodySchema>;
 
+/**
+ * Body of the (externalRef, audience)-keyed integration accept endpoint. Mirrors
+ * {@link acceptanceBodySchema} but — unlike the per-customerId route, where the actor is forwarded
+ * via context headers — additionally carries the portal user's self-declared identity
+ * (`signerName`/`signerEmail`). `.strict()` still forbids raw actor/IP/UA fields.
+ */
+export const integrationAcceptanceBodySchema = z
+  .object({
+    versionId: z.string().min(1),
+    signerName: z.string().optional(),
+    signerEmail: z.string().optional(),
+    // Optional: required for ACTIVE versions (consent-text cross-check), omitted for a PASSIVE
+    // early acceptance. The ACTIVE requirement is enforced in AcceptanceService, not by the schema.
+    displayedConsentText: z.string().optional(),
+  })
+  .strict();
+export type IntegrationAcceptanceBody = z.infer<typeof integrationAcceptanceBodySchema>;
+
 export const objectionBodySchema = z
   .object({
     versionId: z.string().min(1),

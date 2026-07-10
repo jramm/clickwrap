@@ -17,6 +17,35 @@ export class AcceptanceBodyModel {
   displayedConsentText?: string;
 }
 
+export class IntegrationAcceptanceBodyModel {
+  @ApiProperty({ example: 'v-9' })
+  versionId!: string;
+
+  @ApiPropertyOptional({
+    example: 'Bob Portal',
+    description:
+      "The portal user's self-declared name. Recorded as the acceptance actor's name; falls back " +
+      'to the `x-actor-name` header when omitted.',
+  })
+  signerName?: string;
+
+  @ApiPropertyOptional({
+    example: 'bob@operator.example',
+    description:
+      "The portal user's self-declared e-mail. Recorded as the acceptance actor's e-mail; falls " +
+      'back to the `x-actor-email` header when omitted.',
+  })
+  signerEmail?: string;
+
+  @ApiPropertyOptional({
+    example: 'I have read the new revision and agree.',
+    description:
+      'Cross-check only — the evidence uses the server-side versioned consentText. Required for ' +
+      'ACTIVE versions; omitted for a PASSIVE early acceptance.',
+  })
+  displayedConsentText?: string;
+}
+
 export class AcceptanceResponseModel {
   @ApiProperty({ example: 'a-991' })
   acceptanceId!: string;
