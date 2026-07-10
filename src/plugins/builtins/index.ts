@@ -7,6 +7,7 @@ import type { AnyClickwrapPlugin } from '../../plugin-sdk';
 import { defaultAcceptancePagePlugin } from './default-acceptance-page.plugin';
 import { googleSsoAdminAuthPlugin } from './google-sso-admin-auth.plugin';
 import { localFileStoragePlugin } from './local-file-storage.plugin';
+import { mainportalCustomerSourcePlugin } from './mainportal-customer-source.plugin';
 import { memoryFileStoragePlugin } from './memory-file-storage.plugin';
 import { metergridCustomerSourcePlugin } from './metergrid-customer-source.plugin';
 import { noneCustomerSourcePlugin } from './none-customer-source.plugin';
@@ -27,5 +28,6 @@ export const builtinPlugins: AnyClickwrapPlugin[] = [
   supertokensAdminAuthPlugin,
   noneCustomerSourcePlugin,
   metergridCustomerSourcePlugin,
+  mainportalCustomerSourcePlugin,
   defaultAcceptancePagePlugin,
 ];

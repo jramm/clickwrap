@@ -261,6 +261,38 @@ any error message or log line. Reference implementation:
 `src/plugins/customer-source/metergrid/metergrid.source.ts` (+ the built-in
 `src/plugins/builtins/metergrid-customer-source.plugin.ts`).
 
+#### `mainportal` built-in
+
+Set `CUSTOMER_SOURCE=mainportal` (plus the vars below) to sync metergrid **Main-Portal Provider
+Groups** as clickwrap customers. Provider groups are the legal entities that use the Main Portal and
+must accept the AGB, so this source is the source of truth for **who must accept** (it replaces the
+metergrid/Game source for that purpose; `metergrid` and `none` stay selectable). It calls a
+system-to-system endpoint `GET {MAINPORTAL_BASE_URL}{MAINPORTAL_PROVIDER_GROUPS_PATH}` with a
+`system_api` bearer token (`Authorization: Bearer <token>`, scope `provider_group:read`,
+`accept: application/json`), which returns ALL non-merged provider groups
+(`{ items: [{ id, name, managers: [{ email, firstName, lastName }] }], next }`), following the `next`
+link for pagination when present. Each group is mapped to an `ExternalCustomer`: `id`→`externalRef`
+(as string), `name`→`companyName`, the unique trimmed non-empty **case-insensitively** de-duplicated
+manager e-mails → `contactEmails` (the MANAGER role is the top role — there is no OWNER — so managers
+are the "owner(s)"), and `firstName`/`lastName` from the first manager. Deletion is by absence — the
+snapshot carries no `deletedExternalRefs`; a merged/removed group drops out and is soft-deleted by
+the reconcile.
+
+Provider groups are imported PENDING and must still accept the AGB: set
+`CUSTOMER_SYNC_DEFAULT_ROLES=customer` and **leave `CUSTOMER_SYNC_WON_ACCEPT_TYPES` EMPTY** (that is
+the point — do NOT auto-accept). This is purely a deployment env choice; no code change.
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `MAINPORTAL_BASE_URL` | *(required)* | Main-Portal origin, e.g. `https://app.metergrid.de` — boot error if missing |
+| `MAINPORTAL_API_TOKEN` | *(required)* | `system_api` bearer token — boot error if missing; never logged |
+| `MAINPORTAL_PROVIDER_GROUPS_PATH` | `/system/v1/provider-groups` | Endpoint path (configurable until the Main-Portal team finalises it) |
+
+The full endpoint contract the Main-Portal team must expose is in
+[`docs/integrations/mainportal-provider-groups.md`](integrations/mainportal-provider-groups.md).
+Reference implementation: `src/plugins/customer-source/mainportal/mainportal.source.ts` (+ the
+built-in `src/plugins/builtins/mainportal-customer-source.plugin.ts`).
+
 ### `acceptance-page` — `AcceptancePageRenderer`
 
 ```ts
