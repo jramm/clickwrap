@@ -39,21 +39,7 @@ describe('PluginRegistry', () => {
     expect(registry.keys('email-provider')).toEqual(expect.arrayContaining(['noop', 'postmark', 'smtp']));
     expect(registry.keys('file-storage')).toEqual(expect.arrayContaining(['memory', 'local']));
     expect(registry.keys('admin-auth')).toEqual(expect.arrayContaining(['google-sso', 'static-token', 'supertokens']));
-    expect(registry.keys('customer-source')).toEqual(expect.arrayContaining(['none']));
-  });
-
-  it('selects the built-in `none` customer-source, which reports an empty snapshot (sync disabled)', async () => {
-    const registry = PluginRegistry.bootstrap({ appRoot: root, pluginPaths: [] });
-    const plugin = registry.select('customer-source', 'none', 'CUSTOMER_SOURCE');
-    expect(plugin.kind).toBe('customer-source');
-    const source = plugin.create({
-      env: () => undefined,
-      requireEnv: () => {
-        throw new Error('unused');
-      },
-      logger: { log: () => {}, warn: () => {}, error: () => {} },
-    });
-    expect(await source.fetchAll()).toEqual({ customers: [] });
+    expect(registry.keys('acceptance-page')).toEqual(expect.arrayContaining(['default']));
   });
 
   it('discovers plugins from the app package.json dependencies (node_modules scan)', () => {

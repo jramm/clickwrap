@@ -83,20 +83,9 @@ License: **Apache-2.0**.
   [`docs/INTEGRATION.md §6a`](docs/INTEGRATION.md).
 - **Plugin architecture** — e-mail delivery, file storage, admin auth and the customer source are
   plugins, auto-discovered from installed npm packages (built-ins: `postmark`/`smtp`/`noop`,
-  `memory`/`local`, `google-sso`/`static-token`/`supertokens`, `none`/`metergrid`) and activated
-  explicitly via env. Third parties ship their own provider as an npm package — see
+  `memory`/`local`, `google-sso`/`static-token`/`supertokens`) and activated explicitly via env.
+  Third parties ship their own provider as an npm package — see
   [`docs/PLUGINS.md`](docs/PLUGINS.md).
-- **Scheduled customer sync** — an optional `customer-source` plugin feeds a 12-hourly reconcile
-  (`CustomerSyncService`): create/update/soft-delete source-managed customers, idempotent, evidence
-  preserved (`CUSTOMER_CREATED`/`CUSTOMER_UPDATED`/`CUSTOMER_DELETED`). The `metergrid` built-in
-  (`CUSTOMER_SOURCE=metergrid`) pulls only the **won-deal** customers from the metergrid partner API
-  (prospects and partners are out of scope for now); on initial onboarding the configured AGB/AVV
-  document types (`CUSTOMER_SYNC_WON_ACCEPT_TYPES`) are import-accepted so the customer is created
-  already accepted for them. The `mainportal` built-in (`CUSTOMER_SOURCE=mainportal`) instead imports
-  every non-merged Main-Portal **provider group** (the legal entities that must accept the AGB, each
-  with its MANAGER users) as a customer; with `CUSTOMER_SYNC_WON_ACCEPT_TYPES` left empty they are
-  imported PENDING and must accept the AGB (see
-  [`docs/integrations/mainportal-provider-groups.md`](docs/integrations/mainportal-provider-groups.md)).
   The default `none` source keeps the sync disabled.
 - **Scheduled effectiveness ("publish now, effective later")** — one or more versions may be
   published with a future `validFrom` (several future revisions can be scheduled simultaneously —
@@ -263,16 +252,6 @@ All configuration is via environment variables (see [`.env.example`](.env.exampl
 | `ADMIN_SUPERTOKENS_ROLE` | `admin` | Role required in the SuperTokens `st-role` claim. |
 | `ADMIN_UI_ORIGINS` | `http://localhost:5173,http://localhost:4173` | Comma-separated CORS origins of the admin UI (vite dev + preview ports); empty = CORS off (a bootstrap warning is logged). |
 | `SWEEPER_ENABLED` | `true` | Kill switch for the background sweeper. |
-| `CUSTOMER_SOURCE` | `none` | Customer-source plugin key for the 12-hourly customer sync. Built-ins: `none` (sync disabled) \| `metergrid` (syncs ONLY won-deal customers; partners out of scope) \| `mainportal` (syncs all non-merged Main-Portal provider groups as customers). |
-| `CUSTOMER_SYNC_DEFAULT_ROLES` | – | Comma-separated audience keys assigned to newly-synced customers (empty ⇒ no roles ⇒ no rollout). Set `customer` for metergrid. |
-| `CUSTOMER_SYNC_WON_ACCEPT_TYPES` | – | Comma-separated clickwrap document-type keys auto-accepted on INITIAL onboarding of a won-deal customer (empty ⇒ normal pending rollout). The current published version of each is import-accepted (no pending state, no rollout mail). For metergrid the AGB + AVV keys, e.g. `agb,avv`. |
-| `CUSTOMER_SYNC_ENABLED` | `true` | Kill switch for the customer-sync cron. |
-| `METERGRID_BASE_URL` | `https://api-partners.metergrid.de` | metergrid partner API base URL (`CUSTOMER_SOURCE=metergrid`). |
-| `METERGRID_USERNAME` | – | metergrid service-account e-mail; REQUIRED when `metergrid` is active. |
-| `METERGRID_PASSWORD` | – | metergrid service-account password; REQUIRED when `metergrid` is active (never logged). |
-| `MAINPORTAL_BASE_URL` | – | Main-Portal origin (`CUSTOMER_SOURCE=mainportal`); REQUIRED when `mainportal` is active. |
-| `MAINPORTAL_API_TOKEN` | – | Main-Portal `system_api` bearer token (scope `provider_group:read`); REQUIRED when `mainportal` is active (never logged). |
-| `MAINPORTAL_PROVIDER_GROUPS_PATH` | `/system/v1/provider-groups` | Provider-groups endpoint path (`CUSTOMER_SOURCE=mainportal`); configurable until the Main-Portal team finalises it. |
 | `OPENAPI_DOCS_ENABLED` | `false` | `true` = serve Swagger UIs at `/docs/admin` and `/docs/integration`. |
 
 The server, the seed script and `pnpm openapi` load `.env` automatically (dotenv).

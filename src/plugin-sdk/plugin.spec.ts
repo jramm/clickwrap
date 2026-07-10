@@ -44,16 +44,6 @@ describe('isClickwrapPlugin', () => {
     expect(isClickwrapPlugin({ kind: 'file-storage', key: 's3', create: () => ({}) })).toBe(true);
   });
 
-  it('accepts a customer-source plugin', () => {
-    expect(
-      isClickwrapPlugin({
-        kind: 'customer-source',
-        key: 'metergrid',
-        create: () => ({ fetchAll: async () => ({ customers: [] }) }),
-      }),
-    ).toBe(true);
-  });
-
   it('accepts an acceptance-page plugin', () => {
     expect(
       isClickwrapPlugin({

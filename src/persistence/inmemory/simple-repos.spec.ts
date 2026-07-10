@@ -78,25 +78,14 @@ describe('InMemoryCustomerRepo', () => {
     expect(await repo.findAllByExternalRef('missing')).toEqual([]);
   });
 
-  it('findBySource returns only customers of that source, INCLUDING soft-deleted ones', async () => {
-    await repo.save(aCustomer({ id: 'c-crm-1', source: 'metergrid' }));
-    await repo.save(aCustomer({ id: 'c-crm-2', source: 'metergrid', deletedAt: new Date('2026-07-08T00:00:00Z') }));
-    await repo.save(aCustomer({ id: 'c-manual', source: 'manual' }));
-    await repo.save(aCustomer({ id: 'c-untagged', source: undefined }));
-
-    expect((await repo.findBySource('metergrid')).map((c) => c.id).sort()).toEqual(['c-crm-1', 'c-crm-2']);
-    expect((await repo.findBySource('manual')).map((c) => c.id)).toEqual(['c-manual']);
-    expect(await repo.findBySource('nope')).toEqual([]);
-  });
-
   it('softDelete stamps deletedAt (preserving the row); unknown id is a no-op', async () => {
-    await repo.save(aCustomer({ id: 'c-1', source: 'metergrid' }));
+    await repo.save(aCustomer({ id: 'c-1', externalRef: 'crm-1', source: 'mainportal' }));
     const at = new Date('2026-07-09T10:00:00Z');
 
     await repo.softDelete('c-1', at);
     expect((await repo.findById('c-1'))?.deletedAt).toEqual(at);
-    // Row is preserved (evidence chain), still found by source.
-    expect((await repo.findBySource('metergrid')).map((c) => c.id)).toEqual(['c-1']);
+    // Row is preserved (evidence chain), still found by external ref.
+    expect((await repo.findAllByExternalRef('crm-1')).map((c) => c.id)).toEqual(['c-1']);
 
     await expect(repo.softDelete('missing', at)).resolves.toBeUndefined();
   });

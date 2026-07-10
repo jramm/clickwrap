@@ -423,14 +423,14 @@ Environment caveats that remain **documented, not test-enforced**:
 - **`Customer.contactEmails String[] @default([])`**: rollout/reminder/confirmation mails go to all
   stored contacts; mapper + domain type aligned.
 - **`Customer.source String?` + `Customer.deletedAt DateTime?` (+ `@@index([source])`)**: provenance
-  and soft-delete for the scheduled customer sync (`CustomerSyncService`). `source` is the owning
-  customer-source plugin key (`null`/`'manual'` = admin/integration-created, never touched by the
-  sync); `deletedAt` marks a source-managed customer that disappeared from its source. Soft-delete
-  **preserves the row and its evidence chain** — the customer is excluded from the admin list /
-  dashboard / compliance ("never blocking/pending") but its detail/history stays viewable, and it is
-  reactivated (deletedAt cleared) if it reappears. `findBySource(source)` returns the reconciliation
-  set incl. soft-deleted rows; `softDelete(id, at)` stamps `deletedAt` (`updateMany`, unknown id =
-  no-op). `prisma db push` covers both columns; `reset-database` truncates by row (no change).
+  and soft-delete for the inbound integration API (`CustomerAdminService`). `source` records the
+  record's origin as reported by the pushing system (`null`/`'manual'` = admin-created; otherwise the
+  caller's namespace, e.g. `'mainportal'`); `deletedAt` marks a customer deactivated via
+  `deactivateByExternalRef`. Soft-delete **preserves the row and its evidence chain** — the customer
+  is excluded from the admin list / dashboard / compliance ("never blocking/pending") but its
+  detail/history stays viewable, and it is reactivated (deletedAt cleared) on a subsequent upsert of
+  the same external ref. `softDelete(id, at)` stamps `deletedAt` (`updateMany`, unknown id = no-op).
+  `prisma db push` covers both columns; `reset-database` truncates by row (no change).
 - `prisma format`/`validate`/`generate` run green after every schema change.
 
 Still open (not blocking — the driver is exercised in CI, see "Validation status"):

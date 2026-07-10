@@ -113,12 +113,6 @@ export interface CustomerRepo {
   /** Rollout targets only customers with a matching role (audience key). */
   findByRole(audienceKey: string): Promise<Customer[]>;
   findAll(): Promise<Customer[]>;
-  /**
-   * All customers tagged with this source key, INCLUDING soft-deleted ones — the reconciliation
-   * set of the scheduled customer sync (see CustomerSyncService). `'manual'` customers are only
-   * returned when explicitly queried with source='manual'; the sync never queries them.
-   */
-  findBySource(source: string): Promise<Customer[]>;
   /** Soft-delete: stamps `deletedAt = at` (preserves the row and its evidence chain). No-op for an unknown id. */
   softDelete(id: string, at: Date): Promise<void>;
 }

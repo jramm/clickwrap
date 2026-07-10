@@ -193,17 +193,16 @@ export interface Customer {
    */
   contactEmails: string[];
   /**
-   * Provenance of the customer record. `'manual'` (the default) for admin/integration-API-created
-   * customers — NEVER touched by the sync. Otherwise the KEY of the customer-source plugin that
-   * owns this record (see CustomerSyncService): only source-tagged customers are updated/deleted
-   * by the scheduled sync.
+   * Provenance of the customer record. `'manual'` (the default) for admin-created customers;
+   * otherwise the origin of the record as reported by the inbound integration API (e.g. the Main
+   * Portal that pushed it, see CustomerAdminService.upsertByExternalRef).
    */
   source?: string;
   /**
-   * Soft-delete marker (preserves the evidence chain). Set when the sync removes a source-managed
-   * customer that disappeared from the source. A soft-deleted customer is excluded from the admin
-   * list, dashboards and compliance ("never blocking/pending"), but its detail/history stays
-   * viewable. Cleared on reactivation (the customer reappears in the source).
+   * Soft-delete marker (preserves the evidence chain). Set when the inbound integration API
+   * deactivates a customer (deactivateByExternalRef). A soft-deleted customer is excluded from the
+   * admin list, dashboards and compliance ("never blocking/pending"), but its detail/history stays
+   * viewable. Cleared on reactivation (a subsequent upsert of the same external ref).
    */
   deletedAt?: Date;
 }

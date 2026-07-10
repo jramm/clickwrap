@@ -386,8 +386,8 @@ export class CustomerAdminService {
       throw new DomainError('CUSTOMER_NOT_FOUND', `Customer ${id} not found`);
     }
     // A soft-deleted customer must never silently reappear in the active list via a normal edit.
-    // Reactivation is exclusively the sync's job (the customer reappears in the source) — see
-    // CustomerSyncService.
+    // Reactivation is exclusively the inbound integration API's job (a subsequent upsert of the
+    // same external ref) — see reactivateByExternalRef.
     if (existing.deletedAt !== undefined) {
       throw new DomainError('INVALID_STATE', `Customer ${id} is deleted and cannot be modified`);
     }
@@ -512,8 +512,8 @@ export class CustomerAdminService {
   /**
    * Idempotent inbound deactivate keyed by (`externalRef`, `audience`) — used when an upstream
    * provider group is merged away. Resolves the ACTIVE customer carrying `externalRef` whose roles
-   * include `audience`, then soft-deletes it (preserving its evidence chain) → CUSTOMER_DELETED,
-   * mirroring {@link CustomerSyncService}. A different-audience customer sharing the same
+   * include `audience`, then soft-deletes it (preserving its evidence chain) → CUSTOMER_DELETED.
+   * A different-audience customer sharing the same
    * `externalRef` is left untouched. Not found (unknown externalRef/audience) or already
    * soft-deleted → idempotent no-op (no write, no event).
    */
@@ -551,7 +551,7 @@ export class CustomerAdminService {
   /**
    * Reactivates a soft-deleted inbound customer: clears deletedAt and applies the pushed identity
    * fields in one save (open states persisted before the soft-delete are untouched), then records
-   * CUSTOMER_UPDATED — mirroring CustomerSyncService.reactivate. A role change is validated for
+   * CUSTOMER_UPDATED. A role change is validated for
    * overlap-aware uniqueness first, exactly like {@link update}.
    */
   private async reactivateByExternalRef(

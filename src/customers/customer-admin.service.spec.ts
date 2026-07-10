@@ -941,7 +941,7 @@ describe('CustomerAdminService', () => {
         expect(row).toMatchObject({ externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] });
         expect(row).not.toHaveProperty('importedAcceptances');
 
-        const stored = (await customers.findBySource('mainportal')).find((c) => c.externalRef === 'crm-1');
+        const stored = (await customers.findAllByExternalRef('crm-1')).find((c) => c.source === 'mainportal');
         expect(stored?.source).toBe('mainportal');
 
         const created = (await events.query({ customerId: row.id })).items.filter((e) => e.type === 'CUSTOMER_CREATED');

@@ -7,10 +7,7 @@ import type { AnyClickwrapPlugin } from '../../plugin-sdk';
 import { defaultAcceptancePagePlugin } from './default-acceptance-page.plugin';
 import { googleSsoAdminAuthPlugin } from './google-sso-admin-auth.plugin';
 import { localFileStoragePlugin } from './local-file-storage.plugin';
-import { mainportalCustomerSourcePlugin } from './mainportal-customer-source.plugin';
 import { memoryFileStoragePlugin } from './memory-file-storage.plugin';
-import { metergridCustomerSourcePlugin } from './metergrid-customer-source.plugin';
-import { noneCustomerSourcePlugin } from './none-customer-source.plugin';
 import { noopEmailPlugin } from './noop-email.plugin';
 import { postmarkEmailPlugin } from './postmark-email.plugin';
 import { smtpEmailPlugin } from './smtp-email.plugin';
@@ -26,8 +23,5 @@ export const builtinPlugins: AnyClickwrapPlugin[] = [
   googleSsoAdminAuthPlugin,
   staticTokenAdminAuthPlugin,
   supertokensAdminAuthPlugin,
-  noneCustomerSourcePlugin,
-  metergridCustomerSourcePlugin,
-  mainportalCustomerSourcePlugin,
   defaultAcceptancePagePlugin,
 ];

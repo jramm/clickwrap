@@ -26,10 +26,6 @@ export class InMemoryCustomerRepo implements CustomerRepo {
     return deepCopy([...this.customers.values()]);
   }
 
-  async findBySource(source: string): Promise<Customer[]> {
-    return deepCopy([...this.customers.values()].filter((c) => c.source === source));
-  }
-
   async softDelete(id: string, at: Date): Promise<void> {
     const existing = this.customers.get(id);
     if (existing) {

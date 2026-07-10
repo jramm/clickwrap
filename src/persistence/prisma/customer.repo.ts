@@ -43,11 +43,6 @@ export class PrismaCustomerRepo implements CustomerRepo {
     return rows.map(toDomain);
   }
 
-  async findBySource(source: string): Promise<Customer[]> {
-    const rows = await this.prisma.customer.findMany({ where: { source } });
-    return rows.map(toDomain);
-  }
-
   async softDelete(id: string, at: Date): Promise<void> {
     // updateMany (not update) so an unknown id is a silent no-op rather than P2025.
     await this.prisma.customer.updateMany({ where: { id }, data: { deletedAt: at } });

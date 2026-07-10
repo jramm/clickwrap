@@ -1,10 +1,10 @@
 # Plugin author guide
 
 clickwrap-server is extensible through npm packages: a third party can ship an **e-mail provider**,
-a **file storage**, an **admin-auth method**, a **customer source**, or an **acceptance-page
-renderer** as their own package — without touching this repo. The built-ins (postmark/smtp/noop,
-memory/local, google-sso/static-token/supertokens, none/metergrid, default) go through the exact
-same mechanism; there is no special path.
+a **file storage**, an **admin-auth method**, or an **acceptance-page renderer** as their own
+package — without touching this repo. The built-ins (postmark/smtp/noop, memory/local,
+google-sso/static-token/supertokens, default) go through the exact same mechanism; there is no
+special path.
 
 - SDK contracts: [`src/plugin-sdk/`](../src/plugin-sdk/README.md) (prepared for extraction as a
   published package).
@@ -20,7 +20,7 @@ At boot the host builds a **plugin registry** from three sources (all validated 
    `devDependencies` whose own package.json carries the manifest field:
 
    ```json
-   { "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "customer-source" | "acceptance-page", "key": "<slug>" } }
+   { "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "acceptance-page", "key": "<slug>" } }
    ```
 
 3. **`CLICKWRAP_PLUGIN_PATHS`** — comma-separated local directories (each a package with a
@@ -39,7 +39,6 @@ Rules:
   | `EMAIL_PROVIDER` | `noop` | ONE active email-provider key |
   | `FILE_STORAGE` | `memory` | ONE active file-storage key |
   | `ADMIN_AUTH` | `google-sso,static-token` | ORDERED comma list of admin-auth keys |
-  | `CUSTOMER_SOURCE` | `none` | ONE active customer-source key (`none` = sync disabled) |
   | `ACCEPTANCE_PAGE` | `default` | ONE active acceptance-page renderer key |
 
   An unknown key fails the boot with the list of available keys.
@@ -190,108 +189,6 @@ copyable reference for JWT/JWKS-style auth: it verifies SuperTokens access token
 from `sub` (+ `email`). How the fronting app hands the access token back to the admin UI after the
 `SUPERTOKENS_LOGIN_URL` redirect is deployment-specific — e.g. a shared-domain setup where
 SuperTokens header-based auth exposes the access token to the UI, or a small token relay page.
-
-### `customer-source` — `CustomerSource`
-
-```ts
-interface ExternalCustomer {
-  externalRef: string;      // stable id from the source — the reconciliation key
-  firstName?: string;
-  lastName?: string;
-  companyName?: string;
-  contactEmails: string[];
-}
-interface CustomerSourceSnapshot {
-  customers: ExternalCustomer[];    // FULL current set of ACTIVE source customers
-  deletedExternalRefs?: string[];   // optional explicit deletions (explicit deletion wins)
-}
-interface CustomerSource { fetchAll(): Promise<CustomerSourceSnapshot>; }
-```
-
-The read side of the **scheduled customer sync** (`CustomerSyncService`, cron every 12h). The host
-fetches the full snapshot and reconciles it into clickwrap, scoped strictly to customers tagged with
-the active source key (`Customer.source`): create new (`CUSTOMER_CREATED`), update changed identity
-fields — `firstName`/`lastName`/`companyName`/`contactEmails` only, never roles (`CUSTOMER_UPDATED`),
-reactivate a soft-deleted customer that reappears (`CUSTOMER_UPDATED`), and **soft-delete** (preserve
-the evidence chain) source-managed customers that disappeared or are listed in `deletedExternalRefs`
-(`CUSTOMER_DELETED`). Manually-created (`source='manual'`) customers are never touched. The reconcile
-is idempotent (an unchanged snapshot produces zero writes/events) with per-record error isolation.
-
-Activation + config:
-
-| Env var | Default | Meaning |
-|---|---|---|
-| `CUSTOMER_SOURCE` | `none` | ONE active customer-source key; `none` (built-in) reports an empty snapshot ⇒ sync disabled |
-| `CUSTOMER_SYNC_DEFAULT_ROLES` | *(empty)* | Comma-separated audience keys assigned to newly-created customers (empty ⇒ no roles ⇒ no rollout). Set `customer` for metergrid |
-| `CUSTOMER_SYNC_WON_ACCEPT_TYPES` | *(empty)* | Comma-separated clickwrap document-type keys (e.g. `agb,avv`) import-accepted on INITIAL onboarding of a newly-created customer: the current published version of each is recorded as an ACCEPTED (IMPORT) acceptance, so the customer is created already accepted (no pending state, no rollout mail) for those documents; any other current documents still roll out normally. Empty ⇒ normal pending rollout. Only affects CREATE — never updates or reactivation |
-| `CUSTOMER_SYNC_ENABLED` | `true` | Kill switch (mirrors `SWEEPER_ENABLED`); `false` disables the cron |
-
-A real adapter is an ordinary `customer-source` plugin (`create(ctx)` returns a `CustomerSource`
-doing the HTTP + auth + field mapping), activated via `CUSTOMER_SOURCE=<its-key>`.
-
-#### `metergrid` built-in
-
-Set `CUSTOMER_SOURCE=metergrid` (plus the vars below) to enable the 12-hourly sync against the
-metergrid partner API. It syncs **only won-deal customers** — following the Game-backend semantics a
-metergrid *Customer* is a prospect until one of its *Projects* reaches a won `tenantElectricity.status`
-(then it is a real customer bound by AGB + AVV); *Companies* (partners) are out of scope for now. It
-authenticates with SuperTokens in cookie mode (`POST /auth/signin`, emailpassword recipe), then
-fetches the projects (`POST /api/configurator/projects?skip_total_items=true`, `include.tenantElectricity`)
-and the customers (`POST /api/configurator/customers?skip_total_items=true`,
-`include.address+contactPerson`). It collects the customer ids referenced by won-stage projects and
-returns only those customers, mapped to an `ExternalCustomer` (`id`→`externalRef`, `companyName`,
-`contactPerson.firstName/lastName`, and the unique trimmed non-empty `contactPerson.email` + `email`
-as `contactEmails`). Deletion is by absence — the snapshot carries no `deletedExternalRefs`; the
-reconcile engine soft-deletes source-managed customers that disappear (now meaning "no longer a won
-customer OR removed").
-
-On INITIAL onboarding the latest AGB + AVV are considered already accepted: configure
-`CUSTOMER_SYNC_DEFAULT_ROLES=customer` and `CUSTOMER_SYNC_WON_ACCEPT_TYPES=agb,avv` and the newly-created
-customer is import-accepted for the current published AGB/AVV versions (no pending state, no rollout
-mail for those).
-
-| Env var | Default | Meaning |
-|---|---|---|
-| `METERGRID_BASE_URL` | `https://api-partners.metergrid.de` | Partner API base URL |
-| `METERGRID_USERNAME` | *(required)* | Service-account e-mail — boot error if missing |
-| `METERGRID_PASSWORD` | *(required)* | Service-account password — boot error if missing; never logged |
-
-Use a **dedicated service account** rather than a personal login. The password is never included in
-any error message or log line. Reference implementation:
-`src/plugins/customer-source/metergrid/metergrid.source.ts` (+ the built-in
-`src/plugins/builtins/metergrid-customer-source.plugin.ts`).
-
-#### `mainportal` built-in
-
-Set `CUSTOMER_SOURCE=mainportal` (plus the vars below) to sync metergrid **Main-Portal Provider
-Groups** as clickwrap customers. Provider groups are the legal entities that use the Main Portal and
-must accept the AGB, so this source is the source of truth for **who must accept** (it replaces the
-metergrid/Game source for that purpose; `metergrid` and `none` stay selectable). It calls a
-system-to-system endpoint `GET {MAINPORTAL_BASE_URL}{MAINPORTAL_PROVIDER_GROUPS_PATH}` with a
-`system_api` bearer token (`Authorization: Bearer <token>`, scope `provider_group:read`,
-`accept: application/json`), which returns ALL non-merged provider groups
-(`{ items: [{ id, name, managers: [{ email, firstName, lastName }] }], next }`), following the `next`
-link for pagination when present. Each group is mapped to an `ExternalCustomer`: `id`→`externalRef`
-(as string), `name`→`companyName`, the unique trimmed non-empty **case-insensitively** de-duplicated
-manager e-mails → `contactEmails` (the MANAGER role is the top role — there is no OWNER — so managers
-are the "owner(s)"), and `firstName`/`lastName` from the first manager. Deletion is by absence — the
-snapshot carries no `deletedExternalRefs`; a merged/removed group drops out and is soft-deleted by
-the reconcile.
-
-Provider groups are imported PENDING and must still accept the AGB: set
-`CUSTOMER_SYNC_DEFAULT_ROLES=customer` and **leave `CUSTOMER_SYNC_WON_ACCEPT_TYPES` EMPTY** (that is
-the point — do NOT auto-accept). This is purely a deployment env choice; no code change.
-
-| Env var | Default | Meaning |
-|---|---|---|
-| `MAINPORTAL_BASE_URL` | *(required)* | Main-Portal origin, e.g. `https://app.metergrid.de` — boot error if missing |
-| `MAINPORTAL_API_TOKEN` | *(required)* | `system_api` bearer token — boot error if missing; never logged |
-| `MAINPORTAL_PROVIDER_GROUPS_PATH` | `/system/v1/provider-groups` | Endpoint path (configurable until the Main-Portal team finalises it) |
-
-The full endpoint contract the Main-Portal team must expose is in
-[`docs/integrations/mainportal-provider-groups.md`](integrations/mainportal-provider-groups.md).
-Reference implementation: `src/plugins/customer-source/mainportal/mainportal.source.ts` (+ the
-built-in `src/plugins/builtins/mainportal-customer-source.plugin.ts`).
 
 ### `acceptance-page` — `AcceptancePageRenderer`
 

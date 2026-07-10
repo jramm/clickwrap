@@ -3,17 +3,16 @@
  *
  * A plugin is an npm package whose package.json carries the manifest field
  *
- *   "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "customer-source" | "acceptance-page", "key": "<slug>" }
+ *   "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "acceptance-page", "key": "<slug>" }
  *
  * and whose main entry default-exports the result of {@link definePlugin} (or a plain object of
  * the same shape — the SDK is not required at runtime). The host discovers manifests in the app's
  * installed dependencies (plus `CLICKWRAP_PLUGIN_PATHS`) and activates plugins per kind via env
- * (`EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`, `CUSTOMER_SOURCE`, `ACCEPTANCE_PAGE`).
+ * (`EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`, `ACCEPTANCE_PAGE`).
  */
 import type { DynamicModule } from '@nestjs/common';
 import type { AcceptancePageRenderer } from './kinds/acceptance-page';
 import type { AdminAuthStrategy } from './kinds/admin-auth';
-import type { CustomerSource } from './kinds/customer-source';
 import type { EmailDeliveryProvider } from './kinds/email';
 import type { FileStorage } from './kinds/file-storage';
 
@@ -22,7 +21,6 @@ export interface PluginKindImplementations {
   'email-provider': EmailDeliveryProvider;
   'file-storage': FileStorage;
   'admin-auth': AdminAuthStrategy;
-  'customer-source': CustomerSource;
   'acceptance-page': AcceptancePageRenderer;
 }
 
@@ -32,7 +30,6 @@ export const CLICKWRAP_PLUGIN_KINDS: readonly ClickwrapPluginKind[] = [
   'email-provider',
   'file-storage',
   'admin-auth',
-  'customer-source',
   'acceptance-page',
 ];
 
@@ -120,8 +117,6 @@ export const PLUGIN_DI_TOKENS = {
   InboundDeliveryEventSink: 'clickwrap:inbound-delivery-event-sink',
   /** The active FileStorage instance; bound while the plugin is the active file storage. */
   FileStorage: 'clickwrap:file-storage',
-  /** The active CustomerSource instance; bound while the plugin is the active customer source. */
-  CustomerSource: 'clickwrap:customer-source',
   /** The active AcceptancePageRenderer; bound while the plugin is the active acceptance page. */
   AcceptancePageRenderer: 'clickwrap:acceptance-page',
 } as const;

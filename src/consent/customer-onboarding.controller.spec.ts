@@ -171,8 +171,8 @@ describe('CustomerOnboardingController (integration surface)', () => {
         .send(body)
         .expect(200);
       expect(second.body.id).toBe(first.body.id);
-      // Only one customer exists for this (source, externalRef).
-      expect((await customers.findBySource('mainportal')).filter((c) => c.externalRef === 'crm-1')).toHaveLength(1);
+      // Only one customer exists for this externalRef.
+      expect(await customers.findAllByExternalRef('crm-1')).toHaveLength(1);
     });
 
     it('unknown role → 422 UNKNOWN_AUDIENCE', async () => {
