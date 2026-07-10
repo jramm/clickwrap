@@ -3,13 +3,14 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { DashboardResponseModel } from '../types/DashboardResponseModel.ts';
 import { versionStatsModelSchema } from './versionStatsModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const dashboardResponseModelSchema = z.object({
-  items: z
-    .array(z.lazy(() => versionStatsModelSchema))
-    .describe('One entry per current + upcoming published version of every document.'),
-}) as unknown as ToZod<DashboardResponseModel>;
+  get items() {
+    return z
+      .array(versionStatsModelSchema)
+      .describe('One entry per current + upcoming published version of every document.');
+  },
+}) as unknown as z.ZodType<DashboardResponseModel>;

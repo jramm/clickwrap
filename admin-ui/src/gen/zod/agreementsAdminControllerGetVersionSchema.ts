@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AgreementsAdminControllerGetVersion200,
   AgreementsAdminControllerGetVersion401,
@@ -14,29 +12,30 @@ import type {
 } from '../types/AgreementsAdminControllerGetVersion.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { versionModelSchema } from './versionModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const agreementsAdminControllerGetVersionPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AgreementsAdminControllerGetVersionPathParams>;
+}) as unknown as z.ZodType<AgreementsAdminControllerGetVersionPathParams>;
 
 export const agreementsAdminControllerGetVersion200Schema = z.lazy(
   () => versionModelSchema,
-) as unknown as ToZod<AgreementsAdminControllerGetVersion200>;
+) as unknown as z.ZodType<AgreementsAdminControllerGetVersion200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const agreementsAdminControllerGetVersion401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerGetVersion401>;
+) as unknown as z.ZodType<AgreementsAdminControllerGetVersion401>;
 
 /**
  * @description VERSION_NOT_FOUND
  */
 export const agreementsAdminControllerGetVersion404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerGetVersion404>;
+) as unknown as z.ZodType<AgreementsAdminControllerGetVersion404>;
 
 export const agreementsAdminControllerGetVersionQueryResponseSchema = z.lazy(
   () => agreementsAdminControllerGetVersion200Schema,
-) as unknown as ToZod<AgreementsAdminControllerGetVersionQueryResponse>;
+) as unknown as z.ZodType<AgreementsAdminControllerGetVersionQueryResponse>;

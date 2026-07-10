@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { PublishResponseModel } from '../types/PublishResponseModel.ts';
+import { z } from 'zod/v4';
 
 export const publishResponseModelSchema = z.object({
   versionId: z.string(),
   status: z.enum(['PUBLISHED']),
   rolloutCustomers: z.number().describe('Number of customers the rollout targeted.'),
-  publishedAt: z.string().datetime(),
-}) as unknown as ToZod<PublishResponseModel>;
+  publishedAt: z.iso.datetime(),
+}) as unknown as z.ZodType<PublishResponseModel>;

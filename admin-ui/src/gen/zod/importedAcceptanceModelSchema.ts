@@ -3,11 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { ImportedAcceptanceModel } from '../types/ImportedAcceptanceModel.ts';
+import { z } from 'zod/v4';
 
 export const importedAcceptanceModelSchema = z.object({
   versionId: z.string(),
   acceptanceId: z.string(),
-}) as unknown as ToZod<ImportedAcceptanceModel>;
+}) as unknown as z.ZodType<ImportedAcceptanceModel>;

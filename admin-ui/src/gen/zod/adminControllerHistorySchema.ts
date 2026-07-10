@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerHistory200,
   AdminControllerHistory401,
@@ -14,29 +12,30 @@ import type {
 } from '../types/AdminControllerHistory.ts';
 import { customerHistoryResponseModelSchema } from './customerHistoryResponseModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerHistoryPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerHistoryPathParams>;
+}) as unknown as z.ZodType<AdminControllerHistoryPathParams>;
 
 export const adminControllerHistory200Schema = z.lazy(
   () => customerHistoryResponseModelSchema,
-) as unknown as ToZod<AdminControllerHistory200>;
+) as unknown as z.ZodType<AdminControllerHistory200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerHistory401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerHistory401>;
+) as unknown as z.ZodType<AdminControllerHistory401>;
 
 /**
  * @description CUSTOMER_NOT_FOUND
  */
 export const adminControllerHistory404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerHistory404>;
+) as unknown as z.ZodType<AdminControllerHistory404>;
 
 export const adminControllerHistoryQueryResponseSchema = z.lazy(
   () => adminControllerHistory200Schema,
-) as unknown as ToZod<AdminControllerHistoryQueryResponse>;
+) as unknown as z.ZodType<AdminControllerHistoryQueryResponse>;

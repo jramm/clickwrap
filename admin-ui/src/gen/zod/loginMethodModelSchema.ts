@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { LoginMethodModel } from '../types/LoginMethodModel.ts';
+import { z } from 'zod/v4';
 
 export const loginMethodModelSchema = z.object({
   key: z.string().describe('Plugin key of the admin-auth strategy.'),
@@ -21,4 +20,4 @@ export const loginMethodModelSchema = z.object({
     .describe(
       'Flow parameters — google: { clientId }, token: {}, oidc-redirect: { authorizeUrl, clientId? }. The Google clientId comes from the BACKEND env (GOOGLE_CLIENT_ID); a frontend-side VITE_GOOGLE_CLIENT_ID is obsolete.',
     ),
-}) as unknown as ToZod<LoginMethodModel>;
+}) as unknown as z.ZodType<LoginMethodModel>;

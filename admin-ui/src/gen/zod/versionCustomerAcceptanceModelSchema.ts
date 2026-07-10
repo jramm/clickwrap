@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { VersionCustomerAcceptanceModel } from '../types/VersionCustomerAcceptanceModel.ts';
+import { z } from 'zod/v4';
 
 export const versionCustomerAcceptanceModelSchema = z.object({
-  acceptedAt: z.string().datetime(),
+  acceptedAt: z.iso.datetime(),
   method: z.enum(['ACTIVE_CONSENT', 'TACIT', 'IMPORT']),
   channel: z.enum(['PORTAL', 'ADMIN', 'SYSTEM', 'LINK']),
   actorName: z.optional(z.string().describe('Display name of the accepting actor.')),
-}) as unknown as ToZod<VersionCustomerAcceptanceModel>;
+}) as unknown as z.ZodType<VersionCustomerAcceptanceModel>;

@@ -3,12 +3,13 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { EventListResponseModel } from '../types/EventListResponseModel.ts';
 import { eventModelSchema } from './eventModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const eventListResponseModelSchema = z.object({
-  items: z.array(z.lazy(() => eventModelSchema)),
+  get items() {
+    return z.array(eventModelSchema);
+  },
   total: z.number().describe('Total number of events AFTER filtering (before pagination).'),
-}) as unknown as ToZod<EventListResponseModel>;
+}) as unknown as z.ZodType<EventListResponseModel>;

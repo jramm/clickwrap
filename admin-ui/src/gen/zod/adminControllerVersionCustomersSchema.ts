@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerVersionCustomers200,
   AdminControllerVersionCustomers401,
@@ -15,10 +13,11 @@ import type {
 } from '../types/AdminControllerVersionCustomers.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { versionCustomersResponseModelSchema } from './versionCustomersResponseModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerVersionCustomersPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerVersionCustomersPathParams>;
+}) as unknown as z.ZodType<AdminControllerVersionCustomersPathParams>;
 
 export const adminControllerVersionCustomersQueryParamsSchema = z
   .object({
@@ -30,26 +29,26 @@ export const adminControllerVersionCustomersQueryParamsSchema = z
     ),
     page: z.optional(z.string()),
   })
-  .optional() as unknown as ToZod<AdminControllerVersionCustomersQueryParams>;
+  .optional() as unknown as z.ZodType<AdminControllerVersionCustomersQueryParams>;
 
 export const adminControllerVersionCustomers200Schema = z.lazy(
   () => versionCustomersResponseModelSchema,
-) as unknown as ToZod<AdminControllerVersionCustomers200>;
+) as unknown as z.ZodType<AdminControllerVersionCustomers200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerVersionCustomers401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerVersionCustomers401>;
+) as unknown as z.ZodType<AdminControllerVersionCustomers401>;
 
 /**
  * @description VERSION_NOT_FOUND
  */
 export const adminControllerVersionCustomers404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerVersionCustomers404>;
+) as unknown as z.ZodType<AdminControllerVersionCustomers404>;
 
 export const adminControllerVersionCustomersQueryResponseSchema = z.lazy(
   () => adminControllerVersionCustomers200Schema,
-) as unknown as ToZod<AdminControllerVersionCustomersQueryResponse>;
+) as unknown as z.ZodType<AdminControllerVersionCustomersQueryResponse>;

@@ -3,29 +3,29 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { DocumentListEntryModel } from '../types/DocumentListEntryModel.ts';
 import { versionModelSchema } from './versionModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const documentListEntryModelSchema = z.object({
   id: z.string(),
   type: z.string().describe('Document type key.'),
   audience: z.string().describe('Audience key.'),
   name: z.string(),
-  currentVersion: z
-    .lazy(() => versionModelSchema)
-    .describe('Current PUBLISHED version or null.')
-    .nullish(),
-  upcomingVersions: z
-    .array(z.lazy(() => versionModelSchema))
-    .describe(
-      "ALL UPCOMING published versions (validFrom in the future, scheduled publish), ordered by validFrom ascending (the nearest flip first). Empty when none are scheduled. Several future versions may be scheduled simultaneously — every one is listed, not just the next. The current version stays the compliance baseline until the flip at the nearest one's validFrom.",
-    ),
+  get currentVersion() {
+    return versionModelSchema.describe('Current PUBLISHED version or null.').nullish();
+  },
+  get upcomingVersions() {
+    return z
+      .array(versionModelSchema)
+      .describe(
+        "ALL UPCOMING published versions (validFrom in the future, scheduled publish), ordered by validFrom ascending (the nearest flip first). Empty when none are scheduled. Several future versions may be scheduled simultaneously — every one is listed, not just the next. The current version stays the compliance baseline until the flip at the nearest one's validFrom.",
+      );
+  },
   latestPdfUrl: z
     .string()
     .describe(
       'Stable public URL (`${PUBLIC_BASE_URL}/documents/<type>/<audience>/latest.pdf`) that always 302-redirects to the currently effective published PDF — deterministic from the document keys, valid across future publishes (for rendering into offers). Null when no published version is in effect or PUBLIC_BASE_URL is unset.',
     )
     .nullish(),
-}) as unknown as ToZod<DocumentListEntryModel>;
+}) as unknown as z.ZodType<DocumentListEntryModel>;

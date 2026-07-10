@@ -3,12 +3,13 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CustomerListResponseModel } from '../types/CustomerListResponseModel.ts';
 import { customerRowModelSchema } from './customerRowModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const customerListResponseModelSchema = z.object({
-  items: z.array(z.lazy(() => customerRowModelSchema)),
+  get items() {
+    return z.array(customerRowModelSchema);
+  },
   total: z.number(),
-}) as unknown as ToZod<CustomerListResponseModel>;
+}) as unknown as z.ZodType<CustomerListResponseModel>;

@@ -3,16 +3,19 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { VersionCustomersResponseModel } from '../types/VersionCustomersResponseModel.ts';
 import { versionCustomerRowModelSchema } from './versionCustomerRowModelSchema.ts';
 import { versionStatsModelSchema } from './versionStatsModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const versionCustomersResponseModelSchema = z.object({
-  items: z.array(z.lazy(() => versionCustomerRowModelSchema)),
+  get items() {
+    return z.array(versionCustomerRowModelSchema);
+  },
   total: z.number(),
-  stats: z
-    .lazy(() => versionStatsModelSchema)
-    .describe('Reused per-version dashboard stats (header numbers match the card).'),
-}) as unknown as ToZod<VersionCustomersResponseModel>;
+  get stats() {
+    return versionStatsModelSchema.describe(
+      'Reused per-version dashboard stats (header numbers match the card).',
+    );
+  },
+}) as unknown as z.ZodType<VersionCustomersResponseModel>;

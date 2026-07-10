@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { EmailTemplateModel } from '../types/EmailTemplateModel.ts';
+import { z } from 'zod/v4';
 
 export const emailTemplateModelSchema = z.object({
   id: z.string(),
@@ -15,6 +14,6 @@ export const emailTemplateModelSchema = z.object({
   design: z.string().describe('Unlayer design JSON (serialised).'),
   html: z.string().describe('Exported e-mail HTML with {{placeholders}}.'),
   isDefault: z.boolean().describe('Built-in default row (editable but not deletable).'),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-}) as unknown as ToZod<EmailTemplateModel>;
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+}) as unknown as z.ZodType<EmailTemplateModel>;

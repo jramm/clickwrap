@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { AcceptedByChannelModel } from '../types/AcceptedByChannelModel.ts';
+import { z } from 'zod/v4';
 
 export const acceptedByChannelModelSchema = z.object({
   PORTAL: z.number(),
   LINK: z.number(),
   ADMIN: z.number(),
   SYSTEM: z.number(),
-}) as unknown as ToZod<AcceptedByChannelModel>;
+}) as unknown as z.ZodType<AcceptedByChannelModel>;

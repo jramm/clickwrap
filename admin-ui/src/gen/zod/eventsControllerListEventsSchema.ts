@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   EventsControllerListEvents200,
   EventsControllerListEvents401,
@@ -13,6 +11,7 @@ import type {
 } from '../types/EventsControllerListEvents.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { eventListResponseModelSchema } from './eventListResponseModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const eventsControllerListEventsQueryParamsSchema = z
   .object({
@@ -36,19 +35,19 @@ export const eventsControllerListEventsQueryParamsSchema = z
     versionId: z.optional(z.string().describe('Exact version id.')),
     page: z.optional(z.string().describe('1-based page (50 events per page).')),
   })
-  .optional() as unknown as ToZod<EventsControllerListEventsQueryParams>;
+  .optional() as unknown as z.ZodType<EventsControllerListEventsQueryParams>;
 
 export const eventsControllerListEvents200Schema = z.lazy(
   () => eventListResponseModelSchema,
-) as unknown as ToZod<EventsControllerListEvents200>;
+) as unknown as z.ZodType<EventsControllerListEvents200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const eventsControllerListEvents401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<EventsControllerListEvents401>;
+) as unknown as z.ZodType<EventsControllerListEvents401>;
 
 export const eventsControllerListEventsQueryResponseSchema = z.lazy(
   () => eventsControllerListEvents200Schema,
-) as unknown as ToZod<EventsControllerListEventsQueryResponse>;
+) as unknown as z.ZodType<EventsControllerListEventsQueryResponse>;

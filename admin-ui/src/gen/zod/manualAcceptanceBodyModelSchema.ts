@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { ManualAcceptanceBodyModel } from '../types/ManualAcceptanceBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const manualAcceptanceBodyModelSchema = z.object({
   versionId: z.string(),
@@ -13,4 +12,4 @@ export const manualAcceptanceBodyModelSchema = z.object({
   reason: z.string(),
   evidenceDocument: z.string().describe('Evidence document as base64.'),
   evidenceFileName: z.string(),
-}) as unknown as ToZod<ManualAcceptanceBodyModel>;
+}) as unknown as z.ZodType<ManualAcceptanceBodyModel>;

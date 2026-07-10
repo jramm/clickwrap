@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { HistorySignedDocumentModel } from '../types/HistorySignedDocumentModel.ts';
+import { z } from 'zod/v4';
 
 export const historySignedDocumentModelSchema = z.object({
   id: z.string(),
@@ -14,10 +13,10 @@ export const historySignedDocumentModelSchema = z.object({
   fileName: z.string(),
   contentHash: z.string(),
   fileSize: z.number(),
-  signedAt: z.string().datetime(),
+  signedAt: z.iso.datetime(),
   signerName: z.optional(z.string()),
   reference: z.optional(z.string()),
   note: z.optional(z.string()),
   uploadedBy: z.string(),
-  uploadedAt: z.string().datetime(),
-}) as unknown as ToZod<HistorySignedDocumentModel>;
+  uploadedAt: z.iso.datetime(),
+}) as unknown as z.ZodType<HistorySignedDocumentModel>;

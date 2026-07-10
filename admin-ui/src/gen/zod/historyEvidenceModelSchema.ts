@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { HistoryEvidenceModel } from '../types/HistoryEvidenceModel.ts';
+import { z } from 'zod/v4';
 
 export const historyEvidenceModelSchema = z.object({
   ipAddress: z.optional(z.string()),
@@ -14,4 +13,4 @@ export const historyEvidenceModelSchema = z.object({
   consentTextHash: z.optional(z.string()),
   contentHash: z.optional(z.string()),
   evidenceNote: z.optional(z.string().describe('IMPORT only.')),
-}) as unknown as ToZod<HistoryEvidenceModel>;
+}) as unknown as z.ZodType<HistoryEvidenceModel>;

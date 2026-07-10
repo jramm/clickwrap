@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerRemind201,
   AdminControllerRemind401,
@@ -15,36 +13,37 @@ import type {
 } from '../types/AdminControllerRemind.ts';
 import { customerVersionStateModelSchema } from './customerVersionStateModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerRemindPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerRemindPathParams>;
+}) as unknown as z.ZodType<AdminControllerRemindPathParams>;
 
 export const adminControllerRemind201Schema = z.lazy(
   () => customerVersionStateModelSchema,
-) as unknown as ToZod<AdminControllerRemind201>;
+) as unknown as z.ZodType<AdminControllerRemind201>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerRemind401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerRemind401>;
+) as unknown as z.ZodType<AdminControllerRemind401>;
 
 /**
  * @description VERSION_NOT_FOUND (unknown state id)
  */
 export const adminControllerRemind404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerRemind404>;
+) as unknown as z.ZodType<AdminControllerRemind404>;
 
 /**
  * @description INVALID_STATE
  */
 export const adminControllerRemind422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerRemind422>;
+) as unknown as z.ZodType<AdminControllerRemind422>;
 
 export const adminControllerRemindMutationResponseSchema = z.lazy(
   () => adminControllerRemind201Schema,
-) as unknown as ToZod<AdminControllerRemindMutationResponse>;
+) as unknown as z.ZodType<AdminControllerRemindMutationResponse>;

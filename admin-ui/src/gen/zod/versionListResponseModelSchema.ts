@@ -3,11 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { VersionListResponseModel } from '../types/VersionListResponseModel.ts';
 import { versionModelSchema } from './versionModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const versionListResponseModelSchema = z.object({
-  items: z.array(z.lazy(() => versionModelSchema)),
-}) as unknown as ToZod<VersionListResponseModel>;
+  get items() {
+    return z.array(versionModelSchema);
+  },
+}) as unknown as z.ZodType<VersionListResponseModel>;

@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { DocumentModel } from '../types/DocumentModel.ts';
+import { z } from 'zod/v4';
 
 export const documentModelSchema = z.object({
   id: z.string(),
   type: z.string(),
   audience: z.string(),
   name: z.string(),
-}) as unknown as ToZod<DocumentModel>;
+}) as unknown as z.ZodType<DocumentModel>;

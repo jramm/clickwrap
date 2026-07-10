@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AgreementsAdminControllerCreateDocument201,
   AgreementsAdminControllerCreateDocument401,
@@ -15,29 +13,30 @@ import type {
 import { createDocumentBodyModelSchema } from './createDocumentBodyModelSchema.ts';
 import { documentModelSchema } from './documentModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const agreementsAdminControllerCreateDocument201Schema = z.lazy(
   () => documentModelSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateDocument201>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateDocument201>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const agreementsAdminControllerCreateDocument401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateDocument401>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateDocument401>;
 
 /**
  * @description INVALID_STATE (duplicate) · UNKNOWN_DOCUMENT_TYPE · UNKNOWN_AUDIENCE
  */
 export const agreementsAdminControllerCreateDocument422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateDocument422>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateDocument422>;
 
 export const agreementsAdminControllerCreateDocumentMutationRequestSchema = z.lazy(
   () => createDocumentBodyModelSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateDocumentMutationRequest>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateDocumentMutationRequest>;
 
 export const agreementsAdminControllerCreateDocumentMutationResponseSchema = z.lazy(
   () => agreementsAdminControllerCreateDocument201Schema,
-) as unknown as ToZod<AgreementsAdminControllerCreateDocumentMutationResponse>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateDocumentMutationResponse>;

@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   SignedDocumentsAdminControllerUpload201,
   SignedDocumentsAdminControllerUpload400,
@@ -18,47 +16,48 @@ import type {
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { signedDocumentModelSchema } from './signedDocumentModelSchema.ts';
 import { signedDocumentUploadBodyModelSchema } from './signedDocumentUploadBodyModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const signedDocumentsAdminControllerUploadPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<SignedDocumentsAdminControllerUploadPathParams>;
+}) as unknown as z.ZodType<SignedDocumentsAdminControllerUploadPathParams>;
 
 export const signedDocumentsAdminControllerUpload201Schema = z.lazy(
   () => signedDocumentModelSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerUpload201>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerUpload201>;
 
 /**
  * @description PDF / documentTypeKey / signedAt missing.
  */
 export const signedDocumentsAdminControllerUpload400Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerUpload400>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerUpload400>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const signedDocumentsAdminControllerUpload401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerUpload401>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerUpload401>;
 
 /**
  * @description CUSTOMER_NOT_FOUND
  */
 export const signedDocumentsAdminControllerUpload404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerUpload404>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerUpload404>;
 
 /**
  * @description UNKNOWN_DOCUMENT_TYPE · DOCUMENT_TYPE_NOT_EXTERNAL · UNKNOWN_AUDIENCE
  */
 export const signedDocumentsAdminControllerUpload422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerUpload422>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerUpload422>;
 
 export const signedDocumentsAdminControllerUploadMutationRequestSchema = z.lazy(
   () => signedDocumentUploadBodyModelSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerUploadMutationRequest>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerUploadMutationRequest>;
 
 export const signedDocumentsAdminControllerUploadMutationResponseSchema = z.lazy(
   () => signedDocumentsAdminControllerUpload201Schema,
-) as unknown as ToZod<SignedDocumentsAdminControllerUploadMutationResponse>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerUploadMutationResponse>;

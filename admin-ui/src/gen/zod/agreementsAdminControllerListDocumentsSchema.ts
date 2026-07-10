@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AgreementsAdminControllerListDocuments200,
   AgreementsAdminControllerListDocuments401,
@@ -12,18 +10,19 @@ import type {
 } from '../types/AgreementsAdminControllerListDocuments.ts';
 import { documentListResponseModelSchema } from './documentListResponseModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const agreementsAdminControllerListDocuments200Schema = z.lazy(
   () => documentListResponseModelSchema,
-) as unknown as ToZod<AgreementsAdminControllerListDocuments200>;
+) as unknown as z.ZodType<AgreementsAdminControllerListDocuments200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const agreementsAdminControllerListDocuments401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerListDocuments401>;
+) as unknown as z.ZodType<AgreementsAdminControllerListDocuments401>;
 
 export const agreementsAdminControllerListDocumentsQueryResponseSchema = z.lazy(
   () => agreementsAdminControllerListDocuments200Schema,
-) as unknown as ToZod<AgreementsAdminControllerListDocumentsQueryResponse>;
+) as unknown as z.ZodType<AgreementsAdminControllerListDocumentsQueryResponse>;

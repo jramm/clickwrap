@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { AcceptedByMethodModel } from '../types/AcceptedByMethodModel.ts';
+import { z } from 'zod/v4';
 
 export const acceptedByMethodModelSchema = z.object({
   ACTIVE_CONSENT: z.number(),
   TACIT: z.number(),
   IMPORT: z.number(),
-}) as unknown as ToZod<AcceptedByMethodModel>;
+}) as unknown as z.ZodType<AcceptedByMethodModel>;

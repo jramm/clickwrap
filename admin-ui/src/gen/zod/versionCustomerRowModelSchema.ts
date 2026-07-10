@@ -3,10 +3,9 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { VersionCustomerRowModel } from '../types/VersionCustomerRowModel.ts';
 import { versionCustomerAcceptanceModelSchema } from './versionCustomerAcceptanceModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const versionCustomerRowModelSchema = z.object({
   customerId: z.string(),
@@ -26,12 +25,12 @@ export const versionCustomerRowModelSchema = z.object({
       'SUPERSEDED',
     ])
     .describe('The CustomerVersionState value for THIS version.'),
-  notifiedAt: z.optional(z.string().datetime()),
-  deadlineAt: z.optional(z.string().datetime()),
+  notifiedAt: z.optional(z.iso.datetime()),
+  deadlineAt: z.optional(z.iso.datetime()),
   carryOverBlocking: z.optional(z.boolean()),
-  acceptance: z.optional(
-    z
-      .lazy(() => versionCustomerAcceptanceModelSchema)
-      .describe('The effective acceptance OF THIS VERSION only.'),
-  ),
-}) as unknown as ToZod<VersionCustomerRowModel>;
+  get acceptance() {
+    return versionCustomerAcceptanceModelSchema
+      .describe('The effective acceptance OF THIS VERSION only.')
+      .optional();
+  },
+}) as unknown as z.ZodType<VersionCustomerRowModel>;

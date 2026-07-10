@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerListCustomers200,
   AdminControllerListCustomers401,
@@ -13,6 +11,7 @@ import type {
 } from '../types/AdminControllerListCustomers.ts';
 import { customerListResponseModelSchema } from './customerListResponseModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerListCustomersQueryParamsSchema = z
   .object({
@@ -44,19 +43,19 @@ export const adminControllerListCustomersQueryParamsSchema = z
         .describe('Keep only customers whose (scoped) compliance matches this status.'),
     ),
   })
-  .optional() as unknown as ToZod<AdminControllerListCustomersQueryParams>;
+  .optional() as unknown as z.ZodType<AdminControllerListCustomersQueryParams>;
 
 export const adminControllerListCustomers200Schema = z.lazy(
   () => customerListResponseModelSchema,
-) as unknown as ToZod<AdminControllerListCustomers200>;
+) as unknown as z.ZodType<AdminControllerListCustomers200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerListCustomers401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerListCustomers401>;
+) as unknown as z.ZodType<AdminControllerListCustomers401>;
 
 export const adminControllerListCustomersQueryResponseSchema = z.lazy(
   () => adminControllerListCustomers200Schema,
-) as unknown as ToZod<AdminControllerListCustomersQueryResponse>;
+) as unknown as z.ZodType<AdminControllerListCustomersQueryResponse>;

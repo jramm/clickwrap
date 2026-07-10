@@ -3,11 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { DocumentListResponseModel } from '../types/DocumentListResponseModel.ts';
 import { documentListEntryModelSchema } from './documentListEntryModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const documentListResponseModelSchema = z.object({
-  items: z.array(z.lazy(() => documentListEntryModelSchema)),
-}) as unknown as ToZod<DocumentListResponseModel>;
+  get items() {
+    return z.array(documentListEntryModelSchema);
+  },
+}) as unknown as z.ZodType<DocumentListResponseModel>;

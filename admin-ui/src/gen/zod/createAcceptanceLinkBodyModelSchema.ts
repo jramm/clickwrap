@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CreateAcceptanceLinkBodyModel } from '../types/CreateAcceptanceLinkBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const createAcceptanceLinkBodyModelSchema = z.object({
   audienceKey: z.optional(
@@ -14,4 +13,4 @@ export const createAcceptanceLinkBodyModelSchema = z.object({
       .describe('Optional scope: restrict the hosted page to documents of this audience key.'),
   ),
   expiresInDays: z.optional(z.number().describe('Link validity in days (default 30, max 365).')),
-}) as unknown as ToZod<CreateAcceptanceLinkBodyModel>;
+}) as unknown as z.ZodType<CreateAcceptanceLinkBodyModel>;

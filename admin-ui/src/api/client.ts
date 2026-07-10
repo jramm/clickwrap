@@ -35,7 +35,7 @@ interface RequestOptions<T> {
   // zod schema for the expected response. If absent, nothing is parsed.
   // Input type is intentionally `any`: otherwise the input side of schemas with
   // .default()/.nullish() would distort the inference of T (output).
-  schema?: z.ZodType<T, z.ZodTypeDef, any>;
+  schema?: z.ZodType<T, any>;
 }
 
 function buildUrl(path: string, query?: RequestOptions<unknown>['query']): string {

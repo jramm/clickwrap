@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { AuthMethodsResponseModel } from '../types/AuthMethodsResponseModel.ts';
 import { loginMethodModelSchema } from './loginMethodModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const authMethodsResponseModelSchema = z.object({
-  methods: z
-    .array(z.lazy(() => loginMethodModelSchema))
-    .describe('Advertised methods, in ADMIN_AUTH order.'),
-}) as unknown as ToZod<AuthMethodsResponseModel>;
+  get methods() {
+    return z.array(loginMethodModelSchema).describe('Advertised methods, in ADMIN_AUTH order.');
+  },
+}) as unknown as z.ZodType<AuthMethodsResponseModel>;

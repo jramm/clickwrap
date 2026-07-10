@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { EmailTemplatePreviewResponseModel } from '../types/EmailTemplatePreviewResponseModel.ts';
+import { z } from 'zod/v4';
 
 export const emailTemplatePreviewResponseModelSchema = z.object({
   subject: z.string(),
   html: z.string().describe('Rendered, self-contained e-mail HTML.'),
   text: z.string().describe('Plain-text part derived from the rendered HTML.'),
-}) as unknown as ToZod<EmailTemplatePreviewResponseModel>;
+}) as unknown as z.ZodType<EmailTemplatePreviewResponseModel>;

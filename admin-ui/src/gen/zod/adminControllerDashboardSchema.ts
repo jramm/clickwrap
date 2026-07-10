@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerDashboard200,
   AdminControllerDashboard401,
@@ -12,18 +10,19 @@ import type {
 } from '../types/AdminControllerDashboard.ts';
 import { dashboardResponseModelSchema } from './dashboardResponseModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerDashboard200Schema = z.lazy(
   () => dashboardResponseModelSchema,
-) as unknown as ToZod<AdminControllerDashboard200>;
+) as unknown as z.ZodType<AdminControllerDashboard200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerDashboard401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerDashboard401>;
+) as unknown as z.ZodType<AdminControllerDashboard401>;
 
 export const adminControllerDashboardQueryResponseSchema = z.lazy(
   () => adminControllerDashboard200Schema,
-) as unknown as ToZod<AdminControllerDashboardQueryResponse>;
+) as unknown as z.ZodType<AdminControllerDashboardQueryResponse>;

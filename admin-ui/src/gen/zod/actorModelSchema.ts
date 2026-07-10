@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { ActorModel } from '../types/ActorModel.ts';
+import { z } from 'zod/v4';
 
 export const actorModelSchema = z.object({
   userId: z.string(),
   name: z.optional(z.string()),
   email: z.optional(z.string()),
   portalRole: z.optional(z.string()),
-}) as unknown as ToZod<ActorModel>;
+}) as unknown as z.ZodType<ActorModel>;

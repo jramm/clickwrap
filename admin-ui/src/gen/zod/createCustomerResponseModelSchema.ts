@@ -3,10 +3,9 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CreateCustomerResponseModel } from '../types/CreateCustomerResponseModel.ts';
 import { importedAcceptanceModelSchema } from './importedAcceptanceModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const createCustomerResponseModelSchema = z.object({
   id: z.string(),
@@ -19,8 +18,7 @@ export const createCustomerResponseModelSchema = z.object({
   roles: z.array(z.string()).describe('Audience keys.'),
   contactEmails: z.array(z.string()),
   deletedAt: z.optional(
-    z
-      .string()
+    z.iso
       .datetime()
       .describe(
         'Set only on a customer that was soft-deleted by the customer sync (removed from the external source). The detail page badges it; such customers are excluded from the list and never blocking.',
@@ -38,5 +36,7 @@ export const createCustomerResponseModelSchema = z.object({
       .enum(['compliant', 'pending', 'objected', 'blocked'])
       .describe('Compact per-row compliance status for the list chip. Present on list rows only.'),
   ),
-  importedAcceptances: z.array(z.lazy(() => importedAcceptanceModelSchema)),
-}) as unknown as ToZod<CreateCustomerResponseModel>;
+  get importedAcceptances() {
+    return z.array(importedAcceptanceModelSchema);
+  },
+}) as unknown as z.ZodType<CreateCustomerResponseModel>;

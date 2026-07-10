@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { ManualAcceptanceResponseModel } from '../types/ManualAcceptanceResponseModel.ts';
+import { z } from 'zod/v4';
 
 export const manualAcceptanceResponseModelSchema = z.object({
   acceptanceId: z.string(),
@@ -17,4 +16,4 @@ export const manualAcceptanceResponseModelSchema = z.object({
     'EXPIRED_BLOCKING',
     'SUPERSEDED',
   ]),
-}) as unknown as ToZod<ManualAcceptanceResponseModel>;
+}) as unknown as z.ZodType<ManualAcceptanceResponseModel>;

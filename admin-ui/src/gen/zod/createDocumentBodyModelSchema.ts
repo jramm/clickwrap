@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CreateDocumentBodyModel } from '../types/CreateDocumentBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const createDocumentBodyModelSchema = z.object({
   type: z.string().describe('Document type key (must exist).'),
   audience: z.string().describe('Audience key (must exist).'),
   name: z.string(),
-}) as unknown as ToZod<CreateDocumentBodyModel>;
+}) as unknown as z.ZodType<CreateDocumentBodyModel>;

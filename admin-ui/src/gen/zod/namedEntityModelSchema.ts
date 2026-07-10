@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { NamedEntityModel } from '../types/NamedEntityModel.ts';
+import { z } from 'zod/v4';
 
 export const namedEntityModelSchema = z.object({
   id: z.string(),
   key: z.string().describe('URL-safe slug, immutable after creation.'),
   name: z.string(),
-}) as unknown as ToZod<NamedEntityModel>;
+}) as unknown as z.ZodType<NamedEntityModel>;

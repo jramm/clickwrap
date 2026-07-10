@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CreateAcceptanceLinkResponseModel } from '../types/CreateAcceptanceLinkResponseModel.ts';
+import { z } from 'zod/v4';
 
 export const createAcceptanceLinkResponseModelSchema = z.object({
   linkId: z.string(),
@@ -14,5 +13,5 @@ export const createAcceptanceLinkResponseModelSchema = z.object({
     .describe(
       'Shareable URL (`${PUBLIC_BASE_URL}/accept/<token>`). The raw token appears ONLY here — the server persists just its SHA-256.',
     ),
-  expiresAt: z.string().datetime(),
-}) as unknown as ToZod<CreateAcceptanceLinkResponseModel>;
+  expiresAt: z.iso.datetime(),
+}) as unknown as z.ZodType<CreateAcceptanceLinkResponseModel>;

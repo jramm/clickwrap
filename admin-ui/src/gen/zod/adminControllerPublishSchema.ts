@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerPublish201,
   AdminControllerPublish401,
@@ -16,43 +14,44 @@ import type {
 } from '../types/AdminControllerPublish.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { publishResponseModelSchema } from './publishResponseModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerPublishPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerPublishPathParams>;
+}) as unknown as z.ZodType<AdminControllerPublishPathParams>;
 
 export const adminControllerPublish201Schema = z.lazy(
   () => publishResponseModelSchema,
-) as unknown as ToZod<AdminControllerPublish201>;
+) as unknown as z.ZodType<AdminControllerPublish201>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerPublish401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerPublish401>;
+) as unknown as z.ZodType<AdminControllerPublish401>;
 
 /**
  * @description VERSION_NOT_FOUND
  */
 export const adminControllerPublish404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerPublish404>;
+) as unknown as z.ZodType<AdminControllerPublish404>;
 
 /**
  * @description VERSION_IMMUTABLE
  */
 export const adminControllerPublish409Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerPublish409>;
+) as unknown as z.ZodType<AdminControllerPublish409>;
 
 /**
  * @description CHANGE_SUMMARY_REQUIRED · CONSENT_TEXT_REQUIRED · INVALID_STATE
  */
 export const adminControllerPublish422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerPublish422>;
+) as unknown as z.ZodType<AdminControllerPublish422>;
 
 export const adminControllerPublishMutationResponseSchema = z.lazy(
   () => adminControllerPublish201Schema,
-) as unknown as ToZod<AdminControllerPublishMutationResponse>;
+) as unknown as z.ZodType<AdminControllerPublishMutationResponse>;

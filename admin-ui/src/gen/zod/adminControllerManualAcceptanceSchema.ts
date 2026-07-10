@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerManualAcceptance201,
   AdminControllerManualAcceptance401,
@@ -18,47 +16,48 @@ import type {
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { manualAcceptanceBodyModelSchema } from './manualAcceptanceBodyModelSchema.ts';
 import { manualAcceptanceResponseModelSchema } from './manualAcceptanceResponseModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerManualAcceptancePathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerManualAcceptancePathParams>;
+}) as unknown as z.ZodType<AdminControllerManualAcceptancePathParams>;
 
 export const adminControllerManualAcceptance201Schema = z.lazy(
   () => manualAcceptanceResponseModelSchema,
-) as unknown as ToZod<AdminControllerManualAcceptance201>;
+) as unknown as z.ZodType<AdminControllerManualAcceptance201>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerManualAcceptance401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerManualAcceptance401>;
+) as unknown as z.ZodType<AdminControllerManualAcceptance401>;
 
 /**
  * @description CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND
  */
 export const adminControllerManualAcceptance404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerManualAcceptance404>;
+) as unknown as z.ZodType<AdminControllerManualAcceptance404>;
 
 /**
  * @description ALREADY_ACCEPTED
  */
 export const adminControllerManualAcceptance409Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerManualAcceptance409>;
+) as unknown as z.ZodType<AdminControllerManualAcceptance409>;
 
 /**
  * @description INVALID_STATE (missing reason/evidence) · ROLE_MISMATCH
  */
 export const adminControllerManualAcceptance422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerManualAcceptance422>;
+) as unknown as z.ZodType<AdminControllerManualAcceptance422>;
 
 export const adminControllerManualAcceptanceMutationRequestSchema = z.lazy(
   () => manualAcceptanceBodyModelSchema,
-) as unknown as ToZod<AdminControllerManualAcceptanceMutationRequest>;
+) as unknown as z.ZodType<AdminControllerManualAcceptanceMutationRequest>;
 
 export const adminControllerManualAcceptanceMutationResponseSchema = z.lazy(
   () => adminControllerManualAcceptance201Schema,
-) as unknown as ToZod<AdminControllerManualAcceptanceMutationResponse>;
+) as unknown as z.ZodType<AdminControllerManualAcceptanceMutationResponse>;

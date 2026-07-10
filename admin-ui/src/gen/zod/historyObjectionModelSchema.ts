@@ -3,20 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { HistoryObjectionModel } from '../types/HistoryObjectionModel.ts';
 import { actorModelSchema } from './actorModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const historyObjectionModelSchema = z.object({
   id: z.string(),
   customerId: z.string(),
   versionId: z.string(),
-  objectedAt: z.string().datetime(),
-  actor: z.lazy(() => actorModelSchema),
+  objectedAt: z.iso.datetime(),
+  get actor() {
+    return actorModelSchema;
+  },
   reason: z.optional(z.string()),
   channel: z.enum(['PORTAL', 'ADMIN', 'SYSTEM', 'LINK']),
   resolution: z.optional(z.enum(['WITHDRAWN', 'RESOLVED_ACCEPTED', 'RESOLVED_TERMINATED'])),
   resolvedBy: z.optional(z.string()),
-  resolvedAt: z.optional(z.string().datetime()),
-}) as unknown as ToZod<HistoryObjectionModel>;
+  resolvedAt: z.optional(z.iso.datetime()),
+}) as unknown as z.ZodType<HistoryObjectionModel>;

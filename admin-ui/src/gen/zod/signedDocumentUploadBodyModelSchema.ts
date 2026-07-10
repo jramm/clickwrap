@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { SignedDocumentUploadBodyModel } from '../types/SignedDocumentUploadBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const signedDocumentUploadBodyModelSchema = z.object({
   file: z.optional(z.instanceof(File).describe('The signed PDF (multipart field `file`).')),
@@ -13,9 +12,9 @@ export const signedDocumentUploadBodyModelSchema = z.object({
     z.string().describe('Fallback: PDF file name (only with the base64 `file` fallback).'),
   ),
   documentTypeKey: z.string().describe('DocumentTypeDef key — MUST be an external type.'),
-  signedAt: z.string().datetime().describe('Signature date (backdatable).'),
+  signedAt: z.iso.datetime().describe('Signature date (backdatable).'),
   signerName: z.optional(z.string()),
   reference: z.optional(z.string()),
   audience: z.optional(z.string().describe('Audience key (validated to exist when given).')),
   note: z.optional(z.string()),
-}) as unknown as ToZod<SignedDocumentUploadBodyModel>;
+}) as unknown as z.ZodType<SignedDocumentUploadBodyModel>;

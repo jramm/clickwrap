@@ -3,11 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { SignedDocumentListResponseModel } from '../types/SignedDocumentListResponseModel.ts';
 import { signedDocumentModelSchema } from './signedDocumentModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const signedDocumentListResponseModelSchema = z.object({
-  items: z.array(z.lazy(() => signedDocumentModelSchema)),
-}) as unknown as ToZod<SignedDocumentListResponseModel>;
+  get items() {
+    return z.array(signedDocumentModelSchema);
+  },
+}) as unknown as z.ZodType<SignedDocumentListResponseModel>;

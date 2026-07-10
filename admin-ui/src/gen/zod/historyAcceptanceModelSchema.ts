@@ -3,11 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { HistoryAcceptanceModel } from '../types/HistoryAcceptanceModel.ts';
 import { actorModelSchema } from './actorModelSchema.ts';
 import { historyEvidenceModelSchema } from './historyEvidenceModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const historyAcceptanceModelSchema = z.object({
   versionId: z.string(),
@@ -15,8 +14,12 @@ export const historyAcceptanceModelSchema = z.object({
   versionLabel: z.optional(z.string()),
   method: z.enum(['ACTIVE_CONSENT', 'TACIT', 'IMPORT']),
   channel: z.enum(['PORTAL', 'ADMIN', 'SYSTEM', 'LINK']),
-  acceptedAt: z.string().datetime(),
-  actor: z.lazy(() => actorModelSchema),
+  acceptedAt: z.iso.datetime(),
+  get actor() {
+    return actorModelSchema;
+  },
   isEffective: z.boolean(),
-  evidence: z.lazy(() => historyEvidenceModelSchema),
-}) as unknown as ToZod<HistoryAcceptanceModel>;
+  get evidence() {
+    return historyEvidenceModelSchema;
+  },
+}) as unknown as z.ZodType<HistoryAcceptanceModel>;

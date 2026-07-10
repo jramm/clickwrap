@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CustomerRowModel } from '../types/CustomerRowModel.ts';
+import { z } from 'zod/v4';
 
 export const customerRowModelSchema = z.object({
   id: z.string(),
@@ -18,8 +17,7 @@ export const customerRowModelSchema = z.object({
   roles: z.array(z.string()).describe('Audience keys.'),
   contactEmails: z.array(z.string()),
   deletedAt: z.optional(
-    z
-      .string()
+    z.iso
       .datetime()
       .describe(
         'Set only on a customer that was soft-deleted by the customer sync (removed from the external source). The detail page badges it; such customers are excluded from the list and never blocking.',
@@ -37,4 +35,4 @@ export const customerRowModelSchema = z.object({
       .enum(['compliant', 'pending', 'objected', 'blocked'])
       .describe('Compact per-row compliance status for the list chip. Present on list rows only.'),
   ),
-}) as unknown as ToZod<CustomerRowModel>;
+}) as unknown as z.ZodType<CustomerRowModel>;

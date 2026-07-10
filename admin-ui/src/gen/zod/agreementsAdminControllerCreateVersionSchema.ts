@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AgreementsAdminControllerCreateVersion201,
   AgreementsAdminControllerCreateVersion400,
@@ -17,40 +15,41 @@ import type {
 import { createVersionBodyModelSchema } from './createVersionBodyModelSchema.ts';
 import { createVersionResponseModelSchema } from './createVersionResponseModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const agreementsAdminControllerCreateVersionPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AgreementsAdminControllerCreateVersionPathParams>;
+}) as unknown as z.ZodType<AgreementsAdminControllerCreateVersionPathParams>;
 
 export const agreementsAdminControllerCreateVersion201Schema = z.lazy(
   () => createVersionResponseModelSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateVersion201>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateVersion201>;
 
 /**
  * @description PDF missing / invalid number field.
  */
 export const agreementsAdminControllerCreateVersion400Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateVersion400>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateVersion400>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const agreementsAdminControllerCreateVersion401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateVersion401>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateVersion401>;
 
 /**
  * @description INVALID_STATE (unknown document)
  */
 export const agreementsAdminControllerCreateVersion422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateVersion422>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateVersion422>;
 
 export const agreementsAdminControllerCreateVersionMutationRequestSchema = z.lazy(
   () => createVersionBodyModelSchema,
-) as unknown as ToZod<AgreementsAdminControllerCreateVersionMutationRequest>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateVersionMutationRequest>;
 
 export const agreementsAdminControllerCreateVersionMutationResponseSchema = z.lazy(
   () => agreementsAdminControllerCreateVersion201Schema,
-) as unknown as ToZod<AgreementsAdminControllerCreateVersionMutationResponse>;
+) as unknown as z.ZodType<AgreementsAdminControllerCreateVersionMutationResponse>;

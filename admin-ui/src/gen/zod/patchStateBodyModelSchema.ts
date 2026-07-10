@@ -3,16 +3,15 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { PatchStateBodyModel } from '../types/PatchStateBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const patchStateBodyModelSchema = z.object({
-  deadlineAt: z.optional(z.string().datetime()),
+  deadlineAt: z.optional(z.iso.datetime()),
   suspendBlock: z.optional(
     z
       .boolean()
       .describe('true: EXPIRED_BLOCKING → NOTIFIED with a new deadlineAt (then required).'),
   ),
   reason: z.string(),
-}) as unknown as ToZod<PatchStateBodyModel>;
+}) as unknown as z.ZodType<PatchStateBodyModel>;

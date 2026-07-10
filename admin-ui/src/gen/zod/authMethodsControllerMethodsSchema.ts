@@ -3,18 +3,17 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AuthMethodsControllerMethods200,
   AuthMethodsControllerMethodsQueryResponse,
 } from '../types/AuthMethodsControllerMethods.ts';
 import { authMethodsResponseModelSchema } from './authMethodsResponseModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const authMethodsControllerMethods200Schema = z.lazy(
   () => authMethodsResponseModelSchema,
-) as unknown as ToZod<AuthMethodsControllerMethods200>;
+) as unknown as z.ZodType<AuthMethodsControllerMethods200>;
 
 export const authMethodsControllerMethodsQueryResponseSchema = z.lazy(
   () => authMethodsControllerMethods200Schema,
-) as unknown as ToZod<AuthMethodsControllerMethodsQueryResponse>;
+) as unknown as z.ZodType<AuthMethodsControllerMethodsQueryResponse>;

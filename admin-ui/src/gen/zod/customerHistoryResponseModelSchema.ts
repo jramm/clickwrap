@@ -3,23 +3,32 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CustomerHistoryResponseModel } from '../types/CustomerHistoryResponseModel.ts';
 import { historyAcceptanceModelSchema } from './historyAcceptanceModelSchema.ts';
 import { historyNotificationModelSchema } from './historyNotificationModelSchema.ts';
 import { historyObjectionModelSchema } from './historyObjectionModelSchema.ts';
 import { historySignedDocumentModelSchema } from './historySignedDocumentModelSchema.ts';
 import { historyStateModelSchema } from './historyStateModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const customerHistoryResponseModelSchema = z.object({
-  acceptances: z.array(z.lazy(() => historyAcceptanceModelSchema)),
-  objections: z.array(z.lazy(() => historyObjectionModelSchema)),
-  notifications: z.array(z.lazy(() => historyNotificationModelSchema)),
-  states: z.array(z.lazy(() => historyStateModelSchema)),
-  signedDocuments: z
-    .array(z.lazy(() => historySignedDocumentModelSchema))
-    .describe(
-      'Externally-signed documents (evidence archive) — never part of the compliance gate.',
-    ),
-}) as unknown as ToZod<CustomerHistoryResponseModel>;
+  get acceptances() {
+    return z.array(historyAcceptanceModelSchema);
+  },
+  get objections() {
+    return z.array(historyObjectionModelSchema);
+  },
+  get notifications() {
+    return z.array(historyNotificationModelSchema);
+  },
+  get states() {
+    return z.array(historyStateModelSchema);
+  },
+  get signedDocuments() {
+    return z
+      .array(historySignedDocumentModelSchema)
+      .describe(
+        'Externally-signed documents (evidence archive) — never part of the compliance gate.',
+      );
+  },
+}) as unknown as z.ZodType<CustomerHistoryResponseModel>;

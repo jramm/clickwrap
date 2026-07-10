@@ -3,10 +3,9 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CreateCustomerBodyModel } from '../types/CreateCustomerBodyModel.ts';
 import { acceptedVersionImportModelSchema } from './acceptedVersionImportModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const createCustomerBodyModelSchema = z.object({
   externalRef: z.string(),
@@ -15,11 +14,12 @@ export const createCustomerBodyModelSchema = z.object({
   companyName: z.optional(z.string().describe('Optional company/organisation name.')),
   roles: z.array(z.string()).describe('Audience keys (validated).'),
   contactEmails: z.array(z.string()),
-  acceptedVersions: z.optional(
-    z
-      .array(z.lazy(() => acceptedVersionImportModelSchema))
+  get acceptedVersions() {
+    return z
+      .array(acceptedVersionImportModelSchema)
       .describe(
         'Versions already accepted out-of-band (signed offer) — recorded as IMPORT acceptances.',
-      ),
-  ),
-}) as unknown as ToZod<CreateCustomerBodyModel>;
+      )
+      .optional();
+  },
+}) as unknown as z.ZodType<CreateCustomerBodyModel>;

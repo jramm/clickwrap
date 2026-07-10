@@ -3,10 +3,9 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { VersionStatsModel } from '../types/VersionStatsModel.ts';
 import { versionAcceptanceStatsModelSchema } from './versionAcceptanceStatsModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const versionStatsModelSchema = z.object({
   versionId: z.string(),
@@ -15,7 +14,9 @@ export const versionStatsModelSchema = z.object({
   audience: z.string(),
   versionLabel: z.string(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'RETIRED']),
-  validFrom: z.string().datetime(),
+  validFrom: z.iso.datetime(),
   upcoming: z.boolean().describe('Scheduled for the future (validFrom > now).'),
-  stats: z.lazy(() => versionAcceptanceStatsModelSchema),
-}) as unknown as ToZod<VersionStatsModel>;
+  get stats() {
+    return versionAcceptanceStatsModelSchema;
+  },
+}) as unknown as z.ZodType<VersionStatsModel>;

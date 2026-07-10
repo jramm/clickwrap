@@ -3,19 +3,22 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { VersionAcceptanceStatsModel } from '../types/VersionAcceptanceStatsModel.ts';
 import { acceptedByChannelModelSchema } from './acceptedByChannelModelSchema.ts';
 import { acceptedByMethodModelSchema } from './acceptedByMethodModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const versionAcceptanceStatsModelSchema = z.object({
   totalCustomers: z.number().describe('Relevant (non-SUPERSEDED) states of the version.'),
   accepted: z.number(),
-  acceptedByChannel: z.lazy(() => acceptedByChannelModelSchema),
-  acceptedByMethod: z.lazy(() => acceptedByMethodModelSchema),
+  get acceptedByChannel() {
+    return acceptedByChannelModelSchema;
+  },
+  get acceptedByMethod() {
+    return acceptedByMethodModelSchema;
+  },
   pending: z.number().describe('PENDING_NOTIFICATION + NOTIFIED.'),
   blocked: z.number().describe('EXPIRED_BLOCKING.'),
   objected: z.number().describe('OBJECTED.'),
   acceptanceRate: z.number().describe('accepted / totalCustomers (0 when totalCustomers is 0).'),
-}) as unknown as ToZod<VersionAcceptanceStatsModel>;
+}) as unknown as z.ZodType<VersionAcceptanceStatsModel>;

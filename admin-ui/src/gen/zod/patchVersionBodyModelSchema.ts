@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { PatchVersionBodyModel } from '../types/PatchVersionBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const patchVersionBodyModelSchema = z.object({
   file: z.optional(z.instanceof(File).describe('Replacement PDF.')),
@@ -20,4 +19,4 @@ export const patchVersionBodyModelSchema = z.object({
     z.string().describe('ACTIVE only: absolute acceptance deadline (ISO date-time, >= validFrom).'),
   ),
   validFrom: z.optional(z.string()),
-}) as unknown as ToZod<PatchVersionBodyModel>;
+}) as unknown as z.ZodType<PatchVersionBodyModel>;

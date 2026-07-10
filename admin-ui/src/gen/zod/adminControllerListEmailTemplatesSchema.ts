@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerListEmailTemplates200,
   AdminControllerListEmailTemplates401,
@@ -12,18 +10,19 @@ import type {
 } from '../types/AdminControllerListEmailTemplates.ts';
 import { emailTemplateModelSchema } from './emailTemplateModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerListEmailTemplates200Schema = z.array(
   z.lazy(() => emailTemplateModelSchema),
-) as unknown as ToZod<AdminControllerListEmailTemplates200>;
+) as unknown as z.ZodType<AdminControllerListEmailTemplates200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerListEmailTemplates401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerListEmailTemplates401>;
+) as unknown as z.ZodType<AdminControllerListEmailTemplates401>;
 
 export const adminControllerListEmailTemplatesQueryResponseSchema = z.lazy(
   () => adminControllerListEmailTemplates200Schema,
-) as unknown as ToZod<AdminControllerListEmailTemplatesQueryResponse>;
+) as unknown as z.ZodType<AdminControllerListEmailTemplatesQueryResponse>;

@@ -3,17 +3,13 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { AcceptedVersionImportModel } from '../types/AcceptedVersionImportModel.ts';
+import { z } from 'zod/v4';
 
 export const acceptedVersionImportModelSchema = z.object({
   versionId: z.string(),
   acceptedAt: z.optional(
-    z
-      .string()
-      .datetime()
-      .describe('Signature date; backdating is allowed for IMPORT. Defaults to now.'),
+    z.iso.datetime().describe('Signature date; backdating is allowed for IMPORT. Defaults to now.'),
   ),
   reference: z.optional(z.string().describe('Evidence reference.')),
-}) as unknown as ToZod<AcceptedVersionImportModel>;
+}) as unknown as z.ZodType<AcceptedVersionImportModel>;

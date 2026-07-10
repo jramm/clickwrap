@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerListAudiences200,
   AdminControllerListAudiences401,
@@ -12,18 +10,19 @@ import type {
 } from '../types/AdminControllerListAudiences.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { namedEntityModelSchema } from './namedEntityModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerListAudiences200Schema = z.array(
   z.lazy(() => namedEntityModelSchema),
-) as unknown as ToZod<AdminControllerListAudiences200>;
+) as unknown as z.ZodType<AdminControllerListAudiences200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerListAudiences401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerListAudiences401>;
+) as unknown as z.ZodType<AdminControllerListAudiences401>;
 
 export const adminControllerListAudiencesQueryResponseSchema = z.lazy(
   () => adminControllerListAudiences200Schema,
-) as unknown as ToZod<AdminControllerListAudiencesQueryResponse>;
+) as unknown as z.ZodType<AdminControllerListAudiencesQueryResponse>;

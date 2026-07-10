@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { UpdateCustomerBodyModel } from '../types/UpdateCustomerBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const updateCustomerBodyModelSchema = z.object({
   firstName: z.optional(z.string().describe("Contact person's given name.")),
@@ -13,4 +12,4 @@ export const updateCustomerBodyModelSchema = z.object({
   companyName: z.optional(z.string().describe('Optional company/organisation name.')),
   roles: z.optional(z.array(z.string()).describe('Takes effect on the next publish/rollout.')),
   contactEmails: z.optional(z.array(z.string())),
-}) as unknown as ToZod<UpdateCustomerBodyModel>;
+}) as unknown as z.ZodType<UpdateCustomerBodyModel>;

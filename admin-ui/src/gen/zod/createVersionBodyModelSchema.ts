@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CreateVersionBodyModel } from '../types/CreateVersionBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const createVersionBodyModelSchema = z.object({
   file: z.instanceof(File).describe('PDF (multipart field) or base64 string (JSON fallback).'),
@@ -30,4 +29,4 @@ export const createVersionBodyModelSchema = z.object({
     .describe(
       'ISO date from which the revision applies. May lie in the FUTURE (scheduled effectiveness): publishing rolls out immediately for advance acceptance, while the previous version stays the compliance baseline until this date.',
     ),
-}) as unknown as ToZod<CreateVersionBodyModel>;
+}) as unknown as z.ZodType<CreateVersionBodyModel>;

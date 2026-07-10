@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerUpdateCustomer200,
   AdminControllerUpdateCustomer400,
@@ -18,47 +16,48 @@ import type {
 import { customerRowModelSchema } from './customerRowModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { updateCustomerBodyModelSchema } from './updateCustomerBodyModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerUpdateCustomerPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerUpdateCustomerPathParams>;
+}) as unknown as z.ZodType<AdminControllerUpdateCustomerPathParams>;
 
 export const adminControllerUpdateCustomer200Schema = z.lazy(
   () => customerRowModelSchema,
-) as unknown as ToZod<AdminControllerUpdateCustomer200>;
+) as unknown as z.ZodType<AdminControllerUpdateCustomer200>;
 
 /**
  * @description Body validation failed (strict schema).
  */
 export const adminControllerUpdateCustomer400Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerUpdateCustomer400>;
+) as unknown as z.ZodType<AdminControllerUpdateCustomer400>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerUpdateCustomer401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerUpdateCustomer401>;
+) as unknown as z.ZodType<AdminControllerUpdateCustomer401>;
 
 /**
  * @description CUSTOMER_NOT_FOUND
  */
 export const adminControllerUpdateCustomer404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerUpdateCustomer404>;
+) as unknown as z.ZodType<AdminControllerUpdateCustomer404>;
 
 /**
  * @description INVALID_STATE (invalid e-mail, externalRef overlap on role add) · UNKNOWN_AUDIENCE
  */
 export const adminControllerUpdateCustomer422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerUpdateCustomer422>;
+) as unknown as z.ZodType<AdminControllerUpdateCustomer422>;
 
 export const adminControllerUpdateCustomerMutationRequestSchema = z.lazy(
   () => updateCustomerBodyModelSchema,
-) as unknown as ToZod<AdminControllerUpdateCustomerMutationRequest>;
+) as unknown as z.ZodType<AdminControllerUpdateCustomerMutationRequest>;
 
 export const adminControllerUpdateCustomerMutationResponseSchema = z.lazy(
   () => adminControllerUpdateCustomer200Schema,
-) as unknown as ToZod<AdminControllerUpdateCustomerMutationResponse>;
+) as unknown as z.ZodType<AdminControllerUpdateCustomerMutationResponse>;

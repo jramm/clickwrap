@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { DocumentTypeModel } from '../types/DocumentTypeModel.ts';
+import { z } from 'zod/v4';
 
 export const documentTypeModelSchema = z.object({
   id: z.string(),
@@ -23,4 +22,4 @@ export const documentTypeModelSchema = z.object({
   acceptanceConfirmationTemplateId: z.optional(
     z.string().describe('Assigned ACCEPTANCE_CONFIRMATION template id.'),
   ),
-}) as unknown as ToZod<DocumentTypeModel>;
+}) as unknown as z.ZodType<DocumentTypeModel>;

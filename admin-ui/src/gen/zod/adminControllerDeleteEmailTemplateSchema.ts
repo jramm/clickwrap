@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerDeleteEmailTemplate204,
   AdminControllerDeleteEmailTemplate401,
@@ -14,38 +12,39 @@ import type {
   AdminControllerDeleteEmailTemplatePathParams,
 } from '../types/AdminControllerDeleteEmailTemplate.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerDeleteEmailTemplatePathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerDeleteEmailTemplatePathParams>;
+}) as unknown as z.ZodType<AdminControllerDeleteEmailTemplatePathParams>;
 
 /**
  * @description Deleted.
  */
 export const adminControllerDeleteEmailTemplate204Schema =
-  z.any() as unknown as ToZod<AdminControllerDeleteEmailTemplate204>;
+  z.any() as unknown as z.ZodType<AdminControllerDeleteEmailTemplate204>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerDeleteEmailTemplate401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerDeleteEmailTemplate401>;
+) as unknown as z.ZodType<AdminControllerDeleteEmailTemplate401>;
 
 /**
  * @description Unknown id.
  */
 export const adminControllerDeleteEmailTemplate404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerDeleteEmailTemplate404>;
+) as unknown as z.ZodType<AdminControllerDeleteEmailTemplate404>;
 
 /**
  * @description INVALID_STATE (default template, or still assigned to a document type)
  */
 export const adminControllerDeleteEmailTemplate422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerDeleteEmailTemplate422>;
+) as unknown as z.ZodType<AdminControllerDeleteEmailTemplate422>;
 
 export const adminControllerDeleteEmailTemplateMutationResponseSchema = z.lazy(
   () => adminControllerDeleteEmailTemplate204Schema,
-) as unknown as ToZod<AdminControllerDeleteEmailTemplateMutationResponse>;
+) as unknown as z.ZodType<AdminControllerDeleteEmailTemplateMutationResponse>;

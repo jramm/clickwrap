@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerUpdateEmailTemplate200,
   AdminControllerUpdateEmailTemplate400,
@@ -17,40 +15,41 @@ import type {
 import { emailTemplateModelSchema } from './emailTemplateModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { updateEmailTemplateBodyModelSchema } from './updateEmailTemplateBodyModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerUpdateEmailTemplatePathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerUpdateEmailTemplatePathParams>;
+}) as unknown as z.ZodType<AdminControllerUpdateEmailTemplatePathParams>;
 
 export const adminControllerUpdateEmailTemplate200Schema = z.lazy(
   () => emailTemplateModelSchema,
-) as unknown as ToZod<AdminControllerUpdateEmailTemplate200>;
+) as unknown as z.ZodType<AdminControllerUpdateEmailTemplate200>;
 
 /**
  * @description Body validation failed (strict schema).
  */
 export const adminControllerUpdateEmailTemplate400Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerUpdateEmailTemplate400>;
+) as unknown as z.ZodType<AdminControllerUpdateEmailTemplate400>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerUpdateEmailTemplate401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerUpdateEmailTemplate401>;
+) as unknown as z.ZodType<AdminControllerUpdateEmailTemplate401>;
 
 /**
  * @description Unknown id.
  */
 export const adminControllerUpdateEmailTemplate404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerUpdateEmailTemplate404>;
+) as unknown as z.ZodType<AdminControllerUpdateEmailTemplate404>;
 
 export const adminControllerUpdateEmailTemplateMutationRequestSchema = z.lazy(
   () => updateEmailTemplateBodyModelSchema,
-) as unknown as ToZod<AdminControllerUpdateEmailTemplateMutationRequest>;
+) as unknown as z.ZodType<AdminControllerUpdateEmailTemplateMutationRequest>;
 
 export const adminControllerUpdateEmailTemplateMutationResponseSchema = z.lazy(
   () => adminControllerUpdateEmailTemplate200Schema,
-) as unknown as ToZod<AdminControllerUpdateEmailTemplateMutationResponse>;
+) as unknown as z.ZodType<AdminControllerUpdateEmailTemplateMutationResponse>;

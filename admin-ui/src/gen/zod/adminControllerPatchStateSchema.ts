@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerPatchState200,
   AdminControllerPatchState401,
@@ -17,40 +15,41 @@ import type {
 import { customerVersionStateModelSchema } from './customerVersionStateModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { patchStateBodyModelSchema } from './patchStateBodyModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerPatchStatePathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerPatchStatePathParams>;
+}) as unknown as z.ZodType<AdminControllerPatchStatePathParams>;
 
 export const adminControllerPatchState200Schema = z.lazy(
   () => customerVersionStateModelSchema,
-) as unknown as ToZod<AdminControllerPatchState200>;
+) as unknown as z.ZodType<AdminControllerPatchState200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerPatchState401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerPatchState401>;
+) as unknown as z.ZodType<AdminControllerPatchState401>;
 
 /**
  * @description VERSION_NOT_FOUND (unknown state id)
  */
 export const adminControllerPatchState404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerPatchState404>;
+) as unknown as z.ZodType<AdminControllerPatchState404>;
 
 /**
  * @description INVALID_STATE
  */
 export const adminControllerPatchState422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerPatchState422>;
+) as unknown as z.ZodType<AdminControllerPatchState422>;
 
 export const adminControllerPatchStateMutationRequestSchema = z.lazy(
   () => patchStateBodyModelSchema,
-) as unknown as ToZod<AdminControllerPatchStateMutationRequest>;
+) as unknown as z.ZodType<AdminControllerPatchStateMutationRequest>;
 
 export const adminControllerPatchStateMutationResponseSchema = z.lazy(
   () => adminControllerPatchState200Schema,
-) as unknown as ToZod<AdminControllerPatchStateMutationResponse>;
+) as unknown as z.ZodType<AdminControllerPatchStateMutationResponse>;

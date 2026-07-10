@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerCreateAcceptanceLink201,
   AdminControllerCreateAcceptanceLink401,
@@ -17,40 +15,41 @@ import type {
 import { createAcceptanceLinkBodyModelSchema } from './createAcceptanceLinkBodyModelSchema.ts';
 import { createAcceptanceLinkResponseModelSchema } from './createAcceptanceLinkResponseModelSchema.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerCreateAcceptanceLinkPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerCreateAcceptanceLinkPathParams>;
+}) as unknown as z.ZodType<AdminControllerCreateAcceptanceLinkPathParams>;
 
 export const adminControllerCreateAcceptanceLink201Schema = z.lazy(
   () => createAcceptanceLinkResponseModelSchema,
-) as unknown as ToZod<AdminControllerCreateAcceptanceLink201>;
+) as unknown as z.ZodType<AdminControllerCreateAcceptanceLink201>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerCreateAcceptanceLink401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerCreateAcceptanceLink401>;
+) as unknown as z.ZodType<AdminControllerCreateAcceptanceLink401>;
 
 /**
  * @description CUSTOMER_NOT_FOUND
  */
 export const adminControllerCreateAcceptanceLink404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerCreateAcceptanceLink404>;
+) as unknown as z.ZodType<AdminControllerCreateAcceptanceLink404>;
 
 /**
  * @description INVALID_STATE (PUBLIC_BASE_URL unset, expiresInDays out of range) · UNKNOWN_AUDIENCE
  */
 export const adminControllerCreateAcceptanceLink422Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerCreateAcceptanceLink422>;
+) as unknown as z.ZodType<AdminControllerCreateAcceptanceLink422>;
 
 export const adminControllerCreateAcceptanceLinkMutationRequestSchema = z.lazy(
   () => createAcceptanceLinkBodyModelSchema,
-) as unknown as ToZod<AdminControllerCreateAcceptanceLinkMutationRequest>;
+) as unknown as z.ZodType<AdminControllerCreateAcceptanceLinkMutationRequest>;
 
 export const adminControllerCreateAcceptanceLinkMutationResponseSchema = z.lazy(
   () => adminControllerCreateAcceptanceLink201Schema,
-) as unknown as ToZod<AdminControllerCreateAcceptanceLinkMutationResponse>;
+) as unknown as z.ZodType<AdminControllerCreateAcceptanceLinkMutationResponse>;

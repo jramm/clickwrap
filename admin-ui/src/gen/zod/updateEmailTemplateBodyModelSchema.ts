@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { UpdateEmailTemplateBodyModel } from '../types/UpdateEmailTemplateBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const updateEmailTemplateBodyModelSchema = z.object({
   name: z.optional(z.string()),
@@ -13,4 +12,4 @@ export const updateEmailTemplateBodyModelSchema = z.object({
   subject: z.optional(z.string()),
   design: z.optional(z.string().describe('Unlayer design JSON (serialised).')),
   html: z.optional(z.string().describe('Exported e-mail HTML with {{placeholders}}.')),
-}) as unknown as ToZod<UpdateEmailTemplateBodyModel>;
+}) as unknown as z.ZodType<UpdateEmailTemplateBodyModel>;

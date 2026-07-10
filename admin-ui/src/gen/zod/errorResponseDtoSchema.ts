@@ -3,11 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { ErrorResponseDto } from '../types/ErrorResponseDto.ts';
+import { z } from 'zod/v4';
 
 export const errorResponseDtoSchema = z.object({
   code: z.string().describe('Stable DomainErrorCode (see docs/API.md §7).'),
   message: z.string(),
-}) as unknown as ToZod<ErrorResponseDto>;
+}) as unknown as z.ZodType<ErrorResponseDto>;

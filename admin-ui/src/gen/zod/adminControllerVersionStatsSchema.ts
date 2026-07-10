@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AdminControllerVersionStats200,
   AdminControllerVersionStats401,
@@ -14,29 +12,30 @@ import type {
 } from '../types/AdminControllerVersionStats.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { versionStatsModelSchema } from './versionStatsModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const adminControllerVersionStatsPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AdminControllerVersionStatsPathParams>;
+}) as unknown as z.ZodType<AdminControllerVersionStatsPathParams>;
 
 export const adminControllerVersionStats200Schema = z.lazy(
   () => versionStatsModelSchema,
-) as unknown as ToZod<AdminControllerVersionStats200>;
+) as unknown as z.ZodType<AdminControllerVersionStats200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const adminControllerVersionStats401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerVersionStats401>;
+) as unknown as z.ZodType<AdminControllerVersionStats401>;
 
 /**
  * @description VERSION_NOT_FOUND
  */
 export const adminControllerVersionStats404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AdminControllerVersionStats404>;
+) as unknown as z.ZodType<AdminControllerVersionStats404>;
 
 export const adminControllerVersionStatsQueryResponseSchema = z.lazy(
   () => adminControllerVersionStats200Schema,
-) as unknown as ToZod<AdminControllerVersionStatsQueryResponse>;
+) as unknown as z.ZodType<AdminControllerVersionStatsQueryResponse>;

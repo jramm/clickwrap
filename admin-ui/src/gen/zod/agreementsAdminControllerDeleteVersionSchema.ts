@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   AgreementsAdminControllerDeleteVersion204,
   AgreementsAdminControllerDeleteVersion401,
@@ -14,38 +12,39 @@ import type {
   AgreementsAdminControllerDeleteVersionPathParams,
 } from '../types/AgreementsAdminControllerDeleteVersion.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const agreementsAdminControllerDeleteVersionPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<AgreementsAdminControllerDeleteVersionPathParams>;
+}) as unknown as z.ZodType<AgreementsAdminControllerDeleteVersionPathParams>;
 
 /**
  * @description Deleted.
  */
 export const agreementsAdminControllerDeleteVersion204Schema =
-  z.any() as unknown as ToZod<AgreementsAdminControllerDeleteVersion204>;
+  z.any() as unknown as z.ZodType<AgreementsAdminControllerDeleteVersion204>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const agreementsAdminControllerDeleteVersion401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerDeleteVersion401>;
+) as unknown as z.ZodType<AgreementsAdminControllerDeleteVersion401>;
 
 /**
  * @description VERSION_NOT_FOUND
  */
 export const agreementsAdminControllerDeleteVersion404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerDeleteVersion404>;
+) as unknown as z.ZodType<AgreementsAdminControllerDeleteVersion404>;
 
 /**
  * @description VERSION_IMMUTABLE (not a DRAFT)
  */
 export const agreementsAdminControllerDeleteVersion409Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<AgreementsAdminControllerDeleteVersion409>;
+) as unknown as z.ZodType<AgreementsAdminControllerDeleteVersion409>;
 
 export const agreementsAdminControllerDeleteVersionMutationResponseSchema = z.lazy(
   () => agreementsAdminControllerDeleteVersion204Schema,
-) as unknown as ToZod<AgreementsAdminControllerDeleteVersionMutationResponse>;
+) as unknown as z.ZodType<AgreementsAdminControllerDeleteVersionMutationResponse>;

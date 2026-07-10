@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { EmailTemplatePreviewBodyModel } from '../types/EmailTemplatePreviewBodyModel.ts';
+import { z } from 'zod/v4';
 
 export const emailTemplatePreviewBodyModelSchema = z.object({
   documentTypeKey: z.optional(
     z.string().describe('Scope the sample documentType value to this key.'),
   ),
-}) as unknown as ToZod<EmailTemplatePreviewBodyModel>;
+}) as unknown as z.ZodType<EmailTemplatePreviewBodyModel>;

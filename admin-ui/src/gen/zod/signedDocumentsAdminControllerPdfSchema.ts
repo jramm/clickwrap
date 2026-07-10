@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   SignedDocumentsAdminControllerPdf302,
   SignedDocumentsAdminControllerPdf401,
@@ -13,30 +11,31 @@ import type {
   SignedDocumentsAdminControllerPdfQueryResponse,
 } from '../types/SignedDocumentsAdminControllerPdf.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
+import { z } from 'zod/v4';
 
 export const signedDocumentsAdminControllerPdfPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<SignedDocumentsAdminControllerPdfPathParams>;
+}) as unknown as z.ZodType<SignedDocumentsAdminControllerPdfPathParams>;
 
 /**
  * @description Redirect to a fresh presigned PDF URL (time-limited).
  */
 export const signedDocumentsAdminControllerPdf302Schema =
-  z.any() as unknown as ToZod<SignedDocumentsAdminControllerPdf302>;
+  z.any() as unknown as z.ZodType<SignedDocumentsAdminControllerPdf302>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const signedDocumentsAdminControllerPdf401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerPdf401>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerPdf401>;
 
 /**
  * @description VERSION_NOT_FOUND (unknown signed document id)
  */
 export const signedDocumentsAdminControllerPdf404Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerPdf404>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerPdf404>;
 
 export const signedDocumentsAdminControllerPdfQueryResponseSchema =
-  z.any() as unknown as ToZod<SignedDocumentsAdminControllerPdfQueryResponse>;
+  z.any() as unknown as z.ZodType<SignedDocumentsAdminControllerPdfQueryResponse>;

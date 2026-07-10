@@ -3,8 +3,6 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type {
   SignedDocumentsAdminControllerList200,
   SignedDocumentsAdminControllerList401,
@@ -13,22 +11,23 @@ import type {
 } from '../types/SignedDocumentsAdminControllerList.ts';
 import { errorResponseDtoSchema } from './errorResponseDtoSchema.ts';
 import { signedDocumentListResponseModelSchema } from './signedDocumentListResponseModelSchema.ts';
+import { z } from 'zod/v4';
 
 export const signedDocumentsAdminControllerListPathParamsSchema = z.object({
   id: z.string(),
-}) as unknown as ToZod<SignedDocumentsAdminControllerListPathParams>;
+}) as unknown as z.ZodType<SignedDocumentsAdminControllerListPathParams>;
 
 export const signedDocumentsAdminControllerList200Schema = z.lazy(
   () => signedDocumentListResponseModelSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerList200>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerList200>;
 
 /**
  * @description Missing/invalid admin authentication.
  */
 export const signedDocumentsAdminControllerList401Schema = z.lazy(
   () => errorResponseDtoSchema,
-) as unknown as ToZod<SignedDocumentsAdminControllerList401>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerList401>;
 
 export const signedDocumentsAdminControllerListQueryResponseSchema = z.lazy(
   () => signedDocumentsAdminControllerList200Schema,
-) as unknown as ToZod<SignedDocumentsAdminControllerListQueryResponse>;
+) as unknown as z.ZodType<SignedDocumentsAdminControllerListQueryResponse>;

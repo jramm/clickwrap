@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CreateVersionResponseModel } from '../types/CreateVersionResponseModel.ts';
+import { z } from 'zod/v4';
 
 export const createVersionResponseModelSchema = z.object({
   versionId: z.string(),
   status: z.enum(['DRAFT']),
   contentHash: z.string(),
   fileName: z.string(),
-}) as unknown as ToZod<CreateVersionResponseModel>;
+}) as unknown as z.ZodType<CreateVersionResponseModel>;

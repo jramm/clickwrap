@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { VersionModel } from '../types/VersionModel.ts';
+import { z } from 'zod/v4';
 
 export const versionModelSchema = z.object({
   id: z.string(),
@@ -20,16 +19,15 @@ export const versionModelSchema = z.object({
     z.number().describe('Deprecated: no longer drives ACTIVE blocking (legacy rows only).'),
   ),
   hardDeadlineAt: z.optional(
-    z
-      .string()
+    z.iso
       .datetime()
       .describe(
         'ACTIVE only: absolute acceptance deadline. Every customer must accept by then or is blocked, independent of access.',
       ),
   ),
-  validFrom: z.string().datetime(),
-  publishedAt: z.optional(z.string().datetime()),
+  validFrom: z.iso.datetime(),
+  publishedAt: z.optional(z.iso.datetime()),
   contentHash: z.string().describe('SHA-256 of the PDF content.'),
   fileName: z.string(),
   pdfUrl: z.string().describe('Presigned, time-limited PDF download/preview URL (15-minute TTL).'),
-}) as unknown as ToZod<VersionModel>;
+}) as unknown as z.ZodType<VersionModel>;

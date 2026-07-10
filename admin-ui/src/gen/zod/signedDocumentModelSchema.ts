@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { SignedDocumentModel } from '../types/SignedDocumentModel.ts';
+import { z } from 'zod/v4';
 
 export const signedDocumentModelSchema = z.object({
   id: z.string(),
@@ -15,11 +14,11 @@ export const signedDocumentModelSchema = z.object({
   fileName: z.string(),
   contentHash: z.string().describe('SHA-256 over the PDF, computed host-side.'),
   fileSize: z.number(),
-  signedAt: z.string().datetime(),
+  signedAt: z.iso.datetime(),
   signerName: z.optional(z.string()),
   reference: z.optional(z.string()),
   note: z.optional(z.string()),
   uploadedBy: z.string().describe('Actor who uploaded the document.'),
-  uploadedAt: z.string().datetime(),
+  uploadedAt: z.iso.datetime(),
   pdfUrl: z.string().describe('Time-limited (presigned) download URL of the signed PDF.'),
-}) as unknown as ToZod<SignedDocumentModel>;
+}) as unknown as z.ZodType<SignedDocumentModel>;

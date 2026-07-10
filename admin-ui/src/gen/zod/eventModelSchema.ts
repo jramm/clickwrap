@@ -3,13 +3,12 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { EventModel } from '../types/EventModel.ts';
+import { z } from 'zod/v4';
 
 export const eventModelSchema = z.object({
   id: z.string().describe('Stable Event-table id (evt-…).'),
-  occurredAt: z.string().datetime(),
+  occurredAt: z.iso.datetime(),
   type: z.enum([
     'EMAIL_SENT',
     'EMAIL_DELIVERED',
@@ -63,4 +62,4 @@ export const eventModelSchema = z.object({
       .catchall(z.any())
       .describe('Pass-through source metadata (reason, method, isEffective, …).'),
   ),
-}) as unknown as ToZod<EventModel>;
+}) as unknown as z.ZodType<EventModel>;

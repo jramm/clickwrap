@@ -3,9 +3,8 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { CustomerVersionStateModel } from '../types/CustomerVersionStateModel.ts';
+import { z } from 'zod/v4';
 
 export const customerVersionStateModelSchema = z.object({
   id: z.string(),
@@ -19,8 +18,8 @@ export const customerVersionStateModelSchema = z.object({
     'EXPIRED_BLOCKING',
     'SUPERSEDED',
   ]),
-  notifiedAt: z.optional(z.string().datetime()),
-  deadlineAt: z.optional(z.string().datetime()),
+  notifiedAt: z.optional(z.iso.datetime()),
+  deadlineAt: z.optional(z.iso.datetime()),
   remindersSent: z.number(),
   carryOverBlocking: z.optional(z.boolean()),
-}) as unknown as ToZod<CustomerVersionStateModel>;
+}) as unknown as z.ZodType<CustomerVersionStateModel>;

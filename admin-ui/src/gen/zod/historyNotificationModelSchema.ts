@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-import * as z from 'zod';
-import type { ToZod } from '../.kubb/ToZod.ts';
 import type { HistoryNotificationModel } from '../types/HistoryNotificationModel.ts';
+import { z } from 'zod/v4';
 
 export const historyNotificationModelSchema = z.object({
   versionId: z.string(),
   channel: z.enum(['EMAIL', 'PORTAL', 'LINK']),
-  deliveredAt: z.string().datetime(),
-}) as unknown as ToZod<HistoryNotificationModel>;
+  deliveredAt: z.iso.datetime(),
+}) as unknown as z.ZodType<HistoryNotificationModel>;
