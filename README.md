@@ -81,12 +81,11 @@ License: **Apache-2.0**.
   per-customer, non-expiring (but revocable) hosted-acceptance link so notification/reminder mails
   never go stale; only the token's hash is stored at rest. See
   [`docs/INTEGRATION.md §6a`](docs/INTEGRATION.md).
-- **Plugin architecture** — e-mail delivery, file storage, admin auth and the customer source are
-  plugins, auto-discovered from installed npm packages (built-ins: `postmark`/`smtp`/`noop`,
-  `memory`/`local`, `google-sso`/`static-token`/`supertokens`) and activated explicitly via env.
-  Third parties ship their own provider as an npm package — see
+- **Plugin architecture** — e-mail delivery, file storage, admin auth and the hosted acceptance
+  page are plugins, auto-discovered from installed npm packages (built-ins: `postmark`/`smtp`/`noop`,
+  `memory`/`local`/`s3`, `google-sso`/`static-token`/`supertokens`) and activated explicitly via
+  env. Third parties ship their own provider as an npm package — see
   [`docs/PLUGINS.md`](docs/PLUGINS.md).
-  The default `none` source keeps the sync disabled.
 - **Scheduled effectiveness ("publish now, effective later")** — one or more versions may be
   published with a future `validFrom` (several future revisions can be scheduled simultaneously —
   they surface as the `upcomingVersions[]` array): the rollout happens immediately, so acceptance
@@ -155,7 +154,7 @@ with a **ports-and-adapters** boundary:
 - **Ports** — repository interfaces in `src/domain/ports.ts`. Both persistence drivers implement
   the same ports; the driver is chosen at boot via `REPOSITORY_DRIVER`.
 - **Plugin SDK & registry** — `src/plugin-sdk/` defines the plugin contracts (e-mail provider,
-  file storage, admin auth, customer source); `src/plugins/registry/` discovers plugins in the installed
+  file storage, admin auth, acceptance page); `src/plugins/registry/` discovers plugins in the installed
   dependencies (package.json `"clickwrap"` manifest) and `CLICKWRAP_PLUGIN_PATHS`. Built-ins live
   in `src/plugins/builtins/` and use the same mechanism. Activation is explicit:
   `EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`.
