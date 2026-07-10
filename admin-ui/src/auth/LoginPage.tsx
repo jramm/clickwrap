@@ -101,7 +101,7 @@ function LoginMethod({ method }: { method: AuthMethod }) {
   if (method.flow === 'google') {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <GoogleOAuthProvider clientId={method.params.clientId ?? ''}>
+        <GoogleOAuthProvider clientId={method.params.clientId ?? ''} locale={language}>
           <GoogleLogin
             onSuccess={(response) => {
               if (response.credential) {
@@ -112,7 +112,6 @@ function LoginMethod({ method }: { method: AuthMethod }) {
             }}
             onError={() => toast.error(t('login.failed'))}
             useOneTap={false}
-            locale={language}
           />
         </GoogleOAuthProvider>
       </Box>
