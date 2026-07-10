@@ -15,7 +15,9 @@
     "baseUrl": ".",
     "sourceMap": true,
     "declaration": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "ignoreDeprecations": "6.0",
+    "types": ["node", "jest", "multer", "express"]
   },
   "include": ["src/**/*", "test/**/*"]
 }
