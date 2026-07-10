@@ -69,12 +69,24 @@ export const mapMetergridCustomer = (raw: MetergridRawCustomer): ExternalCustome
   const emails = [raw.contactPerson?.email, raw.email]
     .map((email) => email?.trim())
     .filter((email): email is string => email !== undefined && email.length > 0);
+  // De-duplicate CASE-INSENSITIVELY (metergrid data sometimes carries the same address twice with
+  // different casing, e.g. "ahaeussermann@gmx.de" and "Ahaeussermann@gmx.de"). Keep the first
+  // occurrence's original casing; contactPerson.email wins over the customer-level email.
+  const contactEmails: string[] = [];
+  const seen = new Set<string>();
+  for (const email of emails) {
+    const key = email.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      contactEmails.push(email);
+    }
+  }
   return {
     externalRef: String(raw.id),
     companyName: raw.companyName ?? undefined,
     firstName: raw.contactPerson?.firstName ?? undefined,
     lastName: raw.contactPerson?.lastName ?? undefined,
-    contactEmails: [...new Set(emails)],
+    contactEmails,
   };
 };
 

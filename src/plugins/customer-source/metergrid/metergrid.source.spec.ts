@@ -59,6 +59,16 @@ describe('mapMetergridCustomer', () => {
     expect(mapped.contactEmails).toEqual(['ada@example.test']);
   });
 
+  it('dedupes case-insensitively, keeping the first occurrence (contactPerson wins)', () => {
+    const mapped = mapMetergridCustomer(
+      syntheticRaw({
+        email: 'Ahaeussermann@gmx.de',
+        contactPerson: { firstName: 'Ada', lastName: 'Tester', email: 'ahaeussermann@gmx.de' },
+      }),
+    );
+    expect(mapped.contactEmails).toEqual(['ahaeussermann@gmx.de']);
+  });
+
   it('yields an empty contactEmails array when both e-mails are null/blank', () => {
     const mapped = mapMetergridCustomer(
       syntheticRaw({ email: '   ', contactPerson: { firstName: 'Ada', lastName: 'Tester', email: null } }),
