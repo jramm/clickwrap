@@ -19,6 +19,13 @@ export interface CustomerSyncConfig {
   sourceKey: string;
   /** Default audience keys assigned to newly-created customers (CUSTOMER_SYNC_DEFAULT_ROLES; [] = none). */
   defaultRoles: string[];
+  /**
+   * Clickwrap document-type keys (e.g. `agb`, `avv`) auto-accepted on INITIAL onboarding of a won-deal
+   * customer (CUSTOMER_SYNC_WON_ACCEPT_TYPES; [] = none ⇒ normal pending rollout). Only affects CREATE:
+   * the current published version of each type/audience is import-accepted so the customer is created
+   * already accepted (no pending state, no rollout mail) for those documents.
+   */
+  wonAcceptTypes: string[];
 }
 
 /**

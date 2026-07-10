@@ -25,48 +25,21 @@ import {
 import type { Clock } from '../domain/clock';
 import { customerDisplayName } from '../domain/customer';
 import type { AcceptanceLinkRepo, AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo } from '../domain/ports';
-import type { AcceptanceLink, AcceptanceMode } from '../domain/types';
+import type { AcceptanceLink } from '../domain/types';
+import type { AcceptancePageItem, AcceptancePageView } from '../plugin-sdk';
 import { TOKENS } from '../persistence/tokens';
 import { PendingAgreementsService } from '../compliance/pending-agreements.service';
 import { AcceptanceService, type AcceptanceResponse } from '../consent/acceptance.service';
 import { NotificationService } from '../consent/notification.service';
 
-export interface AcceptPageItem {
-  versionId: string;
-  documentName: string;
-  documentType: string;
-  audience: string;
-  versionLabel: string;
-  changeSummary: string;
-  /** Presigned URL (15-minute TTL, same source as the portal popup). */
-  pdfUrl: string;
-  mode: AcceptanceMode;
-  /** ACTIVE only — the exact checkbox text; the acceptance POST must echo it verbatim. */
-  consentText?: string;
-  deadlineAt?: Date;
-  blocking: boolean;
-  /** true = published but not yet in effect — the card shows "valid from {date}". */
-  upcoming: boolean;
-  /** Date from which the revision applies. */
-  validFrom: Date;
-}
-
-export interface AcceptPageView {
-  linkId: string;
-  /** Derived display name (companyName if set, else the contact person's name) — page heading. */
-  customerName: string;
-  /**
-   * Prefill values for the self-declared signer block (all remain editable — the recorded
-   * identity is still self-declared, these only pre-fill the inputs for convenience).
-   */
-  firstName: string;
-  lastName: string;
-  /** Company/organisation shown as context when present ('' otherwise). */
-  companyName: string;
-  /** Suggested signer e-mail — the customer's first known contact e-mail ('' when none). */
-  suggestedEmail: string;
-  items: AcceptPageItem[];
-}
+/**
+ * The acceptance-page view-model is defined once in the plugin SDK (the stable contract renderers
+ * type against — see `src/plugin-sdk/kinds/acceptance-page.ts`). These aliases keep the historical
+ * host-side names working; both refer to the SDK types, so there is a single definition.
+ */
+export type { AcceptancePageItem, AcceptancePageView } from '../plugin-sdk';
+export type AcceptPageItem = AcceptancePageItem;
+export type AcceptPageView = AcceptancePageView;
 
 export interface LinkAcceptanceRequest {
   versionId: string;

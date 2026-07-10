@@ -10,6 +10,7 @@ import { ComplianceModule } from './compliance/compliance.module';
 import { ConsentModule } from './consent/consent.module';
 import { CustomerSyncModule } from './customer-sync/customer-sync.module';
 import { EventsModule } from './events/events.module';
+import { LegalEntitiesModule } from './legal-entities/legal-entities.module';
 import { RepositoryModule } from './persistence/repository.module';
 import { EmailModule } from './plugins/email/email.module';
 import { FileStorageModule } from './plugins/file-storage/file-storage.module';
@@ -47,6 +48,7 @@ import { SweeperModule } from './sweeper/sweeper.module';
     CustomerSyncModule.forRoot(),
     AdminModule,
     EventsModule,
+    LegalEntitiesModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: DomainErrorFilter }],
 })

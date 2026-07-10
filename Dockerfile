@@ -43,6 +43,8 @@ COPY --from=backend-build /app/dist ./dist
 COPY --from=backend-build /app/prisma ./prisma
 COPY package.json ./
 COPY openapi.admin.json openapi.integration.json ./
+# Legal-entities config — reconciled at boot (LEGAL_ENTITIES_CONFIG overrides the path).
+COPY config ./config
 COPY --from=adminui-build /ui/dist ./admin-ui-dist
 EXPOSE 3000
 CMD ["node", "dist/main.js"]

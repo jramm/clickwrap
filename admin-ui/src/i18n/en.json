@@ -427,6 +427,7 @@
   "settings": {
     "title": "Categories",
     "subtitle": "Manage audiences and document types",
+    "managedViaConfig": "Managed via configuration file (config/legal-entities.json). Audiences and document types are declared there and reconciled at startup — they cannot be edited here.",
     "audiences": "Audiences",
     "documentTypes": "Document types",
     "templateAssignments": "Document type e-mail templates",

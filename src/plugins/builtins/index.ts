@@ -4,6 +4,7 @@
  * Only their loading differs trivially: they are compiled in instead of discovered on disk.
  */
 import type { AnyClickwrapPlugin } from '../../plugin-sdk';
+import { defaultAcceptancePagePlugin } from './default-acceptance-page.plugin';
 import { googleSsoAdminAuthPlugin } from './google-sso-admin-auth.plugin';
 import { localFileStoragePlugin } from './local-file-storage.plugin';
 import { memoryFileStoragePlugin } from './memory-file-storage.plugin';
@@ -26,4 +27,5 @@ export const builtinPlugins: AnyClickwrapPlugin[] = [
   supertokensAdminAuthPlugin,
   noneCustomerSourcePlugin,
   metergridCustomerSourcePlugin,
+  defaultAcceptancePagePlugin,
 ];

@@ -32,6 +32,8 @@ import {
   InMemoryObjectionRepo,
 } from '../persistence/inmemory';
 import { TOKENS } from '../persistence/tokens';
+import { PLUGIN_DI_TOKENS } from '../plugin-sdk';
+import { DefaultAcceptancePageRenderer } from '../plugins/acceptance-page/default/default-acceptance-page.renderer';
 import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.controller';
 import { AcceptPageService } from './accept-page.service';
 import { SlidingWindowRateLimiter } from './rate-limiter';
@@ -95,6 +97,7 @@ describe('AcceptPageController (HTTP)', () => {
           provide: ACCEPT_PAGE_RATE_LIMITER,
           useValue: new SlidingWindowRateLimiter(clock, RATE_LIMIT, 60_000),
         },
+        { provide: PLUGIN_DI_TOKENS.AcceptancePageRenderer, useValue: new DefaultAcceptancePageRenderer() },
       ],
     }).compile();
 

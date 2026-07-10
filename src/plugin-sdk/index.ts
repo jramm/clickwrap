@@ -7,3 +7,4 @@ export * from './kinds/email';
 export * from './kinds/file-storage';
 export * from './kinds/admin-auth';
 export * from './kinds/customer-source';
+export * from './kinds/acceptance-page';

@@ -61,10 +61,13 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
     await http().get('/admin/documents').expect(401);
     await http().get(`/customers/${CUSTOMER_ID}/compliance`).expect(401);
 
-    // 1) Dynamic entities exist (seeded) — creating a document validates against them.
-    const { seedAudience, seedCustomer, seedDocumentType } = await import('./seed');
-    await seedAudience(app); // key "customer"
-    await seedDocumentType(app); // key "dpa"
+    // 1) Dynamic entities exist — created at boot by the LegalEntitiesReconciler from the demo
+    //    config (config/legal-entities.json): audiences customer+partner, document types terms+dpa.
+    const { seedCustomer } = await import('./seed');
+    const audiencesRes = await http().get('/admin/audiences').set(adminHeaders).expect(200);
+    expect(audiencesRes.body.map((a: { key: string }) => a.key).sort()).toEqual(['customer', 'partner']);
+    const documentTypesRes = await http().get('/admin/document-types').set(adminHeaders).expect(200);
+    expect(documentTypesRes.body.map((t: { key: string }) => t.key).sort()).toEqual(['dpa', 'terms']);
 
     // Unknown keys are rejected with the dedicated 422 codes.
     const unknownTypeRes = await http()

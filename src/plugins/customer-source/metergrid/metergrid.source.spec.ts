@@ -1,4 +1,9 @@
-import { MetergridCustomerSource, mapMetergridCustomer, type MetergridRawCustomer } from './metergrid.source';
+import {
+  MetergridCustomerSource,
+  mapMetergridCustomer,
+  type MetergridRawCustomer,
+  type MetergridRawProject,
+} from './metergrid.source';
 
 /** Synthetic raw customer — no real names/emails. */
 const syntheticRaw = (overrides: Partial<MetergridRawCustomer> = {}): MetergridRawCustomer => ({
@@ -83,14 +88,25 @@ describe('MetergridCustomerSource.fetchAll', () => {
       setCookies: ['sAccessToken=access-abc; Path=/; HttpOnly', 'sRefreshToken=refresh-def; Path=/auth; HttpOnly'],
     });
 
-  it('signs in, fetches the snapshot and returns the mapped customers', async () => {
+  const itemsResponse = (items: unknown[]) => fakeResponse({ ok: true, status: 200, json: { items } });
+
+  /** A won project referencing `customerId` (defaults to the WON stage). */
+  const wonProject = (customerId: number, status = 'WON'): MetergridRawProject => ({
+    id: customerId * 10,
+    customerId,
+    tenantElectricity: { status },
+  });
+
+  it('signs in, fetches projects + customers and returns only the mapped WON-deal customers', async () => {
     fetchMock
       .mockResolvedValueOnce(signinOk())
-      .mockResolvedValueOnce(fakeResponse({ ok: true, status: 200, json: { items: [syntheticRaw()], total_items: 1 } }));
+      .mockResolvedValueOnce(itemsResponse([wonProject(42)]))
+      .mockResolvedValueOnce(itemsResponse([syntheticRaw(), syntheticRaw({ id: 99 })]));
 
     const source = new MetergridCustomerSource(config);
     const snapshot = await source.fetchAll();
 
+    // Only customer 42 has a won project; customer 99 (no project) is excluded.
     expect(snapshot).toEqual({
       customers: [
         {
@@ -105,10 +121,33 @@ describe('MetergridCustomerSource.fetchAll', () => {
     expect(snapshot).not.toHaveProperty('deletedExternalRefs');
   });
 
+  it('keeps only won-deal customers (WON + PROJECT_PLANNING_EXECUTION), excluding lost/qualification/no-project and null customerId', async () => {
+    const projects: MetergridRawProject[] = [
+      wonProject(1, 'WON'),
+      wonProject(2, 'LOST'), // customer 2: only a lost project → excluded
+      wonProject(3, 'PROJECT_PLANNING_EXECUTION'),
+      wonProject(3, 'LOST'), // customer 3 also has a lost one, but a won project wins → included
+      wonProject(5, 'QUALIFICATION'), // customer 5: not yet won → excluded
+      { id: 700, customerId: null, tenantElectricity: { status: 'WON' } }, // null customerId → ignored
+      { id: 800, customerId: 6, tenantElectricity: null }, // no stage → ignored (customer 6 excluded)
+    ];
+    const customers = [1, 2, 3, 4, 5, 6].map((id) => syntheticRaw({ id, companyName: `Company ${id}` }));
+    fetchMock
+      .mockResolvedValueOnce(signinOk())
+      .mockResolvedValueOnce(itemsResponse(projects))
+      .mockResolvedValueOnce(itemsResponse(customers));
+
+    const snapshot = await new MetergridCustomerSource(config).fetchAll();
+
+    // Customers 1 and 3 are won; 2 (lost), 4 (no project), 5 (qualification), 6 (null stage) are out.
+    expect(snapshot.customers.map((c) => c.externalRef)).toEqual(['1', '3']);
+  });
+
   it('sends the correct sign-in request (URL, headers, formFields body)', async () => {
     fetchMock
       .mockResolvedValueOnce(signinOk())
-      .mockResolvedValueOnce(fakeResponse({ ok: true, status: 200, json: { items: [] } }));
+      .mockResolvedValueOnce(itemsResponse([]))
+      .mockResolvedValueOnce(itemsResponse([]));
 
     await new MetergridCustomerSource(config).fetchAll();
 
@@ -128,14 +167,37 @@ describe('MetergridCustomerSource.fetchAll', () => {
     });
   });
 
-  it('sends the customers request with the session Cookie header, URL and include body', async () => {
+  it('sends the projects request with the session Cookie header, URL and tenantElectricity include body', async () => {
     fetchMock
       .mockResolvedValueOnce(signinOk())
-      .mockResolvedValueOnce(fakeResponse({ ok: true, status: 200, json: { items: [] } }));
+      .mockResolvedValueOnce(itemsResponse([]))
+      .mockResolvedValueOnce(itemsResponse([]));
 
     await new MetergridCustomerSource(config).fetchAll();
 
     const [url, options] = fetchMock.mock.calls[1];
+    expect(url).toBe('https://api.example.test/api/configurator/projects?skip_total_items=true');
+    expect(options.method).toBe('POST');
+    expect(options.headers).toMatchObject({
+      'content-type': 'application/json',
+      Cookie: 'sAccessToken=access-abc; sRefreshToken=refresh-def',
+    });
+    expect(JSON.parse(options.body)).toEqual({
+      include: { tenantElectricity: true },
+      filter: {},
+      params: {},
+    });
+  });
+
+  it('sends the customers request with the session Cookie header, URL and include body', async () => {
+    fetchMock
+      .mockResolvedValueOnce(signinOk())
+      .mockResolvedValueOnce(itemsResponse([]))
+      .mockResolvedValueOnce(itemsResponse([]));
+
+    await new MetergridCustomerSource(config).fetchAll();
+
+    const [url, options] = fetchMock.mock.calls[2];
     expect(url).toBe('https://api.example.test/api/configurator/customers?skip_total_items=true');
     expect(options.method).toBe('POST');
     expect(options.headers).toMatchObject({
@@ -163,11 +225,13 @@ describe('MetergridCustomerSource.fetchAll', () => {
     } as unknown as Response;
     fetchMock
       .mockResolvedValueOnce(signinLegacy)
-      .mockResolvedValueOnce(fakeResponse({ ok: true, status: 200, json: { items: [] } }));
+      .mockResolvedValueOnce(itemsResponse([]))
+      .mockResolvedValueOnce(itemsResponse([]));
 
     await new MetergridCustomerSource(config).fetchAll();
 
     expect(fetchMock.mock.calls[1][1].headers.Cookie).toBe('sAccessToken=access-abc; sRefreshToken=refresh-def');
+    expect(fetchMock.mock.calls[2][1].headers.Cookie).toBe('sAccessToken=access-abc; sRefreshToken=refresh-def');
   });
 
   it('throws (without leaking the password) on a non-200 sign-in', async () => {
@@ -175,7 +239,7 @@ describe('MetergridCustomerSource.fetchAll', () => {
     const source = new MetergridCustomerSource(config);
     await expect(source.fetchAll()).rejects.toThrow(/sign-in failed/i);
     await expect(source.fetchAll()).rejects.not.toThrow(/super-secret-pw/);
-    expect(fetchMock).toHaveBeenCalledTimes(2); // only sign-in attempted, customers never fetched
+    expect(fetchMock).toHaveBeenCalledTimes(2); // only sign-in attempted, no projects/customers fetched
   });
 
   it('throws when sign-in returns a non-OK status', async () => {
@@ -183,9 +247,17 @@ describe('MetergridCustomerSource.fetchAll', () => {
     await expect(new MetergridCustomerSource(config).fetchAll()).rejects.toThrow(/status "WRONG_CREDENTIALS_ERROR"/);
   });
 
+  it('throws when the projects fetch fails', async () => {
+    fetchMock
+      .mockResolvedValueOnce(signinOk())
+      .mockResolvedValueOnce(fakeResponse({ ok: false, status: 500, json: {} }));
+    await expect(new MetergridCustomerSource(config).fetchAll()).rejects.toThrow(/project fetch failed/i);
+  });
+
   it('throws when the customers fetch fails', async () => {
     fetchMock
       .mockResolvedValueOnce(signinOk())
+      .mockResolvedValueOnce(itemsResponse([]))
       .mockResolvedValueOnce(fakeResponse({ ok: false, status: 500, json: {} }));
     await expect(new MetergridCustomerSource(config).fetchAll()).rejects.toThrow(/customer fetch failed/i);
   });

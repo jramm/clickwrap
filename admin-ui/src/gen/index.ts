@@ -1,12 +1,8 @@
 export type { AdminControllerCreateAcceptanceLinkMutationKey } from './hooks/useAdminControllerCreateAcceptanceLink.ts';
-export type { AdminControllerCreateAudienceMutationKey } from './hooks/useAdminControllerCreateAudience.ts';
 export type { AdminControllerCreateCustomerMutationKey } from './hooks/useAdminControllerCreateCustomer.ts';
-export type { AdminControllerCreateDocumentTypeMutationKey } from './hooks/useAdminControllerCreateDocumentType.ts';
 export type { AdminControllerCreateEmailTemplateMutationKey } from './hooks/useAdminControllerCreateEmailTemplate.ts';
 export type { AdminControllerDashboardQueryKey } from './hooks/useAdminControllerDashboard.ts';
 export type { AdminControllerDashboardSuspenseQueryKey } from './hooks/useAdminControllerDashboardSuspense.ts';
-export type { AdminControllerDeleteAudienceMutationKey } from './hooks/useAdminControllerDeleteAudience.ts';
-export type { AdminControllerDeleteDocumentTypeMutationKey } from './hooks/useAdminControllerDeleteDocumentType.ts';
 export type { AdminControllerDeleteEmailTemplateMutationKey } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
 export type { AdminControllerGetCustomerQueryKey } from './hooks/useAdminControllerGetCustomer.ts';
 export type { AdminControllerGetCustomerSuspenseQueryKey } from './hooks/useAdminControllerGetCustomerSuspense.ts';
@@ -25,9 +21,7 @@ export type { AdminControllerPatchStateMutationKey } from './hooks/useAdminContr
 export type { AdminControllerPreviewEmailTemplateMutationKey } from './hooks/useAdminControllerPreviewEmailTemplate.ts';
 export type { AdminControllerPublishMutationKey } from './hooks/useAdminControllerPublish.ts';
 export type { AdminControllerRemindMutationKey } from './hooks/useAdminControllerRemind.ts';
-export type { AdminControllerUpdateAudienceMutationKey } from './hooks/useAdminControllerUpdateAudience.ts';
 export type { AdminControllerUpdateCustomerMutationKey } from './hooks/useAdminControllerUpdateCustomer.ts';
-export type { AdminControllerUpdateDocumentTypeMutationKey } from './hooks/useAdminControllerUpdateDocumentType.ts';
 export type { AdminControllerUpdateEmailTemplateMutationKey } from './hooks/useAdminControllerUpdateEmailTemplate.ts';
 export type { AdminControllerVersionCustomersQueryKey } from './hooks/useAdminControllerVersionCustomers.ts';
 export type { AdminControllerVersionCustomersSuspenseQueryKey } from './hooks/useAdminControllerVersionCustomersSuspense.ts';
@@ -67,14 +61,6 @@ export type {
   AdminControllerCreateAcceptanceLinkPathParams,
 } from './types/AdminControllerCreateAcceptanceLink.ts';
 export type {
-  AdminControllerCreateAudience201,
-  AdminControllerCreateAudience401,
-  AdminControllerCreateAudience422,
-  AdminControllerCreateAudienceMutation,
-  AdminControllerCreateAudienceMutationRequest,
-  AdminControllerCreateAudienceMutationResponse,
-} from './types/AdminControllerCreateAudience.ts';
-export type {
   AdminControllerCreateCustomer201,
   AdminControllerCreateCustomer400,
   AdminControllerCreateCustomer401,
@@ -84,14 +70,6 @@ export type {
   AdminControllerCreateCustomerMutationRequest,
   AdminControllerCreateCustomerMutationResponse,
 } from './types/AdminControllerCreateCustomer.ts';
-export type {
-  AdminControllerCreateDocumentType201,
-  AdminControllerCreateDocumentType401,
-  AdminControllerCreateDocumentType422,
-  AdminControllerCreateDocumentTypeMutation,
-  AdminControllerCreateDocumentTypeMutationRequest,
-  AdminControllerCreateDocumentTypeMutationResponse,
-} from './types/AdminControllerCreateDocumentType.ts';
 export type {
   AdminControllerCreateEmailTemplate201,
   AdminControllerCreateEmailTemplate400,
@@ -106,24 +84,6 @@ export type {
   AdminControllerDashboardQuery,
   AdminControllerDashboardQueryResponse,
 } from './types/AdminControllerDashboard.ts';
-export type {
-  AdminControllerDeleteAudience204,
-  AdminControllerDeleteAudience401,
-  AdminControllerDeleteAudience404,
-  AdminControllerDeleteAudience422,
-  AdminControllerDeleteAudienceMutation,
-  AdminControllerDeleteAudienceMutationResponse,
-  AdminControllerDeleteAudiencePathParams,
-} from './types/AdminControllerDeleteAudience.ts';
-export type {
-  AdminControllerDeleteDocumentType204,
-  AdminControllerDeleteDocumentType401,
-  AdminControllerDeleteDocumentType404,
-  AdminControllerDeleteDocumentType422,
-  AdminControllerDeleteDocumentTypeMutation,
-  AdminControllerDeleteDocumentTypeMutationResponse,
-  AdminControllerDeleteDocumentTypePathParams,
-} from './types/AdminControllerDeleteDocumentType.ts';
 export type {
   AdminControllerDeleteEmailTemplate204,
   AdminControllerDeleteEmailTemplate401,
@@ -226,16 +186,6 @@ export type {
   AdminControllerRemindPathParams,
 } from './types/AdminControllerRemind.ts';
 export type {
-  AdminControllerUpdateAudience200,
-  AdminControllerUpdateAudience401,
-  AdminControllerUpdateAudience404,
-  AdminControllerUpdateAudience422,
-  AdminControllerUpdateAudienceMutation,
-  AdminControllerUpdateAudienceMutationRequest,
-  AdminControllerUpdateAudienceMutationResponse,
-  AdminControllerUpdateAudiencePathParams,
-} from './types/AdminControllerUpdateAudience.ts';
-export type {
   AdminControllerUpdateCustomer200,
   AdminControllerUpdateCustomer400,
   AdminControllerUpdateCustomer401,
@@ -246,16 +196,6 @@ export type {
   AdminControllerUpdateCustomerMutationResponse,
   AdminControllerUpdateCustomerPathParams,
 } from './types/AdminControllerUpdateCustomer.ts';
-export type {
-  AdminControllerUpdateDocumentType200,
-  AdminControllerUpdateDocumentType401,
-  AdminControllerUpdateDocumentType404,
-  AdminControllerUpdateDocumentType422,
-  AdminControllerUpdateDocumentTypeMutation,
-  AdminControllerUpdateDocumentTypeMutationRequest,
-  AdminControllerUpdateDocumentTypeMutationResponse,
-  AdminControllerUpdateDocumentTypePathParams,
-} from './types/AdminControllerUpdateDocumentType.ts';
 export type {
   AdminControllerUpdateEmailTemplate200,
   AdminControllerUpdateEmailTemplate400,
@@ -356,12 +296,10 @@ export type {
   CreateCustomerResponseModelComplianceStatusEnum,
 } from './types/CreateCustomerResponseModel.ts';
 export type { CreateDocumentBodyModel } from './types/CreateDocumentBodyModel.ts';
-export type { CreateDocumentTypeBodyModel } from './types/CreateDocumentTypeBodyModel.ts';
 export type {
   CreateEmailTemplateBodyModel,
   CreateEmailTemplateBodyModelKindEnum,
 } from './types/CreateEmailTemplateBodyModel.ts';
-export type { CreateNamedEntityBodyModel } from './types/CreateNamedEntityBodyModel.ts';
 export type {
   CreateVersionBodyModel,
   CreateVersionBodyModelAcceptanceModeEnum,
@@ -471,12 +409,10 @@ export type {
   SignedDocumentsAdminControllerUploadPathParams,
 } from './types/SignedDocumentsAdminControllerUpload.ts';
 export type { UpdateCustomerBodyModel } from './types/UpdateCustomerBodyModel.ts';
-export type { UpdateDocumentTypeBodyModel } from './types/UpdateDocumentTypeBodyModel.ts';
 export type {
   UpdateEmailTemplateBodyModel,
   UpdateEmailTemplateBodyModelKindEnum,
 } from './types/UpdateEmailTemplateBodyModel.ts';
-export type { UpdateNamedEntityBodyModel } from './types/UpdateNamedEntityBodyModel.ts';
 export type { VersionAcceptanceStatsModel } from './types/VersionAcceptanceStatsModel.ts';
 export type {
   VersionCustomerAcceptanceModel,
@@ -499,18 +435,10 @@ export { adminControllerCreateAcceptanceLink } from './hooks/useAdminControllerC
 export { adminControllerCreateAcceptanceLinkMutationKey } from './hooks/useAdminControllerCreateAcceptanceLink.ts';
 export { adminControllerCreateAcceptanceLinkMutationOptions } from './hooks/useAdminControllerCreateAcceptanceLink.ts';
 export { useAdminControllerCreateAcceptanceLink } from './hooks/useAdminControllerCreateAcceptanceLink.ts';
-export { adminControllerCreateAudience } from './hooks/useAdminControllerCreateAudience.ts';
-export { adminControllerCreateAudienceMutationKey } from './hooks/useAdminControllerCreateAudience.ts';
-export { adminControllerCreateAudienceMutationOptions } from './hooks/useAdminControllerCreateAudience.ts';
-export { useAdminControllerCreateAudience } from './hooks/useAdminControllerCreateAudience.ts';
 export { adminControllerCreateCustomer } from './hooks/useAdminControllerCreateCustomer.ts';
 export { adminControllerCreateCustomerMutationKey } from './hooks/useAdminControllerCreateCustomer.ts';
 export { adminControllerCreateCustomerMutationOptions } from './hooks/useAdminControllerCreateCustomer.ts';
 export { useAdminControllerCreateCustomer } from './hooks/useAdminControllerCreateCustomer.ts';
-export { adminControllerCreateDocumentType } from './hooks/useAdminControllerCreateDocumentType.ts';
-export { adminControllerCreateDocumentTypeMutationKey } from './hooks/useAdminControllerCreateDocumentType.ts';
-export { adminControllerCreateDocumentTypeMutationOptions } from './hooks/useAdminControllerCreateDocumentType.ts';
-export { useAdminControllerCreateDocumentType } from './hooks/useAdminControllerCreateDocumentType.ts';
 export { adminControllerCreateEmailTemplate } from './hooks/useAdminControllerCreateEmailTemplate.ts';
 export { adminControllerCreateEmailTemplateMutationKey } from './hooks/useAdminControllerCreateEmailTemplate.ts';
 export { adminControllerCreateEmailTemplateMutationOptions } from './hooks/useAdminControllerCreateEmailTemplate.ts';
@@ -523,14 +451,6 @@ export { adminControllerDashboardSuspense } from './hooks/useAdminControllerDash
 export { adminControllerDashboardSuspenseQueryKey } from './hooks/useAdminControllerDashboardSuspense.ts';
 export { adminControllerDashboardSuspenseQueryOptions } from './hooks/useAdminControllerDashboardSuspense.ts';
 export { useAdminControllerDashboardSuspense } from './hooks/useAdminControllerDashboardSuspense.ts';
-export { adminControllerDeleteAudience } from './hooks/useAdminControllerDeleteAudience.ts';
-export { adminControllerDeleteAudienceMutationKey } from './hooks/useAdminControllerDeleteAudience.ts';
-export { adminControllerDeleteAudienceMutationOptions } from './hooks/useAdminControllerDeleteAudience.ts';
-export { useAdminControllerDeleteAudience } from './hooks/useAdminControllerDeleteAudience.ts';
-export { adminControllerDeleteDocumentType } from './hooks/useAdminControllerDeleteDocumentType.ts';
-export { adminControllerDeleteDocumentTypeMutationKey } from './hooks/useAdminControllerDeleteDocumentType.ts';
-export { adminControllerDeleteDocumentTypeMutationOptions } from './hooks/useAdminControllerDeleteDocumentType.ts';
-export { useAdminControllerDeleteDocumentType } from './hooks/useAdminControllerDeleteDocumentType.ts';
 export { adminControllerDeleteEmailTemplate } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
 export { adminControllerDeleteEmailTemplateMutationKey } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
 export { adminControllerDeleteEmailTemplateMutationOptions } from './hooks/useAdminControllerDeleteEmailTemplate.ts';
@@ -603,18 +523,10 @@ export { adminControllerRemind } from './hooks/useAdminControllerRemind.ts';
 export { adminControllerRemindMutationKey } from './hooks/useAdminControllerRemind.ts';
 export { adminControllerRemindMutationOptions } from './hooks/useAdminControllerRemind.ts';
 export { useAdminControllerRemind } from './hooks/useAdminControllerRemind.ts';
-export { adminControllerUpdateAudience } from './hooks/useAdminControllerUpdateAudience.ts';
-export { adminControllerUpdateAudienceMutationKey } from './hooks/useAdminControllerUpdateAudience.ts';
-export { adminControllerUpdateAudienceMutationOptions } from './hooks/useAdminControllerUpdateAudience.ts';
-export { useAdminControllerUpdateAudience } from './hooks/useAdminControllerUpdateAudience.ts';
 export { adminControllerUpdateCustomer } from './hooks/useAdminControllerUpdateCustomer.ts';
 export { adminControllerUpdateCustomerMutationKey } from './hooks/useAdminControllerUpdateCustomer.ts';
 export { adminControllerUpdateCustomerMutationOptions } from './hooks/useAdminControllerUpdateCustomer.ts';
 export { useAdminControllerUpdateCustomer } from './hooks/useAdminControllerUpdateCustomer.ts';
-export { adminControllerUpdateDocumentType } from './hooks/useAdminControllerUpdateDocumentType.ts';
-export { adminControllerUpdateDocumentTypeMutationKey } from './hooks/useAdminControllerUpdateDocumentType.ts';
-export { adminControllerUpdateDocumentTypeMutationOptions } from './hooks/useAdminControllerUpdateDocumentType.ts';
-export { useAdminControllerUpdateDocumentType } from './hooks/useAdminControllerUpdateDocumentType.ts';
 export { adminControllerUpdateEmailTemplate } from './hooks/useAdminControllerUpdateEmailTemplate.ts';
 export { adminControllerUpdateEmailTemplateMutationKey } from './hooks/useAdminControllerUpdateEmailTemplate.ts';
 export { adminControllerUpdateEmailTemplateMutationOptions } from './hooks/useAdminControllerUpdateEmailTemplate.ts';
@@ -725,13 +637,6 @@ export {
   adminControllerCreateAcceptanceLinkPathParamsSchema,
 } from './zod/adminControllerCreateAcceptanceLinkSchema.ts';
 export {
-  adminControllerCreateAudience201Schema,
-  adminControllerCreateAudience401Schema,
-  adminControllerCreateAudience422Schema,
-  adminControllerCreateAudienceMutationRequestSchema,
-  adminControllerCreateAudienceMutationResponseSchema,
-} from './zod/adminControllerCreateAudienceSchema.ts';
-export {
   adminControllerCreateCustomer201Schema,
   adminControllerCreateCustomer400Schema,
   adminControllerCreateCustomer401Schema,
@@ -740,13 +645,6 @@ export {
   adminControllerCreateCustomerMutationRequestSchema,
   adminControllerCreateCustomerMutationResponseSchema,
 } from './zod/adminControllerCreateCustomerSchema.ts';
-export {
-  adminControllerCreateDocumentType201Schema,
-  adminControllerCreateDocumentType401Schema,
-  adminControllerCreateDocumentType422Schema,
-  adminControllerCreateDocumentTypeMutationRequestSchema,
-  adminControllerCreateDocumentTypeMutationResponseSchema,
-} from './zod/adminControllerCreateDocumentTypeSchema.ts';
 export {
   adminControllerCreateEmailTemplate201Schema,
   adminControllerCreateEmailTemplate400Schema,
@@ -759,22 +657,6 @@ export {
   adminControllerDashboard401Schema,
   adminControllerDashboardQueryResponseSchema,
 } from './zod/adminControllerDashboardSchema.ts';
-export {
-  adminControllerDeleteAudience204Schema,
-  adminControllerDeleteAudience401Schema,
-  adminControllerDeleteAudience404Schema,
-  adminControllerDeleteAudience422Schema,
-  adminControllerDeleteAudienceMutationResponseSchema,
-  adminControllerDeleteAudiencePathParamsSchema,
-} from './zod/adminControllerDeleteAudienceSchema.ts';
-export {
-  adminControllerDeleteDocumentType204Schema,
-  adminControllerDeleteDocumentType401Schema,
-  adminControllerDeleteDocumentType404Schema,
-  adminControllerDeleteDocumentType422Schema,
-  adminControllerDeleteDocumentTypeMutationResponseSchema,
-  adminControllerDeleteDocumentTypePathParamsSchema,
-} from './zod/adminControllerDeleteDocumentTypeSchema.ts';
 export {
   adminControllerDeleteEmailTemplate204Schema,
   adminControllerDeleteEmailTemplate401Schema,
@@ -864,15 +746,6 @@ export {
   adminControllerRemindPathParamsSchema,
 } from './zod/adminControllerRemindSchema.ts';
 export {
-  adminControllerUpdateAudience200Schema,
-  adminControllerUpdateAudience401Schema,
-  adminControllerUpdateAudience404Schema,
-  adminControllerUpdateAudience422Schema,
-  adminControllerUpdateAudienceMutationRequestSchema,
-  adminControllerUpdateAudienceMutationResponseSchema,
-  adminControllerUpdateAudiencePathParamsSchema,
-} from './zod/adminControllerUpdateAudienceSchema.ts';
-export {
   adminControllerUpdateCustomer200Schema,
   adminControllerUpdateCustomer400Schema,
   adminControllerUpdateCustomer401Schema,
@@ -882,15 +755,6 @@ export {
   adminControllerUpdateCustomerMutationResponseSchema,
   adminControllerUpdateCustomerPathParamsSchema,
 } from './zod/adminControllerUpdateCustomerSchema.ts';
-export {
-  adminControllerUpdateDocumentType200Schema,
-  adminControllerUpdateDocumentType401Schema,
-  adminControllerUpdateDocumentType404Schema,
-  adminControllerUpdateDocumentType422Schema,
-  adminControllerUpdateDocumentTypeMutationRequestSchema,
-  adminControllerUpdateDocumentTypeMutationResponseSchema,
-  adminControllerUpdateDocumentTypePathParamsSchema,
-} from './zod/adminControllerUpdateDocumentTypeSchema.ts';
 export {
   adminControllerUpdateEmailTemplate200Schema,
   adminControllerUpdateEmailTemplate400Schema,
@@ -976,9 +840,7 @@ export { createAcceptanceLinkResponseModelSchema } from './zod/createAcceptanceL
 export { createCustomerBodyModelSchema } from './zod/createCustomerBodyModelSchema.ts';
 export { createCustomerResponseModelSchema } from './zod/createCustomerResponseModelSchema.ts';
 export { createDocumentBodyModelSchema } from './zod/createDocumentBodyModelSchema.ts';
-export { createDocumentTypeBodyModelSchema } from './zod/createDocumentTypeBodyModelSchema.ts';
 export { createEmailTemplateBodyModelSchema } from './zod/createEmailTemplateBodyModelSchema.ts';
-export { createNamedEntityBodyModelSchema } from './zod/createNamedEntityBodyModelSchema.ts';
 export { createVersionBodyModelSchema } from './zod/createVersionBodyModelSchema.ts';
 export { createVersionResponseModelSchema } from './zod/createVersionResponseModelSchema.ts';
 export { customerHistoryResponseModelSchema } from './zod/customerHistoryResponseModelSchema.ts';
@@ -1043,9 +905,7 @@ export {
   signedDocumentsAdminControllerUploadPathParamsSchema,
 } from './zod/signedDocumentsAdminControllerUploadSchema.ts';
 export { updateCustomerBodyModelSchema } from './zod/updateCustomerBodyModelSchema.ts';
-export { updateDocumentTypeBodyModelSchema } from './zod/updateDocumentTypeBodyModelSchema.ts';
 export { updateEmailTemplateBodyModelSchema } from './zod/updateEmailTemplateBodyModelSchema.ts';
-export { updateNamedEntityBodyModelSchema } from './zod/updateNamedEntityBodyModelSchema.ts';
 export { versionAcceptanceStatsModelSchema } from './zod/versionAcceptanceStatsModelSchema.ts';
 export { versionCustomerAcceptanceModelSchema } from './zod/versionCustomerAcceptanceModelSchema.ts';
 export { versionCustomerRowModelSchema } from './zod/versionCustomerRowModelSchema.ts';

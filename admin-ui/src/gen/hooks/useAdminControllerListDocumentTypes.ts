@@ -26,6 +26,7 @@ export type AdminControllerListDocumentTypesQueryKey = ReturnType<
 >;
 
 /**
+ * @description Read-only — document types are managed via the legal-entities configuration file.
  * @summary List document types (sorted by key) incl. e-mail template assignments
  * {@link /admin/document-types}
  */
@@ -60,6 +61,7 @@ export function adminControllerListDocumentTypesQueryOptions(
 }
 
 /**
+ * @description Read-only — document types are managed via the legal-entities configuration file.
  * @summary List document types (sorted by key) incl. e-mail template assignments
  * {@link /admin/document-types}
  */

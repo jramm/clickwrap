@@ -26,6 +26,7 @@ export type AdminControllerListAudiencesSuspenseQueryKey = ReturnType<
 >;
 
 /**
+ * @description Read-only — audiences are managed via the legal-entities configuration file.
  * @summary List audiences (sorted by key)
  * {@link /admin/audiences}
  */
@@ -60,6 +61,7 @@ export function adminControllerListAudiencesSuspenseQueryOptions(
 }
 
 /**
+ * @description Read-only — audiences are managed via the legal-entities configuration file.
  * @summary List audiences (sorted by key)
  * {@link /admin/audiences}
  */

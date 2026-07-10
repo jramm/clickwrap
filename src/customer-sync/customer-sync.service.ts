@@ -1,9 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { customerDisplayName } from '../domain/customer';
 import type { Clock } from '../domain/clock';
-import type { CustomerRepo } from '../domain/ports';
+import type { AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo } from '../domain/ports';
 import type { Customer } from '../domain/types';
-import { CustomerAdminService, type UpdateCustomerInput } from '../customers/customer-admin.service';
+import {
+  CustomerAdminService,
+  type AcceptedVersionImport,
+  type UpdateCustomerInput,
+} from '../customers/customer-admin.service';
 import { EventRecorder } from '../events/event-recorder';
 import type { CustomerSource, ExternalCustomer } from '../plugin-sdk';
 import { TOKENS } from '../persistence/tokens';
@@ -45,6 +49,8 @@ export class CustomerSyncService {
     @Inject(CUSTOMER_SYNC_TOKENS.CustomerSource) private readonly source: CustomerSource,
     @Inject(CUSTOMER_SYNC_TOKENS.Config) private readonly config: CustomerSyncConfig,
     @Inject(TOKENS.CustomerRepo) private readonly customers: CustomerRepo,
+    @Inject(TOKENS.AgreementDocumentRepo) private readonly documents: AgreementDocumentRepo,
+    @Inject(TOKENS.AgreementVersionRepo) private readonly versions: AgreementVersionRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     private readonly customerAdmin: CustomerAdminService,
     private readonly recorder: EventRecorder,
@@ -113,6 +119,12 @@ export class CustomerSyncService {
   }
 
   private async createFromSource(external: ExternalCustomer): Promise<void> {
+    const roles = this.config.defaultRoles;
+    // Won-deal semantics: on INITIAL onboarding the latest AGB/AVV are considered already accepted.
+    // Import-accept the current published version of each configured type/audience so the customer is
+    // created already ACCEPTED (no pending state, no rollout mail) for those documents; any OTHER
+    // current documents still roll out normally. Only ever runs on CREATE.
+    const acceptedVersions = await this.resolveWonAcceptedVersions(roles);
     await this.customerAdmin.create(
       {
         externalRef: external.externalRef,
@@ -120,12 +132,42 @@ export class CustomerSyncService {
         lastName: external.lastName,
         companyName: external.companyName,
         contactEmails: external.contactEmails,
-        roles: this.config.defaultRoles,
+        roles,
         source: this.config.sourceKey,
+        acceptedVersions,
       },
       CUSTOMER_SYNC_SYSTEM_ACTOR,
       'integration',
     );
+  }
+
+  /**
+   * Resolves the CURRENT published version of every configured won-accept document type across the
+   * customer's roles/audiences (same resolution as CustomerAdminService.rolloutCurrentVersions:
+   * iterate the documents, match type + audience, `findCurrentPublished`). Each resolved version is
+   * returned as an IMPORT acceptance (acceptedAt defaults to now in CustomerAdminService). Empty when
+   * no won-accept types are configured or no roles cover them.
+   */
+  private async resolveWonAcceptedVersions(roles: string[]): Promise<AcceptedVersionImport[]> {
+    if (this.config.wonAcceptTypes.length === 0 || roles.length === 0) {
+      return [];
+    }
+    const now = this.clock.now();
+    const wonTypes = new Set(this.config.wonAcceptTypes);
+    const roleSet = new Set(roles);
+    const accepted: AcceptedVersionImport[] = [];
+    const seen = new Set<string>();
+    for (const document of await this.documents.findAll()) {
+      if (!wonTypes.has(document.type) || !roleSet.has(document.audience)) {
+        continue;
+      }
+      const version = await this.versions.findCurrentPublished(document.type, document.audience, now);
+      if (version && !seen.has(version.id)) {
+        seen.add(version.id);
+        accepted.push({ versionId: version.id, reference: `${this.config.sourceKey}: initial onboarding (won deal)` });
+      }
+    }
+    return accepted;
   }
 
   /** Returns true when an update was performed (and a CUSTOMER_UPDATED event emitted). */

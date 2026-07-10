@@ -49,10 +49,8 @@ describe('AppModule boot with FILE_STORAGE=local', () => {
   it('stores an uploaded version PDF on disk and serves it back via the signed /files URL', async () => {
     const http = () => request(app.getHttpServer());
 
-    const { seedAudience, seedDocumentType } = await import('./seed');
-    await seedAudience(app); // key "customer"
-    await seedDocumentType(app); // key "dpa"
-
+    // audience "customer" + document type "dpa" are created at boot by the LegalEntitiesReconciler
+    // from the demo config (config/legal-entities.json) — no manual seeding needed.
     const documentRes = await http()
       .post('/admin/documents')
       .set(adminHeaders)

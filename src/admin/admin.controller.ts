@@ -38,9 +38,7 @@ import {
 } from '../customers/openapi.models';
 import { PublishResponseModel } from '../agreements/openapi.models';
 import {
-  CreateDocumentTypeBodyModel,
   CreateEmailTemplateBodyModel,
-  CreateNamedEntityBodyModel,
   CustomerHistoryResponseModel,
   CustomerVersionStateModel,
   DashboardResponseModel,
@@ -52,16 +50,14 @@ import {
   ManualAcceptanceResponseModel,
   NamedEntityModel,
   PatchStateBodyModel,
-  UpdateDocumentTypeBodyModel,
   UpdateEmailTemplateBodyModel,
-  UpdateNamedEntityBodyModel,
   VersionCustomersResponseModel,
   VersionStatsModel,
 } from './openapi.models';
 import { ZodBodyPipe } from '../consent/dto';
-import { AudienceAdminService, type CreateAudienceInput } from './audience-admin.service';
+import { AudienceAdminService } from './audience-admin.service';
 import { CustomerVersionStateAdminService } from './customer-version-state-admin.service';
-import { DocumentTypeAdminService, type CreateDocumentTypeInput } from './document-type-admin.service';
+import { DocumentTypeAdminService } from './document-type-admin.service';
 import {
   EmailTemplateAdminService,
   type CreateEmailTemplateInput,
@@ -400,90 +396,29 @@ export class AdminController {
     return this.customerVersionStateAdminService.remind(stateId, adminUserId(req));
   }
 
+  // Audiences and document types are READ-ONLY over the API: they are declared in the
+  // legal-entities config file (config/legal-entities.json) and reconciled into the store at boot
+  // (see LegalEntitiesReconciler / docs/PERSISTENCE.md). Only the GET list routes remain; there are
+  // deliberately no create/update/delete routes.
+
   @Get('audiences')
-  @ApiOperation({ summary: 'List audiences (sorted by key)' })
+  @ApiOperation({
+    summary: 'List audiences (sorted by key)',
+    description: 'Read-only — audiences are managed via the legal-entities configuration file.',
+  })
   @ApiOkResponse({ type: [NamedEntityModel] })
   async listAudiences() {
     return this.audienceAdminService.list();
   }
 
-  @Post('audiences')
-  @ApiOperation({ summary: 'Create an audience' })
-  @ApiBody({ type: CreateNamedEntityBodyModel })
-  @ApiCreatedResponse({ type: NamedEntityModel })
-  @ApiErrorResponses({ 422: 'INVALID_STATE (invalid slug, duplicate key, missing name)' })
-  async createAudience(@Body() body: CreateAudienceInput, @Req() req: AdminRequest) {
-    return this.audienceAdminService.create(body, adminUserId(req));
-  }
-
-  @Patch('audiences/:id')
-  @ApiOperation({ summary: 'Rename an audience (key is immutable)' })
-  @ApiBody({ type: UpdateNamedEntityBodyModel })
-  @ApiOkResponse({ type: NamedEntityModel })
-  @ApiErrorResponses({ 404: 'Unknown id.', 422: 'INVALID_STATE (key in the body)' })
-  async updateAudience(@Param('id') id: string, @Body() body: Record<string, unknown>, @Req() req: AdminRequest) {
-    return this.audienceAdminService.update(id, body, adminUserId(req));
-  }
-
-  @Delete('audiences/:id')
-  @ApiOperation({ summary: 'Delete an unreferenced audience' })
-  @ApiResponse({ status: 204, description: 'Deleted.' })
-  @ApiErrorResponses({ 404: 'Unknown id.', 422: 'INVALID_STATE (still referenced)' })
-  @HttpCode(204)
-  async deleteAudience(@Param('id') id: string, @Req() req: AdminRequest): Promise<void> {
-    await this.audienceAdminService.remove(id, adminUserId(req));
-  }
-
   @Get('document-types')
-  @ApiOperation({ summary: 'List document types (sorted by key) incl. e-mail template assignments' })
+  @ApiOperation({
+    summary: 'List document types (sorted by key) incl. e-mail template assignments',
+    description: 'Read-only — document types are managed via the legal-entities configuration file.',
+  })
   @ApiOkResponse({ type: [DocumentTypeModel] })
   async listDocumentTypes() {
     return this.documentTypeAdminService.list();
-  }
-
-  @Post('document-types')
-  @ApiOperation({
-    summary: 'Create a document type',
-    description:
-      'Set `external: true` to create an externally-signed document type (SignedDocument flow — no ' +
-      'versions/publish/gate). `external` is settable only here and immutable afterwards.',
-  })
-  @ApiBody({ type: CreateDocumentTypeBodyModel })
-  @ApiCreatedResponse({ type: DocumentTypeModel })
-  @ApiErrorResponses({ 422: 'INVALID_STATE (invalid slug, duplicate key, missing name)' })
-  async createDocumentType(@Body() body: CreateDocumentTypeInput, @Req() req: AdminRequest) {
-    return this.documentTypeAdminService.create(body, adminUserId(req));
-  }
-
-  @Patch('document-types/:id')
-  @ApiOperation({
-    summary: 'Rename a document type / assign e-mail templates (key is immutable)',
-    description:
-      'Assign per-document-type notification/reminder templates via notificationTemplateId / ' +
-      'reminderTemplateId (must reference an existing template of the matching kind); `null` ' +
-      'clears an assignment, an omitted field keeps it.',
-  })
-  @ApiBody({ type: UpdateDocumentTypeBodyModel })
-  @ApiOkResponse({ type: DocumentTypeModel })
-  @ApiErrorResponses({
-    404: 'Unknown id.',
-    422: 'INVALID_STATE (key in the body, unknown/incompatible template)',
-  })
-  async updateDocumentType(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-    @Req() req: AdminRequest,
-  ) {
-    return this.documentTypeAdminService.update(id, body, adminUserId(req));
-  }
-
-  @Delete('document-types/:id')
-  @ApiOperation({ summary: 'Delete an unreferenced document type' })
-  @ApiResponse({ status: 204, description: 'Deleted.' })
-  @ApiErrorResponses({ 404: 'Unknown id.', 422: 'INVALID_STATE (still referenced)' })
-  @HttpCode(204)
-  async deleteDocumentType(@Param('id') id: string, @Req() req: AdminRequest): Promise<void> {
-    await this.documentTypeAdminService.remove(id, adminUserId(req));
   }
 
   @Get('email-templates')

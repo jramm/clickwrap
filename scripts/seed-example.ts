@@ -5,9 +5,12 @@ import 'dotenv/config';
  * way to see the admin surface (dynamic-entity CRUD, documents/versions/publish and the customer
  * list with its document-type / audience / compliance-status filters) actually do something.
  *
+ * The audiences ("customer", "partner") and document types ("terms", "dpa") are NO LONGER created
+ * here — they are declared in config/legal-entities.json and reconciled into the store at boot by
+ * the LegalEntitiesReconciler (see docs/PERSISTENCE.md). This seed only creates the data that
+ * references those keys.
+ *
  * What it creates:
- *   - audiences:      "customer" (Customers), "partner" (Partners)
- *   - document types: "terms" (Terms of Service), "dpa" (Data Processing Agreement)
  *   - documents (each with a published version → an onboarding rollout happens):
  *       · terms/customer  — ACTIVE  (consent + absolute ~30-day hard deadline)
  *       · dpa/customer    — PASSIVE (14-day objection period)
@@ -46,12 +49,6 @@ const ADMIN_HEADERS = {
 /** Minimal valid PDF — enough for the version upload; the seed does not render it. */
 const MINIMAL_PDF_BASE64 = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF').toString('base64');
 
-interface DynamicEntity {
-  id: string;
-  key: string;
-  name: string;
-}
-
 /** POST helper that fails loudly (throws) on any non-2xx response. */
 const postJson = async <T>(baseUrl: string, path: string, body: unknown): Promise<T> => {
   const res = await fetch(`${baseUrl}${path}`, { method: 'POST', headers: ADMIN_HEADERS, body: JSON.stringify(body) });
@@ -60,9 +57,6 @@ const postJson = async <T>(baseUrl: string, path: string, body: unknown): Promis
   }
   return (await res.json()) as T;
 };
-
-const createDynamicEntity = (baseUrl: string, path: string, body: { key: string; name: string }) =>
-  postJson<DynamicEntity>(baseUrl, path, body);
 
 interface PublishedDocument {
   documentId: string;
@@ -135,14 +129,8 @@ async function main(): Promise<void> {
   await bootApp();
   const baseUrl = `http://localhost:${PORT}`;
 
-  const audiences = await Promise.all([
-    createDynamicEntity(baseUrl, '/admin/audiences', { key: 'customer', name: 'Customers' }),
-    createDynamicEntity(baseUrl, '/admin/audiences', { key: 'partner', name: 'Partners' }),
-  ]);
-  const documentTypes = await Promise.all([
-    createDynamicEntity(baseUrl, '/admin/document-types', { key: 'terms', name: 'Terms of Service' }),
-    createDynamicEntity(baseUrl, '/admin/document-types', { key: 'dpa', name: 'Data Processing Agreement' }),
-  ]);
+  // audiences (customer, partner) + document types (terms, dpa) are provided by the boot reconciler
+  // from config/legal-entities.json — the seed only creates data that references those keys.
 
   // Publish one version per document so the customers created below get an onboarding rollout.
   const termsCustomer = await createPublishedDocument(baseUrl, {
@@ -223,7 +211,7 @@ async function main(): Promise<void> {
   // eslint-disable-next-line no-console
   console.log('Seeded example configuration:');
   // eslint-disable-next-line no-console
-  console.log(JSON.stringify({ audiences, documentTypes, documents, customers }, null, 2));
+  console.log(JSON.stringify({ documents, customers }, null, 2));
   // eslint-disable-next-line no-console
   console.log(`\nAdmin API is live at ${baseUrl} (header "x-admin-token: ${ADMIN_TOKEN}"). Ctrl+C to stop.`);
   // eslint-disable-next-line no-console

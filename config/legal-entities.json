@@ -1,0 +1,24 @@
+{
+  "audiences": [
+    { "key": "customer", "name": "Customers" },
+    { "key": "partner", "name": "Partners" }
+  ],
+  "documentTypes": [
+    {
+      "key": "terms",
+      "name": "Terms of Service",
+      "external": false,
+      "notificationTemplateId": null,
+      "reminderTemplateId": null,
+      "acceptanceConfirmationTemplateId": null
+    },
+    {
+      "key": "dpa",
+      "name": "Data Processing Agreement",
+      "external": false,
+      "notificationTemplateId": null,
+      "reminderTemplateId": null,
+      "acceptanceConfirmationTemplateId": null
+    }
+  ]
+}

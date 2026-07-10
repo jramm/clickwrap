@@ -3,6 +3,48 @@
 Short documentation for the Prisma schema (`prisma/schema.prisma`), the post-migration script
 (`prisma/partial-indexes.sql`) and the local Postgres environment (`docker-compose.yml`).
 
+## Legal-entities configuration (audiences + document types)
+
+Audiences and document types are **not** UI-managed CRUD entities. They are declared in a
+**JSON configuration file** that is the single source of truth and is **reconciled into the store on
+every boot** (for both the in-memory and Prisma drivers, and in the real server, the seed script and
+the boot tests). This makes the legal-entity state reproducible and consistent across environments.
+
+- **File:** `config/legal-entities.json` (path overridable via env `LEGAL_ENTITIES_CONFIG`). Shape:
+
+  ```json
+  {
+    "audiences":     [{ "key": "customer", "name": "Customers" }],
+    "documentTypes": [{ "key": "terms", "name": "Terms of Service", "external": false,
+                        "notificationTemplateId": null, "reminderTemplateId": null,
+                        "acceptanceConfirmationTemplateId": null }]
+  }
+  ```
+
+  The three template-id fields are optional (absent or `null` ⇒ the built-in default template of that
+  kind is used); `external` is optional and defaults to `false`. `key` must be a slug
+  (`[a-z0-9-]{2,32}`, the same rule as `src/domain/keys.ts`).
+
+- **Validation (fail-fast):** the file is loaded + validated with Zod
+  (`src/legal-entities/legal-entities.config.ts`). A missing file, invalid JSON, or a schema
+  violation (missing field, bad slug, wrong type, unknown extra key) **fails the boot** with a clear
+  error — an inconsistent legal-entity state must never start serving.
+
+- **Reconciler** (`src/legal-entities/legal-entities.reconciler.ts`, an `OnApplicationBootstrap`
+  step wired via `LegalEntitiesModule`; audiences before document types):
+  - **upsert by key** every config entry — create the missing ones (new id), update a changed
+    `name` / `external` / template-id, keeping the stored **id stable** (look up by key first);
+  - for each stored entity whose key is **not** in the config: `deleteIfUnused(key)`. An entity still
+    referenced (by a document, or a customer role for audiences) is **kept and logged as a WARNING** —
+    never hard-deleted;
+  - logs a concise summary (created/updated/kept/deleted counts). **Idempotent:** a second boot with
+    the same config performs no writes.
+
+- **Admin surface is read-only:** only `GET /admin/audiences` and `GET /admin/document-types` remain;
+  the create/update/delete routes were removed, and the admin-ui Settings page lists these entities
+  read-only with a "managed via configuration file" note. To change an audience or document type
+  (including its e-mail-template assignments), edit `config/legal-entities.json` and restart.
+
 ## Schema decisions
 
 - **IDs:** `String @id @default(cuid())` for all models (standard for NestJS+Prisma services).

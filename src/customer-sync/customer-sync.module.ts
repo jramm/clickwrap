@@ -30,13 +30,23 @@ export const customerSource = (): string => {
   return key;
 };
 
-/** Default audience keys assigned to synced customers — CUSTOMER_SYNC_DEFAULT_ROLES (empty ⇒ none). */
+/** Parses a comma-separated env list into trimmed, non-empty entries. */
+const parseCsvEnv = (value: string | undefined): string[] =>
+  (value ?? '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+/**
+ * Resolves the sync config from env:
+ *  - CUSTOMER_SYNC_DEFAULT_ROLES: audience keys assigned to newly-created customers (empty ⇒ none).
+ *  - CUSTOMER_SYNC_WON_ACCEPT_TYPES: document-type keys (e.g. `agb,avv`) import-accepted on initial
+ *    onboarding of a won-deal customer (empty ⇒ normal pending rollout).
+ */
 export const customerSyncConfig = (): CustomerSyncConfig => ({
   sourceKey: selectedCustomerSourceKey(),
-  defaultRoles: (process.env.CUSTOMER_SYNC_DEFAULT_ROLES ?? '')
-    .split(',')
-    .map((role) => role.trim())
-    .filter((role) => role.length > 0),
+  defaultRoles: parseCsvEnv(process.env.CUSTOMER_SYNC_DEFAULT_ROLES),
+  wonAcceptTypes: parseCsvEnv(process.env.CUSTOMER_SYNC_WON_ACCEPT_TYPES),
 });
 
 /** Builds the selected CustomerSource via the registry plugin's create(ctx). */

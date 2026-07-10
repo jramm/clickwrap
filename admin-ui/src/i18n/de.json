@@ -427,6 +427,7 @@
   "settings": {
     "title": "Kategorien",
     "subtitle": "Zielgruppen und Dokumenttypen verwalten",
+    "managedViaConfig": "Verwaltet über die Konfigurationsdatei (config/legal-entities.json). Zielgruppen und Dokumenttypen werden dort deklariert und beim Start abgeglichen — sie können hier nicht bearbeitet werden.",
     "audiences": "Zielgruppen",
     "documentTypes": "Dokumenttypen",
     "templateAssignments": "E-Mail-Vorlagen je Dokumenttyp",

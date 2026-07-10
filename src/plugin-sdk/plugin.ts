@@ -3,14 +3,15 @@
  *
  * A plugin is an npm package whose package.json carries the manifest field
  *
- *   "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "customer-source", "key": "<slug>" }
+ *   "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "customer-source" | "acceptance-page", "key": "<slug>" }
  *
  * and whose main entry default-exports the result of {@link definePlugin} (or a plain object of
  * the same shape — the SDK is not required at runtime). The host discovers manifests in the app's
  * installed dependencies (plus `CLICKWRAP_PLUGIN_PATHS`) and activates plugins per kind via env
- * (`EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`, `CUSTOMER_SOURCE`).
+ * (`EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`, `CUSTOMER_SOURCE`, `ACCEPTANCE_PAGE`).
  */
 import type { DynamicModule } from '@nestjs/common';
+import type { AcceptancePageRenderer } from './kinds/acceptance-page';
 import type { AdminAuthStrategy } from './kinds/admin-auth';
 import type { CustomerSource } from './kinds/customer-source';
 import type { EmailDeliveryProvider } from './kinds/email';
@@ -22,6 +23,7 @@ export interface PluginKindImplementations {
   'file-storage': FileStorage;
   'admin-auth': AdminAuthStrategy;
   'customer-source': CustomerSource;
+  'acceptance-page': AcceptancePageRenderer;
 }
 
 export type ClickwrapPluginKind = keyof PluginKindImplementations;
@@ -31,6 +33,7 @@ export const CLICKWRAP_PLUGIN_KINDS: readonly ClickwrapPluginKind[] = [
   'file-storage',
   'admin-auth',
   'customer-source',
+  'acceptance-page',
 ];
 
 /** The `"clickwrap"` field of a plugin package's package.json. */
@@ -119,4 +122,6 @@ export const PLUGIN_DI_TOKENS = {
   FileStorage: 'clickwrap:file-storage',
   /** The active CustomerSource instance; bound while the plugin is the active customer source. */
   CustomerSource: 'clickwrap:customer-source',
+  /** The active AcceptancePageRenderer; bound while the plugin is the active acceptance page. */
+  AcceptancePageRenderer: 'clickwrap:acceptance-page',
 } as const;

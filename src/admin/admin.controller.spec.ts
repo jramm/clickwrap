@@ -462,7 +462,10 @@ describe('AdminController', () => {
     });
   });
 
-  describe('/admin/audiences', () => {
+  // Audiences + document types are READ-ONLY over the API — managed via the legal-entities config
+  // file and reconciled at boot (LegalEntitiesReconciler). Only the GET list routes exist; the
+  // create/update/delete routes were removed (404).
+  describe('/admin/audiences (read-only)', () => {
     it('GET returns all audiences sorted by key', async () => {
       await audiences.save(anAudience({ id: 'aud-2', key: 'partner', name: 'Partners' }));
       await audiences.save(anAudience({ id: 'aud-1', key: 'customer', name: 'Customers' }));
@@ -474,78 +477,20 @@ describe('AdminController', () => {
       ]);
     });
 
-    it('POST creates an audience (201) and writes an audit log entry', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/admin/audiences')
-        .send({ key: 'customer', name: 'Customer' })
-        .expect(201);
-      expect(res.body).toMatchObject({ key: 'customer', name: 'Customer' });
-      expect((await audit.findByTarget('Audience', res.body.id))[0]).toMatchObject({
-        action: 'AUDIENCE_CREATE',
-        actor: 'admin-1',
-      });
+    it('POST is removed → 404', async () => {
+      await request(app.getHttpServer()).post('/admin/audiences').send({ key: 'reseller', name: 'Resellers' }).expect(404);
     });
 
-    it('POST with an invalid slug key → 422 INVALID_STATE', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/admin/audiences')
-        .send({ key: 'Not A Slug', name: 'x' })
-        .expect(422);
-      expect(res.body).toMatchObject({ code: 'INVALID_STATE' });
+    it('PATCH is removed → 404', async () => {
+      await request(app.getHttpServer()).patch('/admin/audiences/aud-1').send({ name: 'x' }).expect(404);
     });
 
-    it('POST with a duplicate key → 422 INVALID_STATE', async () => {
-      await request(app.getHttpServer()).post('/admin/audiences').send({ key: 'customer', name: 'Customer' }).expect(201);
-      const res = await request(app.getHttpServer())
-        .post('/admin/audiences')
-        .send({ key: 'customer', name: 'Other' })
-        .expect(422);
-      expect(res.body).toMatchObject({ code: 'INVALID_STATE' });
-    });
-
-    it('PATCH renames an audience (200)', async () => {
-      const created = await audiences.save(anAudience({ id: 'aud-1', key: 'customer', name: 'Customers' }));
-      const res = await request(app.getHttpServer())
-        .patch(`/admin/audiences/${created.id}`)
-        .send({ name: 'End customers' })
-        .expect(200);
-      expect(res.body).toEqual({ id: 'aud-1', key: 'customer', name: 'End customers' });
-    });
-
-    it('PATCH with a key in the body → 422 INVALID_STATE "key is immutable"', async () => {
-      const created = await audiences.save(anAudience({ id: 'aud-1', key: 'customer', name: 'Customers' }));
-      const res = await request(app.getHttpServer())
-        .patch(`/admin/audiences/${created.id}`)
-        .send({ key: 'partner', name: 'x' })
-        .expect(422);
-      expect(res.body).toMatchObject({ code: 'INVALID_STATE', message: 'key is immutable' });
-    });
-
-    it('PATCH an unknown id → 404', async () => {
-      await request(app.getHttpServer()).patch('/admin/audiences/aud-ghost').send({ name: 'x' }).expect(404);
-    });
-
-    it('DELETE removes an unreferenced audience (204)', async () => {
-      // "customer" is referenced by the document seeded in beforeEach — use an unrelated key.
-      const created = await audiences.save(anAudience({ id: 'aud-unused', key: 'reseller', name: 'Resellers' }));
-      await request(app.getHttpServer()).delete(`/admin/audiences/${created.id}`).expect(204);
-      expect(await audiences.findByKey('reseller')).toBeUndefined();
-      expect((await audit.findAll()).some((l) => l.action === 'AUDIENCE_DELETE')).toBe(true);
-    });
-
-    it('DELETE still referenced → 422 INVALID_STATE "audience is still in use"', async () => {
-      const created = await audiences.save(anAudience({ id: 'aud-1', key: 'customer' }));
-      await documents.save(aDocument({ audience: 'customer' }));
-      const res = await request(app.getHttpServer()).delete(`/admin/audiences/${created.id}`).expect(422);
-      expect(res.body).toMatchObject({ code: 'INVALID_STATE', message: 'audience is still in use' });
-    });
-
-    it('DELETE an unknown id → 404', async () => {
-      await request(app.getHttpServer()).delete('/admin/audiences/aud-ghost').expect(404);
+    it('DELETE is removed → 404', async () => {
+      await request(app.getHttpServer()).delete('/admin/audiences/aud-1').expect(404);
     });
   });
 
-  describe('/admin/document-types', () => {
+  describe('/admin/document-types (read-only)', () => {
     it('GET returns all document types sorted by key', async () => {
       await documentTypes.save(aDocumentTypeDef({ id: 'dt-2', key: 'terms', name: 'Terms of Service' }));
       await documentTypes.save(aDocumentTypeDef({ id: 'dt-1', key: 'dpa', name: 'DPA' }));
@@ -557,85 +502,16 @@ describe('AdminController', () => {
       ]);
     });
 
-    it('POST creates a document type (201) and writes an audit log entry', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/admin/document-types')
-        .send({ key: 'dpa', name: 'Data Processing Agreement' })
-        .expect(201);
-      expect(res.body).toMatchObject({ key: 'dpa', name: 'Data Processing Agreement' });
-      expect((await audit.findByTarget('DocumentType', res.body.id))[0]).toMatchObject({
-        action: 'DOCUMENT_TYPE_CREATE',
-        actor: 'admin-1',
-      });
+    it('POST is removed → 404', async () => {
+      await request(app.getHttpServer()).post('/admin/document-types').send({ key: 'dpa', name: 'DPA' }).expect(404);
     });
 
-    it('POST with a duplicate key → 422 INVALID_STATE', async () => {
-      await request(app.getHttpServer()).post('/admin/document-types').send({ key: 'dpa', name: 'DPA' }).expect(201);
-      const res = await request(app.getHttpServer())
-        .post('/admin/document-types')
-        .send({ key: 'dpa', name: 'Other' })
-        .expect(422);
-      expect(res.body).toMatchObject({ code: 'INVALID_STATE' });
+    it('PATCH is removed → 404', async () => {
+      await request(app.getHttpServer()).patch('/admin/document-types/dt-1').send({ name: 'x' }).expect(404);
     });
 
-    it('PATCH renames a document type (200)', async () => {
-      const created = await documentTypes.save(aDocumentTypeDef({ id: 'dt-1', key: 'dpa', name: 'DPA' }));
-      const res = await request(app.getHttpServer())
-        .patch(`/admin/document-types/${created.id}`)
-        .send({ name: 'Data Processing Agreement' })
-        .expect(200);
-      expect(res.body).toEqual({ id: 'dt-1', key: 'dpa', name: 'Data Processing Agreement', external: false });
-    });
-
-    it('PATCH with a key in the body → 422 INVALID_STATE "key is immutable"', async () => {
-      const created = await documentTypes.save(aDocumentTypeDef({ id: 'dt-1', key: 'dpa' }));
-      const res = await request(app.getHttpServer())
-        .patch(`/admin/document-types/${created.id}`)
-        .send({ key: 'terms', name: 'x' })
-        .expect(422);
-      expect(res.body).toMatchObject({ code: 'INVALID_STATE', message: 'key is immutable' });
-    });
-
-    it('PATCH an unknown id → 404', async () => {
-      await request(app.getHttpServer()).patch('/admin/document-types/dt-ghost').send({ name: 'x' }).expect(404);
-    });
-
-    it('DELETE removes an unreferenced document type (204)', async () => {
-      // "dpa" is referenced by the document seeded in beforeEach — use an unrelated key.
-      const created = await documentTypes.save(aDocumentTypeDef({ id: 'dt-unused', key: 'terms', name: 'Terms' }));
-      await request(app.getHttpServer()).delete(`/admin/document-types/${created.id}`).expect(204);
-      expect(await documentTypes.findByKey('terms')).toBeUndefined();
-      expect((await audit.findAll()).some((l) => l.action === 'DOCUMENT_TYPE_DELETE')).toBe(true);
-    });
-
-    it('DELETE still referenced → 422 INVALID_STATE "document type is still in use"', async () => {
-      const created = await documentTypes.save(aDocumentTypeDef({ id: 'dt-1', key: 'dpa' }));
-      await documents.save(aDocument({ type: 'dpa' }));
-      const res = await request(app.getHttpServer()).delete(`/admin/document-types/${created.id}`).expect(422);
-      expect(res.body).toMatchObject({ code: 'INVALID_STATE', message: 'document type is still in use' });
-    });
-
-    it('DELETE an unknown id → 404', async () => {
-      await request(app.getHttpServer()).delete('/admin/document-types/dt-ghost').expect(404);
-    });
-
-    it('PATCH assigns an e-mail template to the document type', async () => {
-      const created = await documentTypes.save(aDocumentTypeDef({ id: 'dt-unused', key: 'terms', name: 'Terms' }));
-      const template = await emailTemplates.save({
-        id: 'tpl-n',
-        name: 'N',
-        kind: 'VERSION_NOTIFICATION',
-        subject: 's',
-        design: '{}',
-        html: '<p>h</p>',
-        createdAt: T0,
-        updatedAt: T0,
-      });
-      const res = await request(app.getHttpServer())
-        .patch(`/admin/document-types/${created.id}`)
-        .send({ notificationTemplateId: template.id })
-        .expect(200);
-      expect(res.body.notificationTemplateId).toBe('tpl-n');
+    it('DELETE is removed → 404', async () => {
+      await request(app.getHttpServer()).delete('/admin/document-types/dt-1').expect(404);
     });
   });
 

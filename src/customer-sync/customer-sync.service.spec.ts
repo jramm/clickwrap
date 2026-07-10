@@ -2,8 +2,8 @@ import { InMemoryAdminAuditRepo } from '../agreements/audit';
 import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory';
 import { CustomerAdminService } from '../customers/customer-admin.service';
 import { FixedClock } from '../domain/clock';
-import { aCustomer } from '../domain/testing/fixtures';
-import type { DomainEvent } from '../domain/types';
+import { aCustomer, aDocument, anAudience, aVersion } from '../domain/testing/fixtures';
+import type { CustomerVersionState, DomainEvent } from '../domain/types';
 import { EventRecorder } from '../events/event-recorder';
 import {
   InMemoryAcceptanceRepo,
@@ -27,16 +27,22 @@ describe('CustomerSyncService', () => {
   let source: FakeCustomerSource;
   let recorder: EventRecorder;
   let service: CustomerSyncService;
+  // Exposed by the last build() so tests can seed audiences/documents/versions and assert states.
+  let documents: InMemoryAgreementDocumentRepo;
+  let versions: InMemoryAgreementVersionRepo;
+  let states: InMemoryCustomerVersionStateRepo;
+  let audiences: InMemoryAudienceRepo;
+  let customerAdmin: CustomerAdminService;
 
   const build = (config: Partial<CustomerSyncConfig> = {}): CustomerSyncService => {
-    const documents = new InMemoryAgreementDocumentRepo();
-    const versions = new InMemoryAgreementVersionRepo(documents);
-    const states = new InMemoryCustomerVersionStateRepo();
+    documents = new InMemoryAgreementDocumentRepo();
+    versions = new InMemoryAgreementVersionRepo(documents);
+    states = new InMemoryCustomerVersionStateRepo();
     const acceptances = new InMemoryAcceptanceRepo();
-    const audiences = new InMemoryAudienceRepo(documents, customers);
+    audiences = new InMemoryAudienceRepo(documents, customers);
     const clock = new FixedClock(T0);
     recorder = new EventRecorder(events, clock);
-    const customerAdmin = new CustomerAdminService(
+    customerAdmin = new CustomerAdminService(
       customers,
       audiences,
       versions,
@@ -48,9 +54,21 @@ describe('CustomerSyncService', () => {
       clock,
       recorder,
     );
-    const resolved: CustomerSyncConfig = { sourceKey: SOURCE, defaultRoles: [], ...config };
-    return new CustomerSyncService(source, resolved, customers, clock, customerAdmin, recorder);
+    const resolved: CustomerSyncConfig = { sourceKey: SOURCE, defaultRoles: [], wonAcceptTypes: [], ...config };
+    return new CustomerSyncService(source, resolved, customers, documents, versions, clock, customerAdmin, recorder);
   };
+
+  /** Seeds an audience + a published document/version for (type, audience). Returns the version. */
+  const seedPublished = async (type: string, audience: string) => {
+    if (!(await audiences.findByKey(audience))) {
+      await audiences.save(anAudience({ id: `aud-${audience}`, key: audience, name: audience }));
+    }
+    const doc = aDocument({ id: `doc-${type}-${audience}`, type, audience, name: `${type} — ${audience}` });
+    await documents.save(doc);
+    return versions.save(aVersion({ id: `v-${type}-${audience}`, documentId: doc.id, contentHash: `sha256:${type}` }));
+  };
+
+  const statesOf = async (customerId: string): Promise<CustomerVersionState[]> => states.findByCustomer(customerId);
 
   const eventsOfType = async (type: DomainEvent['type']): Promise<DomainEvent[]> => {
     const { items } = await events.query({}, 1);
@@ -78,6 +96,76 @@ describe('CustomerSyncService', () => {
     const createdEvents = await eventsOfType('CUSTOMER_CREATED');
     expect(createdEvents).toHaveLength(1);
     expect(createdEvents[0].actorKind).toBe('SYSTEM');
+  });
+
+  it('import-accepts the configured won types on CREATE: create() gets acceptedVersions, and the customer ends up ACCEPTED (no pending) for them while other current documents still roll out', async () => {
+    service = build({ defaultRoles: ['customer'], wonAcceptTypes: ['agb', 'avv'] });
+    const agb = await seedPublished('agb', 'customer');
+    const avv = await seedPublished('avv', 'customer');
+    const dpa = await seedPublished('dpa', 'customer'); // NOT in wonAcceptTypes → normal rollout
+    const createSpy = jest.spyOn(customerAdmin, 'create');
+    source.setSnapshot({ customers: [{ externalRef: 'e1', firstName: 'Jane', contactEmails: ['a@x.io'] }] });
+
+    const result = await service.sync();
+
+    expect(result).toMatchObject({ created: 1, errors: 0 });
+    const createInput = createSpy.mock.calls[0][0];
+    expect(createInput.acceptedVersions).toEqual([
+      { versionId: agb.id, reference: 'metergrid: initial onboarding (won deal)' },
+      { versionId: avv.id, reference: 'metergrid: initial onboarding (won deal)' },
+    ]);
+
+    const [created] = await customers.findBySource(SOURCE);
+    const stateByVersion = new Map((await statesOf(created.id)).map((s) => [s.versionId, s.state]));
+    expect(stateByVersion.get(agb.id)).toBe('ACCEPTED');
+    expect(stateByVersion.get(avv.id)).toBe('ACCEPTED');
+    // The non-won document still rolls out normally (pending, and a rollout notification would be sent).
+    expect(stateByVersion.get(dpa.id)).toBe('PENDING_NOTIFICATION');
+  });
+
+  it('does NOT import-accept when wonAcceptTypes is empty: create() gets no acceptedVersions and the customer is pending for the current document', async () => {
+    service = build({ defaultRoles: ['customer'], wonAcceptTypes: [] });
+    const agb = await seedPublished('agb', 'customer');
+    const createSpy = jest.spyOn(customerAdmin, 'create');
+    source.setSnapshot({ customers: [{ externalRef: 'e1', firstName: 'Jane', contactEmails: ['a@x.io'] }] });
+
+    await service.sync();
+
+    expect(createSpy.mock.calls[0][0].acceptedVersions).toEqual([]);
+    const [created] = await customers.findBySource(SOURCE);
+    const [state] = await statesOf(created.id);
+    expect(state.versionId).toBe(agb.id);
+    expect(state.state).toBe('PENDING_NOTIFICATION'); // normal pending rollout, not accepted
+  });
+
+  it('never re-imports acceptances on UPDATE (create() is not called; no ACCEPTED state added)', async () => {
+    service = build({ defaultRoles: ['customer'], wonAcceptTypes: ['agb'] });
+    await seedPublished('agb', 'customer');
+    await customers.save(aCustomer({ id: 'c-1', externalRef: 'e1', firstName: 'Old', roles: ['customer'], contactEmails: ['a@x.io'], source: SOURCE }));
+    const createSpy = jest.spyOn(customerAdmin, 'create');
+    source.setSnapshot({ customers: [{ externalRef: 'e1', firstName: 'New', contactEmails: ['a@x.io'] }] });
+
+    const result = await service.sync();
+
+    expect(result).toMatchObject({ updated: 1, created: 0 });
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(await statesOf('c-1')).toHaveLength(0); // no import acceptance on update
+  });
+
+  it('never re-imports acceptances on REACTIVATION (create() is not called; no ACCEPTED state added)', async () => {
+    service = build({ defaultRoles: ['customer'], wonAcceptTypes: ['agb'] });
+    await seedPublished('agb', 'customer');
+    await customers.save(
+      aCustomer({ id: 'c-1', externalRef: 'e1', firstName: 'Old', roles: ['customer'], contactEmails: ['a@x.io'], source: SOURCE, deletedAt: new Date('2026-07-01T00:00:00Z') }),
+    );
+    const createSpy = jest.spyOn(customerAdmin, 'create');
+    source.setSnapshot({ customers: [{ externalRef: 'e1', firstName: 'New', contactEmails: ['a@x.io'] }] });
+
+    const result = await service.sync();
+
+    expect(result).toMatchObject({ reactivated: 1, created: 0 });
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(await statesOf('c-1')).toHaveLength(0); // reactivation keeps existing history, imports nothing
   });
 
   it('updates ONLY when an identity field changed, emitting CUSTOMER_UPDATED; a second sync is a no-op (idempotent)', async () => {

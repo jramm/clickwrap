@@ -2,13 +2,9 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 import { apiRequest } from './client';
 import {
   adminControllerCreateAcceptanceLink,
-  adminControllerCreateAudience,
   adminControllerCreateCustomer,
-  adminControllerCreateDocumentType,
   adminControllerCreateEmailTemplate,
   adminControllerDashboardQueryOptions,
-  adminControllerDeleteAudience,
-  adminControllerDeleteDocumentType,
   adminControllerDeleteEmailTemplate,
   adminControllerListEmailTemplates,
   adminControllerListEmailTemplatesQueryKey,
@@ -27,9 +23,7 @@ import {
   adminControllerPatchState,
   adminControllerPublish,
   adminControllerRemind,
-  adminControllerUpdateAudience,
   adminControllerUpdateCustomer,
-  adminControllerUpdateDocumentType,
   adminControllerVersionCustomersQueryOptions,
   eventsControllerListEventsQueryOptions,
   agreementsAdminControllerCreateDocument,
@@ -53,7 +47,6 @@ import type {
   CreateCustomerBodyModel,
   CreateDocumentBodyModel,
   CreateEmailTemplateBodyModel,
-  CreateNamedEntityBodyModel,
   CreateVersionResponseModel,
   ManualAcceptanceBodyModel,
   SignedDocumentModel,
@@ -128,51 +121,9 @@ function categoryKey(kind: CategoryKind) {
     : adminControllerListDocumentTypesQueryKey();
 }
 
-/** Create input: audiences take key+name; document types additionally take the immutable `external` flag. */
-export interface CreateCategoryInput extends CreateNamedEntityBodyModel {
-  /** Document types only: mark as an externally-signed document type (SignedDocument flow). */
-  external?: boolean;
-}
-
-export function useCreateCategory(kind: CategoryKind) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: CreateCategoryInput) =>
-      kind === 'audiences'
-        ? adminControllerCreateAudience({ data: { key: input.key, name: input.name } })
-        : adminControllerCreateDocumentType({
-            data: { key: input.key, name: input.name, external: input.external ?? false },
-          }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: categoryKey(kind) }),
-  });
-}
-
-export interface RenameCategoryInput {
-  id: string;
-  name: string;
-}
-
-export function useRenameCategory(kind: CategoryKind) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: RenameCategoryInput) =>
-      kind === 'audiences'
-        ? adminControllerUpdateAudience({ id: input.id, data: { name: input.name } })
-        : adminControllerUpdateDocumentType({ id: input.id, data: { name: input.name } }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: categoryKey(kind) }),
-  });
-}
-
-export function useDeleteCategory(kind: CategoryKind) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) =>
-      kind === 'audiences'
-        ? adminControllerDeleteAudience({ id })
-        : adminControllerDeleteDocumentType({ id }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: categoryKey(kind) }),
-  });
-}
+// Audiences and document types are READ-ONLY in the admin UI — they are declared in the
+// legal-entities config file (config/legal-entities.json) and reconciled into the store at boot.
+// There are deliberately no create/rename/delete/assign-template hooks here anymore.
 
 // --- Dashboard (per-version acceptance stats) ----------------------------
 export function useDashboard() {
@@ -563,28 +514,6 @@ export function usePreviewEmailTemplate() {
   });
 }
 
-// --- Document type template assignments -----------------------------------
-export interface AssignDocumentTypeTemplatesInput {
-  id: string;
-  /** string = assign, null = clear, undefined = keep. */
-  notificationTemplateId?: string | null;
-  reminderTemplateId?: string | null;
-  acceptanceConfirmationTemplateId?: string | null;
-}
-
-export function useAssignDocumentTypeTemplates() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: AssignDocumentTypeTemplatesInput) =>
-      adminControllerUpdateDocumentType({
-        id: input.id,
-        data: {
-          notificationTemplateId: input.notificationTemplateId,
-          reminderTemplateId: input.reminderTemplateId,
-          acceptanceConfirmationTemplateId: input.acceptanceConfirmationTemplateId,
-        },
-      }),
-    onSuccess: () =>
-      void qc.invalidateQueries({ queryKey: adminControllerListDocumentTypesQueryKey() }),
-  });
-}
+// Document-type e-mail template assignments are configured via the legal-entities config file
+// (config/legal-entities.json: notificationTemplateId / reminderTemplateId /
+// acceptanceConfirmationTemplateId per document type), no longer via the admin UI.

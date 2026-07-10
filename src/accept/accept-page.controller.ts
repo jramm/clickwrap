@@ -10,10 +10,10 @@ import type { Request, Response } from 'express';
 import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
 import { DomainError } from '../common/errors';
 import { acceptanceLinkTokenHash } from '../domain/acceptance-links';
+import { PLUGIN_DI_TOKENS, type AcceptancePageRenderer } from '../plugin-sdk';
 import type { AcceptanceResponse } from '../consent/acceptance.service';
 import { ZodBodyPipe } from '../consent/dto';
 import { AcceptPageService } from './accept-page.service';
-import { renderAcceptPage, renderLinkNotFoundPage } from './accept-page.view';
 import { linkAcceptanceBodySchema, type LinkAcceptanceBody } from './dto';
 import { LinkAcceptanceBodyModel, LinkAcceptanceResponseModel } from './openapi.models';
 import { resolveAcceptPageLang } from './i18n';
@@ -27,6 +27,7 @@ export class AcceptPageController {
   constructor(
     private readonly pageService: AcceptPageService,
     @Inject(ACCEPT_PAGE_RATE_LIMITER) private readonly rateLimiter: SlidingWindowRateLimiter,
+    @Inject(PLUGIN_DI_TOKENS.AcceptancePageRenderer) private readonly renderer: AcceptancePageRenderer,
   ) {}
 
   @Get(':token')
@@ -56,10 +57,10 @@ export class AcceptPageController {
     const pageLang = resolveAcceptPageLang(lang, acceptLanguage);
     const view = await this.pageService.loadPage(token);
     if (!view) {
-      res.status(404).type('text/html; charset=utf-8').send(renderLinkNotFoundPage(pageLang));
+      res.status(404).type('text/html; charset=utf-8').send(this.renderer.renderNotFoundPage(pageLang));
       return;
     }
-    res.status(200).type('text/html; charset=utf-8').send(renderAcceptPage(view, pageLang));
+    res.status(200).type('text/html; charset=utf-8').send(this.renderer.renderAcceptPage(view, pageLang));
   }
 
   @Post(':token/acceptances')

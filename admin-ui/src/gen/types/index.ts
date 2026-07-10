@@ -13,14 +13,6 @@ export type {
   AdminControllerCreateAcceptanceLinkPathParams,
 } from './AdminControllerCreateAcceptanceLink.ts';
 export type {
-  AdminControllerCreateAudience201,
-  AdminControllerCreateAudience401,
-  AdminControllerCreateAudience422,
-  AdminControllerCreateAudienceMutation,
-  AdminControllerCreateAudienceMutationRequest,
-  AdminControllerCreateAudienceMutationResponse,
-} from './AdminControllerCreateAudience.ts';
-export type {
   AdminControllerCreateCustomer201,
   AdminControllerCreateCustomer400,
   AdminControllerCreateCustomer401,
@@ -30,14 +22,6 @@ export type {
   AdminControllerCreateCustomerMutationRequest,
   AdminControllerCreateCustomerMutationResponse,
 } from './AdminControllerCreateCustomer.ts';
-export type {
-  AdminControllerCreateDocumentType201,
-  AdminControllerCreateDocumentType401,
-  AdminControllerCreateDocumentType422,
-  AdminControllerCreateDocumentTypeMutation,
-  AdminControllerCreateDocumentTypeMutationRequest,
-  AdminControllerCreateDocumentTypeMutationResponse,
-} from './AdminControllerCreateDocumentType.ts';
 export type {
   AdminControllerCreateEmailTemplate201,
   AdminControllerCreateEmailTemplate400,
@@ -52,24 +36,6 @@ export type {
   AdminControllerDashboardQuery,
   AdminControllerDashboardQueryResponse,
 } from './AdminControllerDashboard.ts';
-export type {
-  AdminControllerDeleteAudience204,
-  AdminControllerDeleteAudience401,
-  AdminControllerDeleteAudience404,
-  AdminControllerDeleteAudience422,
-  AdminControllerDeleteAudienceMutation,
-  AdminControllerDeleteAudienceMutationResponse,
-  AdminControllerDeleteAudiencePathParams,
-} from './AdminControllerDeleteAudience.ts';
-export type {
-  AdminControllerDeleteDocumentType204,
-  AdminControllerDeleteDocumentType401,
-  AdminControllerDeleteDocumentType404,
-  AdminControllerDeleteDocumentType422,
-  AdminControllerDeleteDocumentTypeMutation,
-  AdminControllerDeleteDocumentTypeMutationResponse,
-  AdminControllerDeleteDocumentTypePathParams,
-} from './AdminControllerDeleteDocumentType.ts';
 export type {
   AdminControllerDeleteEmailTemplate204,
   AdminControllerDeleteEmailTemplate401,
@@ -172,16 +138,6 @@ export type {
   AdminControllerRemindPathParams,
 } from './AdminControllerRemind.ts';
 export type {
-  AdminControllerUpdateAudience200,
-  AdminControllerUpdateAudience401,
-  AdminControllerUpdateAudience404,
-  AdminControllerUpdateAudience422,
-  AdminControllerUpdateAudienceMutation,
-  AdminControllerUpdateAudienceMutationRequest,
-  AdminControllerUpdateAudienceMutationResponse,
-  AdminControllerUpdateAudiencePathParams,
-} from './AdminControllerUpdateAudience.ts';
-export type {
   AdminControllerUpdateCustomer200,
   AdminControllerUpdateCustomer400,
   AdminControllerUpdateCustomer401,
@@ -192,16 +148,6 @@ export type {
   AdminControllerUpdateCustomerMutationResponse,
   AdminControllerUpdateCustomerPathParams,
 } from './AdminControllerUpdateCustomer.ts';
-export type {
-  AdminControllerUpdateDocumentType200,
-  AdminControllerUpdateDocumentType401,
-  AdminControllerUpdateDocumentType404,
-  AdminControllerUpdateDocumentType422,
-  AdminControllerUpdateDocumentTypeMutation,
-  AdminControllerUpdateDocumentTypeMutationRequest,
-  AdminControllerUpdateDocumentTypeMutationResponse,
-  AdminControllerUpdateDocumentTypePathParams,
-} from './AdminControllerUpdateDocumentType.ts';
 export type {
   AdminControllerUpdateEmailTemplate200,
   AdminControllerUpdateEmailTemplate400,
@@ -302,12 +248,10 @@ export type {
   CreateCustomerResponseModelComplianceStatusEnum,
 } from './CreateCustomerResponseModel.ts';
 export type { CreateDocumentBodyModel } from './CreateDocumentBodyModel.ts';
-export type { CreateDocumentTypeBodyModel } from './CreateDocumentTypeBodyModel.ts';
 export type {
   CreateEmailTemplateBodyModel,
   CreateEmailTemplateBodyModelKindEnum,
 } from './CreateEmailTemplateBodyModel.ts';
-export type { CreateNamedEntityBodyModel } from './CreateNamedEntityBodyModel.ts';
 export type {
   CreateVersionBodyModel,
   CreateVersionBodyModelAcceptanceModeEnum,
@@ -414,12 +358,10 @@ export type {
   SignedDocumentsAdminControllerUploadPathParams,
 } from './SignedDocumentsAdminControllerUpload.ts';
 export type { UpdateCustomerBodyModel } from './UpdateCustomerBodyModel.ts';
-export type { UpdateDocumentTypeBodyModel } from './UpdateDocumentTypeBodyModel.ts';
 export type {
   UpdateEmailTemplateBodyModel,
   UpdateEmailTemplateBodyModelKindEnum,
 } from './UpdateEmailTemplateBodyModel.ts';
-export type { UpdateNamedEntityBodyModel } from './UpdateNamedEntityBodyModel.ts';
 export type { VersionAcceptanceStatsModel } from './VersionAcceptanceStatsModel.ts';
 export type {
   VersionCustomerAcceptanceModel,

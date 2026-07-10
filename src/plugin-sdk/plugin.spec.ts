@@ -54,6 +54,16 @@ describe('isClickwrapPlugin', () => {
     ).toBe(true);
   });
 
+  it('accepts an acceptance-page plugin', () => {
+    expect(
+      isClickwrapPlugin({
+        kind: 'acceptance-page',
+        key: 'default',
+        create: () => ({ renderAcceptPage: () => '<html></html>', renderNotFoundPage: () => '<html></html>' }),
+      }),
+    ).toBe(true);
+  });
+
   it('rejects non-plugin values', () => {
     for (const value of [undefined, null, 42, 'plugin', {}, { kind: 'email-provider' }, { ...validEmailPlugin, kind: 'nope' }]) {
       expect(isClickwrapPlugin(value)).toBe(false);

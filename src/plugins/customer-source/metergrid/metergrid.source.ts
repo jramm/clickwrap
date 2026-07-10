@@ -20,10 +20,39 @@ export interface MetergridRawCustomer {
   } | null;
 }
 
+/**
+ * The subset of a metergrid project record this adapter reads to derive won-deal customers. The
+ * project row already carries `customerId`, so the (heavier) nested `customer` is NOT requested.
+ * `tenantElectricity.status` is the deal stage that determines whether the customer's deal is won.
+ */
+export interface MetergridRawProject {
+  id: number;
+  customerId: number | null;
+  tenantElectricity: { status: string } | null;
+}
+
+/**
+ * Project (`tenantElectricity.status`) stages that mark a deal as WON — i.e. the customer is a real
+ * customer bound by AGB + AVV (Game-backend semantics). A customer counts as won if ANY of its
+ * projects sits in one of these stages. Everything else is a prospect/partner and is excluded:
+ * LOST, ON_HOLD, DRAFT, QUALIFICATION, OFFER_CREATION, WAITING_FOR_DECISION, UNKNOWN,
+ * PROJECT_PLANNING_ON_HOLD, PROJECT_PLANNING_LOST, PROJECT_PLANNING_CANCELLED.
+ */
+const WON_STAGES: ReadonlySet<string> = new Set([
+  'WON',
+  'PROJECT_PLANNING_ASSIGN_PROJECT_MANAGER',
+  'PROJECT_PLANNING_PREPARATION',
+  'PROJECT_PLANNING_EXECUTION',
+  'PROJECT_PLANNING_COMPLETION',
+  'PROJECT_PLANNING_FINAL_QUALITY_GATE',
+  'PROJECT_PLANNING_PRODUCTION_OPERATION',
+]);
+
 const SIGNIN_PATH = '/auth/signin';
-// One call returns the full active snapshot (~9k). Pagination via `params` is optional/future.
+// One call returns the full snapshot (~9k). Pagination via `?limit=&offset=` can be added if needed.
+const PROJECTS_PATH = '/api/configurator/projects?skip_total_items=true';
 const CUSTOMERS_PATH = '/api/configurator/customers?skip_total_items=true';
-// SuperTokens cookie-mode session cookies handed back on the customers request.
+// SuperTokens cookie-mode session cookies handed back on the projects/customers requests.
 const SESSION_COOKIE_NAMES = ['sAccessToken', 'sRefreshToken'] as const;
 
 /** Minimal shape needed to read Set-Cookie from a fetch Response (undici Headers satisfy it). */
@@ -71,19 +100,36 @@ const extractSessionCookie = (headers: SetCookieCapableHeaders): string => {
 
 /**
  * metergrid customer-source adapter. Authenticates against SuperTokens in cookie mode, then fetches
- * the full active customer snapshot in a single call and maps it via {@link mapMetergridCustomer}.
+ * the projects and customers and returns ONLY WON-DEAL customers, mapped via
+ * {@link mapMetergridCustomer}.
+ *
+ * "Won" follows the Game-backend semantics: a metergrid Customer is a prospect until one of its
+ * Projects reaches a {@link WON_STAGES} `tenantElectricity.status`; then it is a real customer bound
+ * by AGB + AVV. Partners (Company) are out of scope. The derivation is a join: collect the customer
+ * ids referenced by won-stage projects (`wonCustomerIds`), then keep only the customers in that set.
  *
  * The password is never included in any thrown error or log line. Deletion is by absence: the
  * snapshot carries no `deletedExternalRefs` — the host reconcile engine soft-deletes source-managed
- * customers that are missing from `customers`.
+ * customers that are missing from `customers` (now meaning "no longer a won customer OR removed").
  */
 export class MetergridCustomerSource implements CustomerSource {
   constructor(private readonly config: MetergridConfig) {}
 
   async fetchAll(): Promise<CustomerSourceSnapshot> {
     const cookie = await this.signIn();
-    const items = await this.fetchCustomers(cookie);
-    return { customers: items.map(mapMetergridCustomer) };
+    const projects = await this.fetchProjects(cookie);
+    const customers = await this.fetchCustomers(cookie);
+
+    const wonCustomerIds = new Set<number>();
+    for (const project of projects) {
+      const status = project.tenantElectricity?.status;
+      if (project.customerId !== null && status !== undefined && WON_STAGES.has(status)) {
+        wonCustomerIds.add(project.customerId);
+      }
+    }
+
+    const wonCustomers = customers.filter((customer) => wonCustomerIds.has(customer.id));
+    return { customers: wonCustomers.map(mapMetergridCustomer) };
   }
 
   /** SuperTokens emailpassword sign-in (cookie mode) → serialised session `Cookie` header. */
@@ -114,6 +160,23 @@ export class MetergridCustomerSource implements CustomerSource {
       throw new Error('metergrid sign-in succeeded but returned no session cookies');
     }
     return cookie;
+  }
+
+  private async fetchProjects(cookie: string): Promise<MetergridRawProject[]> {
+    const response = await fetch(`${this.base()}${PROJECTS_PATH}`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        Cookie: cookie,
+      },
+      // Only `tenantElectricity` is needed; the row already has `customerId`, so `customer` is omitted.
+      body: JSON.stringify({ include: { tenantElectricity: true }, filter: {}, params: {} }),
+    });
+    if (!response.ok) {
+      throw new Error(`metergrid project fetch failed: HTTP ${response.status}`);
+    }
+    const body = (await response.json()) as { items?: MetergridRawProject[] };
+    return body.items ?? [];
   }
 
   private async fetchCustomers(cookie: string): Promise<MetergridRawCustomer[]> {

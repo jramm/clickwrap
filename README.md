@@ -20,9 +20,12 @@ and get a `compliant: true|false` answer with per-document detail. Everything is
 append-only **evidence chain** (who accepted what version, when, from which IP/user-agent, against
 which exact consent text and document hash).
 
-Document types (e.g. `terms`, `dpa`) and audiences (e.g. `customer`, `partner`) are **dynamic
-categories** managed at runtime, so the service is not tied to any particular set of agreement
-kinds. A document type can be marked **external** at creation: external types skip the whole
+Document types (e.g. `terms`, `dpa`) and audiences (e.g. `customer`, `partner`) are declared in a
+**configuration file** (`config/legal-entities.json`, JSON) that is the single source of truth and
+is **reconciled into the store at every boot** — so the legal-entity state is reproducible and
+consistent, and the admin UI lists them **read-only** (see
+[`docs/PERSISTENCE.md §Legal-entities configuration`](docs/PERSISTENCE.md)). A document type can be
+marked **external**: external types skip the whole
 clickwrap machinery and instead accept **externally-signed PDFs uploaded per customer** — a pure
 evidence archive that never touches the compliance gate. E-mail delivery, file storage and admin auth are **plugins** discovered from installed npm
 packages (Postmark/SMTP/no-op, in-memory/local-disk storage, Google SSO/static token/SuperTokens
@@ -54,8 +57,10 @@ License: **Apache-2.0**.
   per-document detail; the intended integration point for portals and tools.
 - **Append-only evidence chain** — acceptances, objections and notification events are immutable
   (enforced by DB privileges in the Prisma driver), with corrections modelled as new rows.
-- **Dynamic audiences & document types** — created/renamed/deleted at runtime via the admin API;
-  no code change or enum migration to add a new agreement kind.
+- **Config-driven audiences & document types** — declared in `config/legal-entities.json` and
+  reconciled into the store at every boot (create/update + delete-only-if-unused); no code change or
+  enum migration to add a new agreement kind, and no divergence between environments. The admin
+  surface for these is read-only.
 - **Managed e-mail templates, per document type** — rollout notification, reminder and
   acceptance-confirmation mails are rendered from admin-managed templates, selectable **per document
   type** (so `terms` and `dpa` can use different wording). Templates are authored in the admin UI
@@ -84,8 +89,10 @@ License: **Apache-2.0**.
 - **Scheduled customer sync** — an optional `customer-source` plugin feeds a 12-hourly reconcile
   (`CustomerSyncService`): create/update/soft-delete source-managed customers, idempotent, evidence
   preserved (`CUSTOMER_CREATED`/`CUSTOMER_UPDATED`/`CUSTOMER_DELETED`). The `metergrid` built-in
-  (`CUSTOMER_SOURCE=metergrid`) pulls the active customer set from the metergrid partner API; the
-  default `none` source keeps the sync disabled.
+  (`CUSTOMER_SOURCE=metergrid`) pulls only the **won-deal** customers from the metergrid partner API
+  (prospects and partners are out of scope for now); on initial onboarding the configured AGB/AVV
+  document types (`CUSTOMER_SYNC_WON_ACCEPT_TYPES`) are import-accepted so the customer is created
+  already accepted for them. The default `none` source keeps the sync disabled.
 - **Scheduled effectiveness ("publish now, effective later")** — one or more versions may be
   published with a future `validFrom` (several future revisions can be scheduled simultaneously —
   they surface as the `upcomingVersions[]` array): the rollout happens immediately, so acceptance
@@ -181,8 +188,9 @@ pnpm start:dev                # http://localhost:3000 (.env is loaded via dotenv
 The in-memory driver starts without Postgres and keeps nothing across restarts — ideal for a
 first look, demos, and the test suite.
 
-Load a small example dataset (audiences `customer`/`partner`, document types `terms`/`dpa`, a few
-customers and versions):
+Load a small example dataset (a few documents, versions and customers). The audiences
+`customer`/`partner` and document types `terms`/`dpa` are not created by the seed — they come from
+`config/legal-entities.json`, reconciled at boot:
 
 ```bash
 pnpm seed-example
@@ -222,6 +230,7 @@ All configuration is via environment variables (see [`.env.example`](.env.exampl
 |---|---|---|
 | `REPOSITORY_DRIVER` | `inmemory` | `inmemory` (no DB, nothing persists) or `prisma` (PostgreSQL). |
 | `DATABASE_URL` | – | PostgreSQL connection string; required for `REPOSITORY_DRIVER=prisma`. |
+| `LEGAL_ENTITIES_CONFIG` | `config/legal-entities.json` | Path to the JSON config declaring audiences + document types (reconciled at boot). A missing/malformed file fails the boot. |
 | `PORT` | `3000` | HTTP port. |
 | `CLICKWRAP_PLUGIN_PATHS` | – | Comma-separated local plugin directories (development/fixtures; see [`docs/PLUGINS.md`](docs/PLUGINS.md)). |
 | `EMAIL_PROVIDER` | `noop` | E-mail delivery plugin key. Built-ins: `postmark`, `smtp`, `noop`. |
@@ -249,8 +258,9 @@ All configuration is via environment variables (see [`.env.example`](.env.exampl
 | `ADMIN_SUPERTOKENS_ROLE` | `admin` | Role required in the SuperTokens `st-role` claim. |
 | `ADMIN_UI_ORIGINS` | `http://localhost:5173,http://localhost:4173` | Comma-separated CORS origins of the admin UI (vite dev + preview ports); empty = CORS off (a bootstrap warning is logged). |
 | `SWEEPER_ENABLED` | `true` | Kill switch for the background sweeper. |
-| `CUSTOMER_SOURCE` | `none` | Customer-source plugin key for the 12-hourly customer sync. Built-ins: `none` (sync disabled) \| `metergrid`. |
-| `CUSTOMER_SYNC_DEFAULT_ROLES` | – | Comma-separated audience keys assigned to newly-synced customers (empty ⇒ no roles ⇒ no rollout). |
+| `CUSTOMER_SOURCE` | `none` | Customer-source plugin key for the 12-hourly customer sync. Built-ins: `none` (sync disabled) \| `metergrid` (syncs ONLY won-deal customers; partners out of scope). |
+| `CUSTOMER_SYNC_DEFAULT_ROLES` | – | Comma-separated audience keys assigned to newly-synced customers (empty ⇒ no roles ⇒ no rollout). Set `customer` for metergrid. |
+| `CUSTOMER_SYNC_WON_ACCEPT_TYPES` | – | Comma-separated clickwrap document-type keys auto-accepted on INITIAL onboarding of a won-deal customer (empty ⇒ normal pending rollout). The current published version of each is import-accepted (no pending state, no rollout mail). For metergrid the AGB + AVV keys, e.g. `agb,avv`. |
 | `CUSTOMER_SYNC_ENABLED` | `true` | Kill switch for the customer-sync cron. |
 | `METERGRID_BASE_URL` | `https://api-partners.metergrid.de` | metergrid partner API base URL (`CUSTOMER_SOURCE=metergrid`). |
 | `METERGRID_USERNAME` | – | metergrid service-account e-mail; REQUIRED when `metergrid` is active. |
@@ -292,8 +302,10 @@ and independent of access.
 
 - **`/admin/**`** — document & version management, publish/rollout, the per-version acceptance
   dashboard, per-customer history, the legal event log (`GET /admin/events`), manual recording,
-  deadline/block admin actions, and the dynamic
-  audiences / document-types CRUD. Auth: the active `ADMIN_AUTH` strategies (default: Google SSO
+  deadline/block admin actions, and the **read-only** audiences / document-types list routes
+  (`GET /admin/audiences`, `GET /admin/document-types` — these are managed via
+  `config/legal-entities.json`; there are no create/update/delete routes). Auth: the active
+  `ADMIN_AUTH` strategies (default: Google SSO
   Bearer token or the `x-admin-token` dev fallback). `GET /admin/auth/methods` is the
   unauthenticated login-method discovery for the admin UI login page.
 - **`/customers/:id/**`** — the service-to-service surface for downstream tools: the compliance
@@ -322,8 +334,9 @@ assigned/role-matching customers (fully replacing the former
 global Overview page), per-customer history with expandable
 evidence, a filterable legal **Events** log (`/events`, with a per-customer activity section on the
 detail page), manual
-acceptance, deadline extension / block suspension, reminders, and management of the dynamic
-audiences and document types. See [`admin-ui/README.md`](admin-ui/README.md) for setup.
+acceptance, deadline extension / block suspension, reminders, and a **read-only** view of the
+audiences and document types (managed via `config/legal-entities.json`). See
+[`admin-ui/README.md`](admin-ui/README.md) for setup.
 
 ---
 
