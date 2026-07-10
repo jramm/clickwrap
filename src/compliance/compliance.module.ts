@@ -10,6 +10,7 @@ import { AgreementsModule } from '../agreements/agreements.module';
 import { AGREEMENTS_TOKENS } from '../agreements/ports';
 import { ComplianceController } from './compliance.controller';
 import { ComplianceService } from './compliance.service';
+import { IntegrationComplianceController } from './integration-compliance.controller';
 import { PendingAgreementsController } from './pending-agreements.controller';
 import { PendingAgreementsService } from './pending-agreements.service';
 import { PublicDocumentsController } from './public-documents.controller';
@@ -18,7 +19,12 @@ import { PDF_URL_PROVIDER } from './ports/pdf-url-provider';
 
 @Module({
   imports: [AgreementsModule],
-  controllers: [ComplianceController, PendingAgreementsController, PublicDocumentsController],
+  controllers: [
+    ComplianceController,
+    IntegrationComplianceController,
+    PendingAgreementsController,
+    PublicDocumentsController,
+  ],
   providers: [
     ComplianceService,
     PendingAgreementsService,

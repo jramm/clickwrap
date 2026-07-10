@@ -56,6 +56,37 @@ export interface CreateCustomerInput {
 }
 
 /**
+ * Default provenance tag for customers PUSHED in through the inbound integration API
+ * ({@link CustomerAdminService.upsertByExternalRef}) when the caller omits `source`. `source` is
+ * the caller's own system namespace — e.g. the metergrid Main Portal passes `'mainportal'` — and is
+ * stored purely as a provenance label ON CREATE. It is NOT the resolution key: an inbound record is
+ * resolved by (`externalRef`, `audience`), because in clickwrap an `externalRef` is only unique in
+ * combination with an audience (overlap-aware uniqueness — see
+ * {@link CustomerAdminService.assertExternalRefUniqueForRoles}).
+ */
+export const DEFAULT_INBOUND_SOURCE = 'external';
+
+/**
+ * Inbound push of a provider-group customer (see {@link CustomerAdminService.upsertByExternalRef}).
+ * The resolution key is (`externalRef`, `audience`): among the customers carrying `externalRef`, the
+ * one whose `roles` OVERLAP the pushed `roles` is the target (at most one by the overlap-aware
+ * uniqueness rule). `source` is a create-only provenance tag, never part of the lookup. This is a
+ * full representation of the identity fields — omitted optional fields are normalised to their
+ * defaults (firstName/lastName → '', companyName → unset), exactly like the create path and the
+ * customer sync's reconcile.
+ */
+export interface UpsertByExternalRefInput {
+  externalRef: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  contactEmails: string[];
+  roles: string[];
+  /** Caller's system namespace; defaults to {@link DEFAULT_INBOUND_SOURCE}. */
+  source?: string;
+}
+
+/**
  * Any subset. ADDING a role immediately creates PENDING_NOTIFICATION states for the current
  * published versions of that audience (onboarding rollout); removing a role only takes effect
  * on the next publish (open states of removed roles are left untouched).
@@ -422,6 +453,155 @@ export class CustomerAdminService {
   }
 
   /**
+   * Idempotent inbound upsert keyed by (`externalRef`, `audience`) — the write side of the inbound
+   * integration API through which an upstream system (the metergrid Main Portal) PUSHES its
+   * provider-group customers into clickwrap (clickwrap never pulls). An `externalRef` is only unique
+   * in combination with an audience, so the target is resolved by ROLE OVERLAP, never by `source`:
+   *  - no overlapping match (INCLUDING soft-deleted) → CREATE (source-tagged) via {@link create} → CUSTOMER_CREATED
+   *  - overlapping match, soft-deleted → REACTIVATE (clear deletedAt) + apply the identity fields → CUSTOMER_UPDATED
+   *  - overlapping match, active, something changed → UPDATE the changed fields via {@link update} → CUSTOMER_UPDATED
+   *  - overlapping match, active, nothing changed → NO write, NO event (idempotent)
+   *
+   * All writes are SYSTEM-attributed (`source: 'integration'`), like the sync. Roles are validated
+   * against the known audiences and contact e-mails against the e-mail pattern. `source` is stored
+   * as a provenance tag on create only. Returns the customer row in every case.
+   */
+  async upsertByExternalRef(input: UpsertByExternalRefInput, actor: Actor): Promise<CustomerRow> {
+    if (!input.externalRef || input.externalRef.trim() === '') {
+      throw new DomainError('INVALID_STATE', 'externalRef is required');
+    }
+    await this.assertRolesKnown(input.roles);
+    this.assertEmailsValid(input.contactEmails);
+    const source = input.source?.trim() ? input.source : DEFAULT_INBOUND_SOURCE;
+
+    // Resolve by (externalRef, audience): among all customers carrying this externalRef (INCLUDING
+    // soft-deleted, so a merged-away record is reactivated rather than duplicated), the one whose
+    // roles overlap the pushed roles. By overlap-aware uniqueness there is at most one.
+    const existing = await this.resolveByExternalRefAndRoles(input.externalRef, input.roles);
+
+    if (existing === undefined) {
+      const created = await this.create(
+        {
+          externalRef: input.externalRef,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          companyName: input.companyName,
+          roles: input.roles,
+          contactEmails: input.contactEmails,
+          source,
+        },
+        actor,
+        'integration',
+      );
+      // Drop the create-only importedAcceptances field — the upsert contract returns a plain row.
+      const { importedAcceptances: _ignored, ...row } = created;
+      return row;
+    }
+
+    if (existing.deletedAt !== undefined) {
+      return this.reactivateByExternalRef(existing, input, actor);
+    }
+
+    const changes = this.diffInbound(existing, input);
+    if (Object.keys(changes).length === 0) {
+      return toRow(existing); // idempotent: nothing changed → no write, no event
+    }
+    return this.update(existing.id, changes, actor, 'integration');
+  }
+
+  /**
+   * Idempotent inbound deactivate keyed by (`externalRef`, `audience`) — used when an upstream
+   * provider group is merged away. Resolves the ACTIVE customer carrying `externalRef` whose roles
+   * include `audience`, then soft-deletes it (preserving its evidence chain) → CUSTOMER_DELETED,
+   * mirroring {@link CustomerSyncService}. A different-audience customer sharing the same
+   * `externalRef` is left untouched. Not found (unknown externalRef/audience) or already
+   * soft-deleted → idempotent no-op (no write, no event).
+   */
+  async deactivateByExternalRef(externalRef: string, audience: string, actor: Actor): Promise<void> {
+    const matches = await this.customers.findAllByExternalRef(externalRef);
+    const existing = matches.find((c) => c.deletedAt === undefined && c.roles.includes(audience));
+    if (existing === undefined) {
+      return; // idempotent no-op
+    }
+    await this.customers.softDelete(existing.id, this.clock.now());
+    await this.recorder?.record({
+      type: 'CUSTOMER_DELETED',
+      category: 'ADMINISTRATION',
+      actorKind: 'SYSTEM',
+      actorLabel: actor.userId,
+      customerId: existing.id,
+      customerName: customerDisplayName(existing),
+      summary: `Customer ${customerDisplayName(existing)} deactivated (removed for audience ${audience})`,
+      metadata: { audience, externalRef: existing.externalRef },
+    });
+  }
+
+  /**
+   * Resolves the inbound target by (`externalRef`, `audience`): the customer carrying `externalRef`
+   * whose roles OVERLAP `roles` (INCLUDING soft-deleted). The overlap-aware uniqueness rule
+   * guarantees at most one such record. Returns undefined when none overlaps (a fresh create) — or
+   * when `roles` is empty, which cannot overlap anything.
+   */
+  private async resolveByExternalRefAndRoles(externalRef: string, roles: string[]): Promise<Customer | undefined> {
+    const roleSet = new Set(roles);
+    const matches = await this.customers.findAllByExternalRef(externalRef);
+    return matches.find((c) => c.roles.some((role) => roleSet.has(role)));
+  }
+
+  /**
+   * Reactivates a soft-deleted inbound customer: clears deletedAt and applies the pushed identity
+   * fields in one save (open states persisted before the soft-delete are untouched), then records
+   * CUSTOMER_UPDATED — mirroring CustomerSyncService.reactivate. A role change is validated for
+   * overlap-aware uniqueness first, exactly like {@link update}.
+   */
+  private async reactivateByExternalRef(
+    existing: Customer,
+    input: UpsertByExternalRefInput,
+    actor: Actor,
+  ): Promise<CustomerRow> {
+    await this.assertExternalRefUniqueForRoles(existing.externalRef, input.roles, existing.id);
+    const reactivated = await this.customers.save({
+      ...existing,
+      deletedAt: undefined,
+      firstName: input.firstName ?? '',
+      lastName: input.lastName ?? '',
+      companyName: input.companyName?.trim() ? input.companyName : undefined,
+      contactEmails: input.contactEmails,
+      roles: input.roles,
+    });
+    await this.recorder?.record({
+      type: 'CUSTOMER_UPDATED',
+      category: 'ADMINISTRATION',
+      actorKind: 'SYSTEM',
+      actorLabel: actor.userId,
+      customerId: reactivated.id,
+      customerName: customerDisplayName(reactivated),
+      summary: `Customer ${customerDisplayName(reactivated)} reactivated (re-pushed to source ${reactivated.source})`,
+      metadata: { source: reactivated.source, externalRef: reactivated.externalRef, reactivated: true },
+    });
+    return toRow(reactivated);
+  }
+
+  /**
+   * Diff the five inbound-owned identity fields against the stored customer. A PUT is a full
+   * representation: omitted optional fields are normalised to their defaults, so re-sending the
+   * same payload produces an empty diff (idempotency). Roles and e-mails are compared
+   * order-insensitively so a mere reordering never triggers a spurious update.
+   */
+  private diffInbound(existing: Customer, input: UpsertByExternalRefInput): UpdateCustomerInput {
+    const changes: UpdateCustomerInput = {};
+    const firstName = input.firstName ?? '';
+    const lastName = input.lastName ?? '';
+    const companyName = input.companyName?.trim() ? input.companyName : undefined;
+    if (firstName !== existing.firstName) changes.firstName = firstName;
+    if (lastName !== existing.lastName) changes.lastName = lastName;
+    if (companyName !== existing.companyName) changes.companyName = companyName ?? '';
+    if (!sameStringSet(input.contactEmails, existing.contactEmails)) changes.contactEmails = input.contactEmails;
+    if (!sameStringSet(input.roles, existing.roles)) changes.roles = input.roles;
+    return changes;
+  }
+
+  /**
    * Onboarding rollout — the per-customer counterpart of PublishService.publish step 5+6: one
    * PENDING_NOTIFICATION state per current published version whose audience is covered by
    * `roles` — plus one per UPCOMING published version (validFrom in the future; all of them, not
@@ -678,6 +858,14 @@ const toRow = (customer: Customer, compliance?: ComplianceResult): CustomerRow =
     ? { compliant: compliance.compliant, complianceStatus: summarizeCompliance(compliance) }
     : {}),
 });
+
+/** Order-insensitive comparison of two string collections (roles / e-mails) so reordering is a no-op. */
+const sameStringSet = (a: readonly string[], b: readonly string[]): boolean => {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((value, index) => value === sortedB[index]);
+};
 
 /** Worst outstanding status wins: blocked (gate closed) > objected > pending > compliant. */
 const summarizeCompliance = (compliance: ComplianceResult): CustomerComplianceStatus => {

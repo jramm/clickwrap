@@ -926,4 +926,214 @@ describe('CustomerAdminService', () => {
       expect((await events.query({})).total).toBe(0);
     });
   });
+
+  describe('inbound upsert/deactivate by externalRef (integration push)', () => {
+    const SYSTEM = { userId: 'mainportal-svc' };
+    const eventsOfType = async (type: string): Promise<number> =>
+      (await events.query({})).items.filter((e) => e.type === type).length;
+
+    describe('upsertByExternalRef', () => {
+      it('creates a source-tagged customer and records CUSTOMER_CREATED (SYSTEM) when no match exists', async () => {
+        const row = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'], source: 'mainportal' },
+          SYSTEM,
+        );
+        expect(row).toMatchObject({ externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] });
+        expect(row).not.toHaveProperty('importedAcceptances');
+
+        const stored = (await customers.findBySource('mainportal')).find((c) => c.externalRef === 'crm-1');
+        expect(stored?.source).toBe('mainportal');
+
+        const created = (await events.query({ customerId: row.id })).items.filter((e) => e.type === 'CUSTOMER_CREATED');
+        expect(created).toHaveLength(1);
+        expect(created[0].actorKind).toBe('SYSTEM');
+      });
+
+      it('defaults the source to "external" when omitted', async () => {
+        const row = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: [] },
+          SYSTEM,
+        );
+        const stored = await customers.findById(row.id);
+        expect(stored?.source).toBe('external');
+      });
+
+      it('updates only the changed fields on an active match and records CUSTOMER_UPDATED', async () => {
+        const created = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'Old', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        const updated = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'New', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        expect(updated.id).toBe(created.id);
+        expect(updated.companyName).toBe('New');
+        expect(await eventsOfType('CUSTOMER_UPDATED')).toBe(1);
+      });
+
+      it('is idempotent: re-sending an identical payload does NOT write and records NO event', async () => {
+        await service.upsertByExternalRef(
+          { externalRef: 'crm-1', firstName: 'Jane', companyName: 'Acme', roles: ['customer'], contactEmails: ['a@x.io'], source: 'mainportal' },
+          SYSTEM,
+        );
+        await service.upsertByExternalRef(
+          { externalRef: 'crm-1', firstName: 'Jane', companyName: 'Acme', roles: ['customer'], contactEmails: ['a@x.io'], source: 'mainportal' },
+          SYSTEM,
+        );
+        expect(await eventsOfType('CUSTOMER_UPDATED')).toBe(0);
+        expect(await eventsOfType('CUSTOMER_CREATED')).toBe(1);
+      });
+
+      it('ignores a mere reordering of roles/contactEmails (no update)', async () => {
+        await service.upsertByExternalRef(
+          { externalRef: 'crm-1', roles: ['customer', 'partner'], contactEmails: ['a@x.io', 'b@x.io'], source: 'mainportal' },
+          SYSTEM,
+        );
+        await service.upsertByExternalRef(
+          { externalRef: 'crm-1', roles: ['partner', 'customer'], contactEmails: ['b@x.io', 'a@x.io'], source: 'mainportal' },
+          SYSTEM,
+        );
+        expect(await eventsOfType('CUSTOMER_UPDATED')).toBe(0);
+      });
+
+      it('reactivates a soft-deleted match (clears deletedAt, applies fields) and records CUSTOMER_UPDATED', async () => {
+        const created = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
+        expect((await customers.findById(created.id))?.deletedAt).toBeDefined();
+
+        const reactivated = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'Acme Reborn', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        expect(reactivated.id).toBe(created.id);
+        expect(reactivated.companyName).toBe('Acme Reborn');
+        expect((await customers.findById(created.id))?.deletedAt).toBeUndefined();
+
+        const updates = (await events.query({})).items.filter((e) => e.type === 'CUSTOMER_UPDATED');
+        expect(updates.some((e) => e.metadata?.reactivated === true && e.actorKind === 'SYSTEM')).toBe(true);
+      });
+
+      it('scopes by audience: a different-audience customer sharing the externalRef is left untouched (separate record)', async () => {
+        // A record with the SAME externalRef but a DISJOINT audience (partner) must not be matched
+        // when pushing the customer-audience record — externalRef is only unique per audience.
+        const partner = await service.create(
+          { externalRef: 'crm-1', companyName: 'Partner', roles: ['partner'], contactEmails: [], source: 'othersource' },
+          ADMIN,
+          'integration',
+        );
+        const pushed = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'Portal', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        expect(pushed.id).not.toBe(partner.id);
+        // The partner-audience record is untouched (different audience).
+        expect(await customers.findById(partner.id)).toMatchObject({ companyName: 'Partner', roles: ['partner'] });
+        // Both coexist under the same externalRef.
+        expect(await customers.findAllByExternalRef('crm-1')).toHaveLength(2);
+      });
+
+      it('resolves by audience regardless of source: updates an existing same-audience record even if it carries a different source', async () => {
+        // The BUG FIX: resolution is by (externalRef, audience), NOT (source, externalRef). A record
+        // created under one source is updated by an inbound push carrying a different source.
+        const existing = await service.create(
+          { externalRef: 'crm-1', companyName: 'Old', roles: ['customer'], contactEmails: [], source: 'othersource' },
+          ADMIN,
+          'integration',
+        );
+        const upserted = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'New', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        expect(upserted.id).toBe(existing.id);
+        expect(upserted.companyName).toBe('New');
+        // No duplicate created — the same (externalRef, audience) record was updated in place.
+        expect(await customers.findAllByExternalRef('crm-1')).toHaveLength(1);
+      });
+
+      it('rejects an unknown role with UNKNOWN_AUDIENCE (no write)', async () => {
+        await expect(
+          service.upsertByExternalRef({ externalRef: 'crm-1', roles: ['ghost'], contactEmails: [], source: 'mainportal' }, SYSTEM),
+        ).rejects.toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
+        expect((await events.query({})).total).toBe(0);
+      });
+
+      it('rejects an invalid contact e-mail with INVALID_STATE (no write)', async () => {
+        await expect(
+          service.upsertByExternalRef(
+            { externalRef: 'crm-1', roles: ['customer'], contactEmails: ['not-an-email'], source: 'mainportal' },
+            SYSTEM,
+          ),
+        ).rejects.toMatchObject({ code: 'INVALID_STATE' });
+      });
+
+      it('rejects a blank externalRef with INVALID_STATE', async () => {
+        await expect(
+          service.upsertByExternalRef({ externalRef: '  ', roles: ['customer'], contactEmails: [], source: 'mainportal' }, SYSTEM),
+        ).rejects.toMatchObject({ code: 'INVALID_STATE' });
+      });
+    });
+
+    describe('deactivateByExternalRef', () => {
+      it('soft-deletes the matching customer and records CUSTOMER_DELETED (SYSTEM)', async () => {
+        const created = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
+
+        expect((await customers.findById(created.id))?.deletedAt).toBeDefined();
+        const deleted = (await events.query({})).items.filter((e) => e.type === 'CUSTOMER_DELETED');
+        expect(deleted).toHaveLength(1);
+        expect(deleted[0].actorKind).toBe('SYSTEM');
+      });
+
+      it('is idempotent: a second deactivate (already soft-deleted) records NO event', async () => {
+        await service.upsertByExternalRef(
+          { externalRef: 'crm-1', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
+        await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
+        expect(await eventsOfType('CUSTOMER_DELETED')).toBe(1);
+      });
+
+      it('is a no-op for an unknown externalRef (no event)', async () => {
+        await service.deactivateByExternalRef('ghost', 'customer', SYSTEM);
+        expect(await eventsOfType('CUSTOMER_DELETED')).toBe(0);
+      });
+
+      it('is a no-op for an audience that matches no record carrying the externalRef (no event)', async () => {
+        const created = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', roles: ['customer'], contactEmails: [] },
+          SYSTEM,
+        );
+        // Audience 'partner' matches no record for crm-1 → no-op; the customer record stays active.
+        await service.deactivateByExternalRef('crm-1', 'partner', SYSTEM);
+        expect((await customers.findById(created.id))?.deletedAt).toBeUndefined();
+        expect(await eventsOfType('CUSTOMER_DELETED')).toBe(0);
+      });
+
+      it('scopes by audience: soft-deletes only the record of the given audience, leaving a different-audience sibling active', async () => {
+        const customer = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        const partner = await service.upsertByExternalRef(
+          { externalRef: 'crm-1', roles: ['partner'], contactEmails: [], source: 'mainportal' },
+          SYSTEM,
+        );
+        // Deactivate the partner audience only.
+        await service.deactivateByExternalRef('crm-1', 'partner', SYSTEM);
+        expect((await customers.findById(partner.id))?.deletedAt).toBeDefined();
+        expect((await customers.findById(customer.id))?.deletedAt).toBeUndefined();
+        // Then the customer audience.
+        await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
+        expect((await customers.findById(customer.id))?.deletedAt).toBeDefined();
+      });
+    });
+  });
 });

@@ -105,6 +105,29 @@ export class CreateCustomerBodyModel {
   acceptedVersions?: AcceptedVersionImportModel[];
 }
 
+export class UpsertByExternalRefBodyModel {
+  @ApiPropertyOptional({ example: 'Jane', description: "Contact person's given name ('' when omitted)." })
+  firstName?: string;
+
+  @ApiPropertyOptional({ example: 'Doe', description: "Contact person's family name ('' when omitted)." })
+  lastName?: string;
+
+  @ApiPropertyOptional({ example: 'Acme GmbH', description: 'Optional company/organisation name.' })
+  companyName?: string;
+
+  @ApiProperty({ type: [String], example: ['legal@acme.example'], description: 'Full set of contact e-mails.' })
+  contactEmails!: string[];
+
+  @ApiProperty({ type: [String], example: ['customer'], description: 'Audience keys (validated).' })
+  roles!: string[];
+
+  @ApiPropertyOptional({
+    example: 'mainportal',
+    description: "Caller's system namespace scoping the (source, externalRef) key. Defaults to 'external'.",
+  })
+  source?: string;
+}
+
 export class UpdateCustomerBodyModel {
   @ApiPropertyOptional({ example: 'Jane', description: "Contact person's given name." })
   firstName?: string;

@@ -524,6 +524,140 @@
         ]
       }
     },
+    "/customers/by-external-ref/{externalRef}": {
+      "put": {
+        "description": "Idempotent inbound upsert through which an upstream system (the metergrid Main Portal) PUSHES a provider-group customer into clickwrap (clickwrap never pulls). Resolved by (`externalRef`, `audience`) — the target is the record carrying `externalRef` whose `roles` OVERLAP the body `roles` (an `externalRef` is only unique per audience), INCLUDING soft-deleted records: no overlapping match → CREATE → CUSTOMER_CREATED; a soft-deleted match → REACTIVATE + apply fields → CUSTOMER_UPDATED; an active match with a real change → UPDATE the changed fields → CUSTOMER_UPDATED; an active match with no change → no write and no event (idempotent). A different-audience customer sharing the same `externalRef` is never touched. `source` (default `external`) is stored as a provenance tag on create only — it is NOT the resolution key.",
+        "operationId": "CustomerOnboardingController_upsertByExternalRef",
+        "parameters": [
+          {
+            "name": "externalRef",
+            "required": true,
+            "in": "path",
+            "description": "Caller's stable external reference (non-empty).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertByExternalRefBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The upserted customer row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRowModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (strict schema — no actor fields in the body).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_AUDIENCE (unknown role) · INVALID_STATE (invalid e-mail / externalRef / overlapping duplicate)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Upsert a customer by external reference (inbound integration)",
+        "tags": [
+          "integration-customers"
+        ]
+      },
+      "delete": {
+        "description": "Idempotent inbound soft-delete used when an upstream provider group is merged away. Resolved by (`externalRef`, `audience`) — the required `?audience=` query param names the audience whose record is deactivated (an `externalRef` is only unique per audience). Soft-deletes the matching active customer (evidence chain preserved) → CUSTOMER_DELETED; a different-audience customer sharing the `externalRef` is left untouched. Not found or already deactivated → idempotent no-op (no event). Returns 204. Missing `audience` → 400.",
+        "operationId": "CustomerOnboardingController_deactivateByExternalRef",
+        "parameters": [
+          {
+            "name": "externalRef",
+            "required": true,
+            "in": "path",
+            "description": "Caller's stable external reference.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": true,
+            "in": "query",
+            "description": "Audience key whose record is deactivated.",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Customer deactivated (or already inactive / not found — idempotent)."
+          },
+          "400": {
+            "description": "Missing `audience` query parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Deactivate a customer by external reference (inbound integration)",
+        "tags": [
+          "integration-customers"
+        ]
+      }
+    },
     "/customers/{id}/signed-documents": {
       "post": {
         "description": "Archives an externally-signed PDF (e.g. a counter-signed offer) against a customer. The documentType MUST be an external type (422 DOCUMENT_TYPE_NOT_EXTERNAL otherwise — non-external types use the version/clickwrap flow). Signed documents are a pure evidence archive and NEVER affect the compliance gate.",
@@ -782,6 +916,91 @@
           }
         ],
         "summary": "Compliance gate",
+        "tags": [
+          "integration-compliance"
+        ]
+      }
+    },
+    "/customers/by-external-ref/{externalRef}/compliance": {
+      "get": {
+        "description": "Resolves the ACTIVE customer by (`externalRef`, `audience`) — the record carrying `externalRef` whose roles include the required `audience` query param — and returns the compliance gate for that audience. `compliant=false` only for EXPIRED_BLOCKING or a not-yet-accepted carry-over state. Callers query this live per request (no cache) and FAIL OPEN: any error/timeout OR a 404 is treated as compliant (no block).",
+        "operationId": "IntegrationComplianceController_getComplianceByExternalRef",
+        "parameters": [
+          {
+            "name": "externalRef",
+            "required": true,
+            "in": "path",
+            "description": "Caller's stable external reference.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "required": true,
+            "in": "query",
+            "description": "Audience key (resolution discriminator + compliance scope).",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing `audience` query parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND — no active customer for this (externalRef, audience).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_AUDIENCE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "service-token": []
+          }
+        ],
+        "summary": "Compliance gate by external reference (inbound integration)",
         "tags": [
           "integration-compliance"
         ]
@@ -1530,6 +1749,133 @@
           "roles",
           "contactEmails",
           "importedAcceptances"
+        ]
+      },
+      "UpsertByExternalRefBodyModel": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Jane",
+            "description": "Contact person's given name ('' when omitted)."
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe",
+            "description": "Contact person's family name ('' when omitted)."
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Optional company/organisation name."
+          },
+          "contactEmails": {
+            "example": [
+              "legal@acme.example"
+            ],
+            "description": "Full set of contact e-mails.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "description": "Audience keys (validated).",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string",
+            "example": "mainportal",
+            "description": "Caller's system namespace scoping the (source, externalRef) key. Defaults to 'external'."
+          }
+        },
+        "required": [
+          "contactEmails",
+          "roles"
+        ]
+      },
+      "CustomerRowModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "c-8a71…"
+          },
+          "externalRef": {
+            "type": "string",
+            "example": "crm-4711",
+            "description": "Unique external reference (CRM id)."
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Jane",
+            "description": "Contact person's given name ('' when unknown)."
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe",
+            "description": "Contact person's family name ('' when unknown)."
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Acme GmbH",
+            "description": "Optional company/organisation name — preferred display label when set."
+          },
+          "roles": {
+            "example": [
+              "customer"
+            ],
+            "description": "Audience keys.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contactEmails": {
+            "example": [
+              "legal@acme.example"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-07-09T14:12:03.000Z",
+            "description": "Set only on a customer that was soft-deleted by the customer sync (removed from the external source). The detail page badges it; such customers are excluded from the list and never blocking."
+          },
+          "compliant": {
+            "type": "boolean",
+            "example": true,
+            "description": "Compliance gate (domain semantics: false = blocked). Present on list rows only; scoped by the audience/documentType query params (which also narrow the list to assigned/role-matching customers)."
+          },
+          "complianceStatus": {
+            "type": "string",
+            "enum": [
+              "compliant",
+              "pending",
+              "objected",
+              "blocked"
+            ],
+            "example": "compliant",
+            "description": "Compact per-row compliance status for the list chip. Present on list rows only."
+          }
+        },
+        "required": [
+          "id",
+          "externalRef",
+          "firstName",
+          "lastName",
+          "roles",
+          "contactEmails"
         ]
       },
       "SignedDocumentUploadBodyModel": {

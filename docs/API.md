@@ -625,6 +625,48 @@ as the idempotency signal **per overlapping role set** (the partner and customer
 are separate, so the same ref may legitimately coexist on records with disjoint roles). Use distinct
 refs per audience space, or GET first, to avoid ambiguity.
 
+### PUT /customers/by-external-ref/:externalRef — inbound upsert (integration) → 200
+Auth: `x-service-token` only; optional `x-actor-*` name the acting user (writes are SYSTEM-attributed).
+Idempotent upsert through which an upstream system PUSHES a provider-group customer into clickwrap
+(clickwrap never pulls). Resolved by (`externalRef`, `audience`) — the record whose `roles` OVERLAP
+the body `roles` (an `externalRef` is only unique per audience) — **including soft-deleted** records.
+```json
+{ "firstName": "Jane", "lastName": "Doe", "companyName": "Acme GmbH",
+  "contactEmails": ["legal@acme.example"], "roles": ["customer"], "source": "mainportal" }
+```
+- `contactEmails` + `roles` required; `firstName`/`lastName`/`companyName` optional; `source`
+  defaults to `external` and is stored as a **provenance tag on create only** (not the resolution
+  key). A PUT is a full representation (omitted optional fields normalise to their defaults).
+  Unknown body fields → `400` (strict schema).
+- No overlapping match → CREATE → `CUSTOMER_CREATED`; soft-deleted match → REACTIVATE (clear
+  `deletedAt`) + apply fields → `CUSTOMER_UPDATED`; active match with a real change → UPDATE →
+  `CUSTOMER_UPDATED`; active match with no change → **no write, no event** (roles/e-mails compared
+  order-insensitively).
+- A different-audience customer sharing the same `externalRef` is never touched (separate record).
+- **200:** the customer row. Unknown role → `422 UNKNOWN_AUDIENCE`; invalid e-mail / blank
+  externalRef / overlapping duplicate → `422 INVALID_STATE`.
+
+### DELETE /customers/by-external-ref/:externalRef?audience=… — inbound deactivate (integration) → 204
+Auth: `x-service-token` only. Used on provider-group merge. Resolved by (`externalRef`, `audience`)
+via the **required `?audience=`** query param. **Soft-deletes** the active customer carrying
+`externalRef` whose `roles` include `audience` (`deletedAt` set → `CUSTOMER_DELETED`; evidence chain
+preserved); a different-audience customer sharing the `externalRef` is left untouched. Not found or
+already deactivated → idempotent no-op (no event). Always **204 No Content**. Missing `audience` → `400`.
+
+### GET /customers/by-external-ref/:externalRef/compliance?audience=… — compliance by external ref (integration) → 200
+Auth: `x-service-token` only (no `x-customer-id` — the customer is resolved from the external
+reference). The **required `?audience=`** query param is both the resolution discriminator and the
+compliance scope: the ACTIVE customer carrying `externalRef` whose `roles` include `audience` is
+resolved, then the same body as `GET /customers/:customerId/compliance` (below) is returned
+unchanged. Errors: `404 CUSTOMER_NOT_FOUND` (no active match — unknown/soft-deleted
+`externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
+UNKNOWN_AUDIENCE`; `400` if `audience` missing; `401` without the token.
+
+> **Fail-open.** The metergrid Main Portal queries this **live per request (no cache)** and **FAILS
+> OPEN**: any clickwrap error/timeout **OR a `404`** is treated as *compliant* (access is never
+> blocked on it). clickwrap returns the real result or a `404` — it never guesses. Only an explicit
+> `compliant: false` blocks.
+
 ### GET /customers/:customerId/compliance?audience=customer|partner
 The compliance gate. Each tool queries with **its** audience; without the parameter the result is
 aggregated over all of the customer's roles. `compliant=false` **only** for `EXPIRED_BLOCKING` or a
