@@ -257,7 +257,7 @@ export class AgreementsAdminController {
   @ApiResponse({ status: 204, description: 'Deleted.' })
   @ApiErrorResponses({ 404: 'VERSION_NOT_FOUND', 409: 'VERSION_IMMUTABLE (not a DRAFT)' })
   @HttpCode(204)
-  async deleteVersion(@Param('id') versionId: string) {
-    await this.versionService.deleteDraft(versionId);
+  async deleteVersion(@Param('id') versionId: string, @Req() req: AdminRequest) {
+    await this.versionService.deleteDraft(versionId, adminUserId(req));
   }
 }

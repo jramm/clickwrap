@@ -166,6 +166,24 @@ describe('VersionService', () => {
       await expectCode(service.getVersion(version.id), 'VERSION_NOT_FOUND');
     });
 
+    it('records a VERSION_DRAFT_DELETED event (ADMINISTRATION, ADMIN) with the resolved documentType (#28)', async () => {
+      const version = await service.createDraft(draftInput());
+      await service.deleteDraft(version.id, 'admin-7');
+
+      const deleted = (await events.query({})).items.filter((e) => e.type === 'VERSION_DRAFT_DELETED');
+      expect(deleted).toHaveLength(1);
+      expect(deleted[0]).toMatchObject({
+        type: 'VERSION_DRAFT_DELETED',
+        category: 'ADMINISTRATION',
+        actorKind: 'ADMIN',
+        actorLabel: 'admin-7',
+        versionId: version.id,
+        documentType: 'dpa',
+        audience: 'customer',
+        versionLabel: 'June 2026 edition',
+      });
+    });
+
     it('DELETE on PUBLISHED → VERSION_IMMUTABLE', async () => {
       const version = await service.createDraft(draftInput());
       await versions.save({ ...version, status: 'PUBLISHED' });

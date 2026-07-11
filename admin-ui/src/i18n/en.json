@@ -386,6 +386,7 @@
       "DOCUMENT_CREATED": "Document created",
       "VERSION_DRAFT_CREATED": "Draft version created",
       "VERSION_UPDATED": "Version updated",
+      "VERSION_DRAFT_DELETED": "Draft version deleted",
       "SIGNED_DOCUMENT_UPLOADED": "Signed document uploaded",
       "DOCUMENT_TYPE_CREATED": "Document type created",
       "DOCUMENT_TYPE_UPDATED": "Document type updated",

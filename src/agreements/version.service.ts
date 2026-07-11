@@ -140,10 +140,24 @@ export class VersionService {
   }
 
   /** Only DRAFTs may be deleted (assertDraftMutable → VERSION_IMMUTABLE). */
-  async deleteDraft(versionId: string): Promise<void> {
+  async deleteDraft(versionId: string, adminUserId = 'admin'): Promise<void> {
     const version = await this.getVersion(versionId);
     assertDraftMutable(version);
+    // Resolve the document BEFORE deleting so the deletion event can carry documentType/audience —
+    // the EventRecorder can no longer denormalize them from versionId once the row is gone.
+    const document = await this.documents.findById(version.documentId);
     await this.versions.delete(versionId);
+    await this.recorder?.record({
+      type: 'VERSION_DRAFT_DELETED',
+      category: 'ADMINISTRATION',
+      actorKind: 'ADMIN',
+      actorLabel: adminUserId,
+      versionId,
+      documentType: document?.type,
+      audience: document?.audience,
+      versionLabel: version.versionLabel,
+      summary: `Draft version ${version.versionLabel} deleted`,
+    });
   }
 
   async getVersion(versionId: string): Promise<AgreementVersion> {

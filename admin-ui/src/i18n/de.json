@@ -386,6 +386,7 @@
       "DOCUMENT_CREATED": "Dokument angelegt",
       "VERSION_DRAFT_CREATED": "Entwurfsversion angelegt",
       "VERSION_UPDATED": "Version aktualisiert",
+      "VERSION_DRAFT_DELETED": "Entwurfsversion gelöscht",
       "SIGNED_DOCUMENT_UPLOADED": "Signiertes Dokument hochgeladen",
       "DOCUMENT_TYPE_CREATED": "Dokumententyp angelegt",
       "DOCUMENT_TYPE_UPDATED": "Dokumententyp aktualisiert",
