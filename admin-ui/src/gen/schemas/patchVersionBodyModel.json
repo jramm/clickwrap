@@ -8,6 +8,10 @@
     "acceptanceMode": { "type": "string", "enum": ["ACTIVE", "PASSIVE"] },
     "consentText": { "type": "string" },
     "objectionPeriodDays": { "type": "number" },
+    "objectionConsequence": {
+      "type": "string",
+      "description": "PASSIVE only: objection consequence text for the acceptance page."
+    },
     "gracePeriodDays": { "type": "number" },
     "hardDeadlineAt": {
       "type": "string",

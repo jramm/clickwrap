@@ -31,6 +31,7 @@ import { TOKENS } from '../persistence/tokens.js';
 import { PendingAgreementsService } from '../compliance/pending-agreements.service.js';
 import { AcceptanceService, type AcceptanceResponse } from '../consent/acceptance.service.js';
 import { NotificationService } from '../consent/notification.service.js';
+import { ObjectionService, type ObjectionResponse } from '../consent/objection.service.js';
 
 /**
  * The acceptance-page view-model is defined once in the plugin SDK (the stable contract renderers
@@ -53,6 +54,18 @@ export interface LinkAcceptanceRequest {
   idempotencyKey?: string;
 }
 
+export interface LinkObjectionRequest {
+  versionId: string;
+  /** Required — the customer must state a reason for the objection (#30). */
+  reason: string;
+  /** Optional self-declared signer identity (recorded on the objection evidence). */
+  signerName?: string;
+  signerEmail?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  idempotencyKey?: string;
+}
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Injectable()
@@ -65,6 +78,7 @@ export class AcceptPageService {
     private readonly pendingAgreements: PendingAgreementsService,
     private readonly notifications: NotificationService,
     private readonly acceptances: AcceptanceService,
+    private readonly objections: ObjectionService,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
   ) {}
 
@@ -110,6 +124,11 @@ export class AcceptPageService {
         blocking: item.blocking,
         upcoming: item.upcoming,
         validFrom: item.validFrom,
+        // PASSIVE, in-effect items can still be objected to within the objection period; the
+        // ObjectionService enforces the exact window (OBJECTION_PERIOD_EXPIRED). The renderer shows
+        // an objection button + the version-specific consequence for these.
+        canObject: item.mode === 'PASSIVE' && !item.upcoming,
+        objectionConsequence: version?.objectionConsequence,
       });
     }
 
@@ -151,6 +170,43 @@ export class AcceptPageService {
       context: {
         customerId: link.customerId,
         actor: { userId: acceptanceLinkActorUserId(link.id), name: signerName, email: signerEmail },
+        ipAddress: request.ipAddress,
+        userAgent: request.userAgent,
+      },
+    });
+    await this.links.touch(link.id, this.clock.now());
+    return response;
+  }
+
+  /**
+   * Objection (Widerspruch) through the link — PASSIVE versions within the objection period. The
+   * link token is the auth; a reason is required. Goes through the SAME ObjectionService as the
+   * portal path (period check, conditional transition, escalation on expiry). The actor is the
+   * link (`link:<linkId>`) plus the optional self-declared signer.
+   */
+  async object(token: string, request: LinkObjectionRequest): Promise<ObjectionResponse> {
+    const link = await this.resolveUsableLink(token);
+    if (!link) {
+      throw new DomainError('LINK_NOT_FOUND', 'Acceptance link not found');
+    }
+    const reason = request.reason.trim();
+    if (reason === '') {
+      throw new DomainError('INVALID_STATE', 'reason must not be empty');
+    }
+    await this.assertVersionInLinkScope(link, request.versionId);
+
+    const response = await this.objections.object({
+      customerId: link.customerId,
+      versionId: request.versionId,
+      reason,
+      idempotencyKey: request.idempotencyKey ?? randomUUID(),
+      context: {
+        customerId: link.customerId,
+        actor: {
+          userId: acceptanceLinkActorUserId(link.id),
+          name: request.signerName?.trim() || undefined,
+          email: request.signerEmail?.trim() || undefined,
+        },
         ipAddress: request.ipAddress,
         userAgent: request.userAgent,
       },

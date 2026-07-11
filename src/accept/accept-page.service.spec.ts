@@ -23,7 +23,10 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryNotificationEventRepo,
+  InMemoryObjectionRepo,
 } from '../persistence/inmemory/index.js';
+import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory.js';
+import { ObjectionService } from '../consent/objection.service.js';
 import { AcceptPageService } from './accept-page.service.js';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
@@ -38,6 +41,7 @@ describe('AcceptPageService', () => {
   let states: InMemoryCustomerVersionStateRepo;
   let events: InMemoryNotificationEventRepo;
   let acceptances: InMemoryAcceptanceRepo;
+  let objections: InMemoryObjectionRepo;
   let clock: FixedClock;
   let service: AcceptPageService;
 
@@ -62,6 +66,16 @@ describe('AcceptPageService', () => {
     ...overrides,
   });
 
+  const objectRequest = (overrides: Partial<Parameters<AcceptPageService['object']>[1]> = {}) => ({
+    versionId: 'v-1',
+    reason: 'We do not agree to the new sub-processor.',
+    signerName: 'Max Mustermann',
+    signerEmail: 'max@acme.example',
+    ipAddress: '198.51.100.4',
+    userAgent: 'Mobile Safari test',
+    ...overrides,
+  });
+
   beforeEach(async () => {
     links = new InMemoryAcceptanceLinkRepo();
     customers = new InMemoryCustomerRepo();
@@ -70,6 +84,7 @@ describe('AcceptPageService', () => {
     states = new InMemoryCustomerVersionStateRepo();
     events = new InMemoryNotificationEventRepo();
     acceptances = new InMemoryAcceptanceRepo();
+    objections = new InMemoryObjectionRepo();
     clock = new FixedClock(NOW);
     const audiences = new InMemoryAudienceRepo(documents, customers);
     const ids = new SequentialIdGenerator();
@@ -93,6 +108,15 @@ describe('AcceptPageService', () => {
       ids,
       clock,
     );
+    const objectionService = new ObjectionService(
+      versions,
+      states,
+      objections,
+      new InMemoryEscalationLog(),
+      new InMemoryIdempotencyStore(),
+      ids,
+      clock,
+    );
     service = new AcceptPageService(
       links,
       customers,
@@ -101,6 +125,7 @@ describe('AcceptPageService', () => {
       pending,
       notifications,
       acceptanceService,
+      objectionService,
       clock,
     );
 
@@ -328,6 +353,90 @@ describe('AcceptPageService', () => {
         service.accept(TOKEN, acceptRequest({ versionId: 'v-2', displayedConsentText: 'Partner consent.' })),
       ).rejects.toMatchObject({ code: 'VERSION_NOT_FOUND' });
       expect(await acceptances.findByCustomer('c-123')).toHaveLength(0);
+    });
+  });
+
+  describe('loadPage (objection surface, #30)', () => {
+    const seedPassive = async () => {
+      await versions.save(
+        aVersion({
+          id: 'v-1',
+          acceptanceMode: 'PASSIVE',
+          objectionPeriodDays: 14,
+          consentText: undefined,
+          objectionConsequence: 'Your current tariff stays in effect while we clarify next steps.',
+        }),
+      );
+      await seedLink();
+    };
+
+    it('a PASSIVE, in-effect item is objectable and carries its consequence text', async () => {
+      await seedPassive();
+      const view = await service.loadPage(TOKEN);
+      expect(view?.items[0]).toMatchObject({
+        mode: 'PASSIVE',
+        canObject: true,
+        objectionConsequence: 'Your current tariff stays in effect while we clarify next steps.',
+      });
+    });
+
+    it('an ACTIVE item is not objectable', async () => {
+      await seedLink();
+      const view = await service.loadPage(TOKEN);
+      expect(view?.items[0].canObject).toBe(false);
+    });
+  });
+
+  describe('object (#30)', () => {
+    const seedPassive = async () => {
+      await versions.save(
+        aVersion({ id: 'v-1', acceptanceMode: 'PASSIVE', objectionPeriodDays: 14, consentText: undefined }),
+      );
+      await seedLink();
+      // Provable access starts the objection period and moves the state to NOTIFIED.
+      await service.loadPage(TOKEN);
+    };
+
+    it('records an objection with channel LINK actor, the reason and moves the state to OBJECTED', async () => {
+      await seedPassive();
+
+      const response = await service.object(TOKEN, objectRequest());
+
+      expect(response.state).toBe('OBJECTED');
+      expect((await states.findByCustomerAndVersion('c-123', 'v-1'))?.state).toBe('OBJECTED');
+      const stored = await objections.findByCustomer('c-123');
+      expect(stored).toHaveLength(1);
+      expect(stored[0]).toMatchObject({
+        versionId: 'v-1',
+        reason: 'We do not agree to the new sub-processor.',
+        actor: { userId: 'link:al-1', name: 'Max Mustermann', email: 'max@acme.example' },
+        objectedAt: NOW,
+      });
+      expect((await links.findByTokenHash(acceptanceLinkTokenHash(TOKEN)))?.lastUsedAt).toEqual(NOW);
+    });
+
+    it.each([
+      ['unknown token', () => Promise.resolve()],
+      ['expired link', async () => void (await seedLink({ expiresAt: new Date('2026-07-01T00:00:00Z') }))],
+      ['revoked link', async () => void (await seedLink({ revokedAt: new Date('2026-07-02T00:00:00Z') }))],
+    ])('uniform LINK_NOT_FOUND: %s', async (_label, seed) => {
+      await seed();
+      await expect(service.object(TOKEN, objectRequest())).rejects.toMatchObject({ code: 'LINK_NOT_FOUND' });
+      expect(await objections.findByCustomer('c-123')).toHaveLength(0);
+    });
+
+    it('a scoped link cannot object to a version of another audience → VERSION_NOT_FOUND', async () => {
+      await documents.save(aDocument({ id: 'doc-terms-partner', type: 'terms', audience: 'partner', name: 'ToS — Partners' }));
+      await versions.save(
+        aVersion({ id: 'v-2', documentId: 'doc-terms-partner', acceptanceMode: 'PASSIVE', objectionPeriodDays: 14, consentText: undefined }),
+      );
+      await states.save(aState({ id: 'cvs-2', versionId: 'v-2', state: 'NOTIFIED', notifiedAt: NOW }));
+      await seedLink({ audienceKey: 'customer' });
+
+      await expect(service.object(TOKEN, objectRequest({ versionId: 'v-2' }))).rejects.toMatchObject({
+        code: 'VERSION_NOT_FOUND',
+      });
+      expect(await objections.findByCustomer('c-123')).toHaveLength(0);
     });
   });
 });

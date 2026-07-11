@@ -19,3 +19,17 @@ export const linkAcceptanceBodySchema = z
   })
   .strict();
 export type LinkAcceptanceBody = z.infer<typeof linkAcceptanceBodySchema>;
+
+/**
+ * Objection (Widerspruch) from the hosted page. A reason is REQUIRED (#30); the signer identity is
+ * optional and self-declared (recorded as objection evidence). `.strict()` rejects everything else.
+ */
+export const linkObjectionBodySchema = z
+  .object({
+    versionId: z.string().min(1),
+    reason: z.string().trim().min(1, 'a reason is required'),
+    signerName: z.string().trim().optional(),
+    signerEmail: z.string().trim().regex(EMAIL_PATTERN, 'invalid e-mail address').optional(),
+  })
+  .strict();
+export type LinkObjectionBody = z.infer<typeof linkObjectionBodySchema>;

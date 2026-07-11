@@ -175,6 +175,8 @@
     "consentText": "Consent text (checkbox label, versioned)",
     "hardDeadlineAt": "Acceptance deadline (all customers must accept by then)",
     "objectionPeriodDays": "Objection period days",
+    "objectionConsequence": "Objection consequence (shown to the customer, optional)",
+    "objectionConsequencePlaceholder": "e.g. Objecting keeps your current tariff; we may contact you to agree on next steps.",
     "validFrom": "Valid from",
     "createDraft": "Create draft",
     "validationFile": "Please select a PDF file.",

@@ -43,6 +43,16 @@ export interface AcceptancePageItem {
   upcoming: boolean;
   /** Date from which the revision applies. */
   validFrom: Date;
+  /**
+   * PASSIVE only — true when the customer may still object to this revision (open state within the
+   * objection period). The renderer shows an "object" button + reason field for these items.
+   */
+  canObject?: boolean;
+  /**
+   * PASSIVE only — the document-version-specific text explaining what objecting means (shown next
+   * to the object button). Undefined when the version has none configured.
+   */
+  objectionConsequence?: string;
 }
 
 /** The complete view-model a renderer receives for a resolved acceptance link. */

@@ -31,6 +31,6 @@ import { CONSENT_TOKENS } from './ports.js';
   ],
   // Exported for the hosted acceptance page (AcceptModule): the LINK channel goes through the
   // SAME acceptance/notification services as the portal popup.
-  exports: [AcceptanceService, NotificationService],
+  exports: [AcceptanceService, NotificationService, ObjectionService],
 })
 export class ConsentModule {}

@@ -14,6 +14,9 @@ export const patchVersionBodyModelSchema = z.object({
   acceptanceMode: z.optional(z.enum(['ACTIVE', 'PASSIVE'])),
   consentText: z.optional(z.string()),
   objectionPeriodDays: z.optional(z.number()),
+  objectionConsequence: z.optional(
+    z.string().describe('PASSIVE only: objection consequence text for the acceptance page.'),
+  ),
   gracePeriodDays: z.optional(z.number()),
   hardDeadlineAt: z.optional(
     z.string().describe('ACTIVE only: absolute acceptance deadline (ISO date-time, >= validFrom).'),

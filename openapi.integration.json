@@ -1104,6 +1104,89 @@
         ]
       }
     },
+    "/accept/{token}/objections": {
+      "post": {
+        "description": "Objection (Widerspruch) for a PASSIVE version within its objection period, through the SAME ObjectionService as the portal path (period check, conditional transition, escalation note on expiry). A reason is required; the actor is `link:<linkId>` plus the optional self-declared signer.",
+        "operationId": "AcceptPageController_object",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "description": "Capability token from the minted acceptance-link URL.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkObjectionBodyModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkObjectionResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body validation failed (reason required / strict schema).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "LINK_NOT_FOUND (unknown/expired/revoked — uniform) · VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "OBJECTION_NOT_APPLICABLE · OBJECTION_PERIOD_EXPIRED · INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (per-token, in-memory MVP limit).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Raise an objection from the hosted page (link token = auth, reason required)",
+        "tags": [
+          "Hosted acceptance page"
+        ]
+      }
+    },
     "/webhooks/postmark": {
       "post": {
         "description": "Delivery → sets notifiedAt atomically (deadline starts). Bounce → escalation \"unreachable\". Unknown MessageIDs and other RecordTypes → 200 no-op (stops redelivery).",
@@ -1989,6 +2072,53 @@
         },
         "required": [
           "acceptanceId",
+          "state"
+        ]
+      },
+      "LinkObjectionBodyModel": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string",
+            "example": "v-9"
+          },
+          "reason": {
+            "type": "string",
+            "example": "We do not agree to the new sub-processor.",
+            "description": "Required — the objection reason."
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Max Mustermann",
+            "description": "Self-declared signer name."
+          },
+          "signerEmail": {
+            "type": "string",
+            "example": "max@acme.example",
+            "description": "Self-declared signer e-mail (basic format check)."
+          }
+        },
+        "required": [
+          "versionId",
+          "reason"
+        ]
+      },
+      "LinkObjectionResponseModel": {
+        "type": "object",
+        "properties": {
+          "objectionId": {
+            "type": "string",
+            "example": "o-42"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "OBJECTED"
+            ]
+          }
+        },
+        "required": [
+          "objectionId",
           "state"
         ]
       }

@@ -69,6 +69,8 @@ interface CreateVersionBody {
   acceptanceMode: AcceptanceMode;
   consentText?: string;
   objectionPeriodDays?: number | string;
+  /** PASSIVE only: text shown on the acceptance page explaining what objecting means. */
+  objectionConsequence?: string;
   gracePeriodDays?: number | string;
   /** ACTIVE only: absolute acceptance deadline as a full ISO date-time (must be >= validFrom). */
   hardDeadlineAt?: string;
@@ -186,6 +188,7 @@ export class AgreementsAdminController {
         acceptanceMode: body.acceptanceMode,
         consentText: body.consentText,
         objectionPeriodDays: toOptionalNumber(body.objectionPeriodDays),
+        objectionConsequence: body.objectionConsequence,
         gracePeriodDays: toOptionalNumber(body.gracePeriodDays),
         hardDeadlineAt: body.hardDeadlineAt !== undefined && body.hardDeadlineAt !== ''
           ? new Date(body.hardDeadlineAt)

@@ -36,6 +36,11 @@ export type PatchVersionBodyModel = {
    */
   objectionPeriodDays?: number;
   /**
+   * @description PASSIVE only: objection consequence text for the acceptance page.
+   * @type string | undefined
+   */
+  objectionConsequence?: string;
+  /**
    * @type number | undefined
    */
   gracePeriodDays?: number;

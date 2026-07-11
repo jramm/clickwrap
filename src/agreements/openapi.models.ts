@@ -31,6 +31,12 @@ export class VersionModel {
   @ApiPropertyOptional({ example: 14, description: 'PASSIVE only: objection period in days.' })
   objectionPeriodDays?: number;
 
+  @ApiPropertyOptional({
+    example: 'If you object, your existing terms remain in force and we may contact you about the change.',
+    description: 'PASSIVE only: shown on the acceptance page next to the objection button.',
+  })
+  objectionConsequence?: string;
+
   @ApiPropertyOptional({ example: 14, description: 'Deprecated: no longer drives ACTIVE blocking (legacy rows only).' })
   gracePeriodDays?: number;
 
@@ -154,6 +160,12 @@ export class CreateVersionBodyModel {
   @ApiPropertyOptional({ example: 14, description: 'PASSIVE only: objection period in days.' })
   objectionPeriodDays?: number;
 
+  @ApiPropertyOptional({
+    example: 'If you object, your existing terms remain in force and we may contact you about the change.',
+    description: 'PASSIVE only: shown on the acceptance page next to the objection button.',
+  })
+  objectionConsequence?: string;
+
   @ApiPropertyOptional({ example: 14, description: 'Deprecated: no longer drives ACTIVE blocking (legacy rows only).' })
   gracePeriodDays?: number;
 
@@ -196,6 +208,9 @@ export class PatchVersionBodyModel {
 
   @ApiPropertyOptional()
   objectionPeriodDays?: number;
+
+  @ApiPropertyOptional({ description: 'PASSIVE only: objection consequence text for the acceptance page.' })
+  objectionConsequence?: string;
 
   @ApiPropertyOptional()
   gracePeriodDays?: number;

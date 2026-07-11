@@ -29,6 +29,7 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
   const [acceptanceMode, setAcceptanceMode] = useState<'ACTIVE' | 'PASSIVE'>('ACTIVE');
   const [consentText, setConsentText] = useState('');
   const [objectionPeriodDays, setObjectionPeriodDays] = useState('14');
+  const [objectionConsequence, setObjectionConsequence] = useState('');
   const [hardDeadlineAt, setHardDeadlineAt] = useState('');
   const [validFrom, setValidFrom] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -40,6 +41,7 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
     setAcceptanceMode('ACTIVE');
     setConsentText('');
     setObjectionPeriodDays('14');
+    setObjectionConsequence('');
     setHardDeadlineAt('');
     setValidFrom('');
     setFieldError(null);
@@ -72,6 +74,12 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
         consentText: acceptanceMode === 'ACTIVE' ? consentText.trim() : undefined,
         objectionPeriodDays:
           acceptanceMode === 'PASSIVE' ? Number(objectionPeriodDays) : undefined,
+        // PASSIVE only: the version-specific consequence shown to a customer next to the objection
+        // button on the acceptance page (#30). Optional — omit when blank.
+        objectionConsequence:
+          acceptanceMode === 'PASSIVE' && objectionConsequence.trim()
+            ? objectionConsequence.trim()
+            : undefined,
         // <input type="date"> yields a date-only string ("YYYY-MM-DD"); the API contract validates
         // with z.string().datetime() — widen to a full ISO date-time (UTC midnight) before sending.
         hardDeadlineAt:
@@ -164,12 +172,23 @@ export function NewVersionDialog({ document, open, onClose }: Props) {
             />
           </>
         ) : (
-          <TextField
-            label={t('newVersion.objectionPeriodDays')}
-            type="number"
-            value={objectionPeriodDays}
-            onChange={(event) => setObjectionPeriodDays(event.target.value)}
-          />
+          <>
+            <TextField
+              label={t('newVersion.objectionPeriodDays')}
+              type="number"
+              value={objectionPeriodDays}
+              onChange={(event) => setObjectionPeriodDays(event.target.value)}
+            />
+            <TextField
+              label={t('newVersion.objectionConsequence')}
+              placeholder={t('newVersion.objectionConsequencePlaceholder')}
+              value={objectionConsequence}
+              onChange={(event) => setObjectionConsequence(event.target.value)}
+              multiline
+              minRows={2}
+              inputProps={{ maxLength: 500 }}
+            />
+          </>
         )}
 
         <TextField

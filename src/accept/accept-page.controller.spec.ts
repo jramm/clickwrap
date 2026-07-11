@@ -18,6 +18,9 @@ import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider.
 import { PendingAgreementsService } from '../compliance/pending-agreements.service.js';
 import { AcceptanceService } from '../consent/acceptance.service.js';
 import { NotificationService } from '../consent/notification.service.js';
+import { ObjectionService } from '../consent/objection.service.js';
+import { ESCALATION_LOG } from '../common/escalation/escalation-log.js';
+import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory.js';
 import { InMemoryIdempotencyStore, SequentialIdGenerator } from '../consent/inmemory.js';
 import { CONSENT_TOKENS } from '../consent/ports.js';
 import {
@@ -80,6 +83,8 @@ describe('AcceptPageController (HTTP)', () => {
         PendingAgreementsService,
         AcceptanceService,
         NotificationService,
+        ObjectionService,
+        { provide: ESCALATION_LOG, useValue: new InMemoryEscalationLog() },
         { provide: TOKENS.AcceptanceLinkRepo, useValue: links },
         { provide: TOKENS.CustomerRepo, useValue: customers },
         { provide: TOKENS.AgreementDocumentRepo, useValue: documents },
@@ -249,6 +254,58 @@ describe('AcceptPageController (HTTP)', () => {
         .expect(201);
       expect(second.body).toEqual(first.body);
       expect(await acceptances.findByCustomer('c-123')).toHaveLength(1);
+    });
+  });
+
+  describe('POST /accept/:token/objections (#30)', () => {
+    // Replace the ACTIVE v-1 with a PASSIVE version in its objection period (NOTIFIED).
+    const seedObjectable = async () => {
+      await versions.save(aVersion({ id: 'v-1', acceptanceMode: 'PASSIVE', objectionPeriodDays: 14, consentText: undefined }));
+      await states.save(
+        aState({
+          id: 'cvs-1',
+          versionId: 'v-1',
+          state: 'NOTIFIED',
+          notifiedAt: NOW,
+          deadlineAt: new Date('2026-07-22T08:00:00Z'),
+        }),
+      );
+      await seedLink();
+    };
+
+    it('201: records the objection (reason required) and moves the state to OBJECTED', async () => {
+      await seedObjectable();
+      const res = await request(app.getHttpServer())
+        .post(`/accept/${TOKEN}/objections`)
+        .set('User-Agent', 'Mobile Safari test')
+        .send({ versionId: 'v-1', reason: 'We do not agree to the new sub-processor.' })
+        .expect(201);
+      expect(res.body).toMatchObject({ state: 'OBJECTED' });
+      expect((await states.findByCustomerAndVersion('c-123', 'v-1'))?.state).toBe('OBJECTED');
+    });
+
+    it('400 when the reason is missing (strict schema)', async () => {
+      await seedObjectable();
+      await request(app.getHttpServer())
+        .post(`/accept/${TOKEN}/objections`)
+        .send({ versionId: 'v-1' })
+        .expect(400);
+    });
+
+    it('400 on actor-like extra fields (identity cannot be injected)', async () => {
+      await seedObjectable();
+      await request(app.getHttpServer())
+        .post(`/accept/${TOKEN}/objections`)
+        .send({ versionId: 'v-1', reason: 'nope', actorUserId: 'u-999' })
+        .expect(400);
+    });
+
+    it('404 LINK_NOT_FOUND for an unknown token (uniform JSON)', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/accept/nope/objections')
+        .send({ versionId: 'v-1', reason: 'x' })
+        .expect(404);
+      expect(res.body).toMatchObject({ code: 'LINK_NOT_FOUND' });
     });
   });
 

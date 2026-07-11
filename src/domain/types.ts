@@ -139,6 +139,8 @@ export interface AgreementVersion {
   acceptanceMode: AcceptanceMode;
   /** PASSIVE only: objection period in days, starting at delivery. */
   objectionPeriodDays?: number;
+  /** PASSIVE only: document-version-specific text shown on the acceptance page next to the objection button. */
+  objectionConsequence?: string;
   /**
    * @deprecated No longer drives ACTIVE blocking — kept for backward-compat with old rows.
    * Historically the ACTIVE grace period from delivery; ACTIVE deadlines are now the absolute

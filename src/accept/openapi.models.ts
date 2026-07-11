@@ -57,3 +57,25 @@ export class LinkAcceptanceResponseModel {
   @ApiProperty({ enum: ['ACCEPTED'] })
   state!: 'ACCEPTED';
 }
+
+export class LinkObjectionBodyModel {
+  @ApiProperty({ example: 'v-9' })
+  versionId!: string;
+
+  @ApiProperty({ example: 'We do not agree to the new sub-processor.', description: 'Required — the objection reason.' })
+  reason!: string;
+
+  @ApiPropertyOptional({ example: 'Max Mustermann', description: 'Self-declared signer name.' })
+  signerName?: string;
+
+  @ApiPropertyOptional({ example: 'max@acme.example', description: 'Self-declared signer e-mail (basic format check).' })
+  signerEmail?: string;
+}
+
+export class LinkObjectionResponseModel {
+  @ApiProperty({ example: 'o-42' })
+  objectionId!: string;
+
+  @ApiProperty({ enum: ['OBJECTED'] })
+  state!: 'OBJECTED';
+}

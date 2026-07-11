@@ -97,4 +97,41 @@ describe('NewVersionDialog', () => {
     expect(input.objectionPeriodDays).toBe(30);
     expect(input.hardDeadlineAt).toBeUndefined();
   });
+
+  it('PASSIVE: sends the objection consequence text when provided (#30)', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<NewVersionDialog document={doc} open onClose={() => {}} />);
+
+    await user.click(screen.getByLabelText(/Acceptance mode/));
+    const listbox = await screen.findByRole('listbox');
+    await user.click(within(listbox).getByText(/PASSIVE/));
+
+    await selectPdf(user);
+    await user.type(screen.getByLabelText(/Version label/), 'June 2026 edition');
+    await user.type(screen.getByLabelText(/Change summary/), 'New sub-processor.');
+    await user.type(screen.getByLabelText(/Objection consequence/), 'Your current tariff stays in effect.');
+    fireEvent.change(screen.getByLabelText(/Valid from/), { target: { value: '2026-07-01' } });
+    await user.click(screen.getByRole('button', { name: 'Create draft' }));
+
+    expect(mutate).toHaveBeenCalledTimes(1);
+    const input = lastInput();
+    expect(input.acceptanceMode).toBe('PASSIVE');
+    expect(input.objectionConsequence).toBe('Your current tariff stays in effect.');
+  });
+
+  it('ACTIVE: does not send an objection consequence (field is PASSIVE-only)', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<NewVersionDialog document={doc} open onClose={() => {}} />);
+
+    await selectPdf(user);
+    await user.type(screen.getByLabelText(/Version label/), 'June 2026 edition');
+    await user.type(screen.getByLabelText(/Change summary/), 'New sub-processor.');
+    await user.type(screen.getByLabelText(/Consent text/), 'I agree.');
+    fireEvent.change(screen.getByLabelText(/Acceptance deadline/), { target: { value: '2026-08-01' } });
+    fireEvent.change(screen.getByLabelText(/Valid from/), { target: { value: '2026-07-01' } });
+    await user.click(screen.getByRole('button', { name: 'Create draft' }));
+
+    expect(mutate).toHaveBeenCalledTimes(1);
+    expect(lastInput().objectionConsequence).toBeUndefined();
+  });
 });

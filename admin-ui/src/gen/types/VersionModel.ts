@@ -43,6 +43,11 @@ export type VersionModel = {
    */
   objectionPeriodDays?: number;
   /**
+   * @description PASSIVE only: shown on the acceptance page next to the objection button.
+   * @type string | undefined
+   */
+  objectionConsequence?: string;
+  /**
    * @description Deprecated: no longer drives ACTIVE blocking (legacy rows only).
    * @type number | undefined
    */

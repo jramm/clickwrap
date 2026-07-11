@@ -12,10 +12,16 @@ import { DomainError } from '../common/errors.js';
 import { acceptanceLinkTokenHash } from '../domain/acceptance-links.js';
 import { PLUGIN_DI_TOKENS, type AcceptancePageRenderer } from '../plugin-sdk/index.js';
 import type { AcceptanceResponse } from '../consent/acceptance.service.js';
+import type { ObjectionResponse } from '../consent/objection.service.js';
 import { ZodBodyPipe } from '../consent/dto.js';
 import { AcceptPageService } from './accept-page.service.js';
-import { linkAcceptanceBodySchema, type LinkAcceptanceBody } from './dto.js';
-import { LinkAcceptanceBodyModel, LinkAcceptanceResponseModel } from './openapi.models.js';
+import { linkAcceptanceBodySchema, linkObjectionBodySchema, type LinkAcceptanceBody, type LinkObjectionBody } from './dto.js';
+import {
+  LinkAcceptanceBodyModel,
+  LinkAcceptanceResponseModel,
+  LinkObjectionBodyModel,
+  LinkObjectionResponseModel,
+} from './openapi.models.js';
 import { resolveAcceptPageLang } from './i18n.js';
 import { SlidingWindowRateLimiter } from './rate-limiter.js';
 
@@ -99,6 +105,40 @@ export class AcceptPageController {
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
       idempotencyKey: idempotencyKey?.trim() ? idempotencyKey : undefined,
+    });
+  }
+
+  @Post(':token/objections')
+  @ApiOperation({
+    summary: 'Raise an objection from the hosted page (link token = auth, reason required)',
+    description:
+      'Objection (Widerspruch) for a PASSIVE version within its objection period, through the SAME ' +
+      'ObjectionService as the portal path (period check, conditional transition, escalation note on ' +
+      'expiry). A reason is required; the actor is `link:<linkId>` plus the optional self-declared signer.',
+  })
+  @ApiParam({ name: 'token', description: 'Capability token from the minted acceptance-link URL.' })
+  @ApiBody({ type: LinkObjectionBodyModel })
+  @ApiCreatedResponse({ type: LinkObjectionResponseModel })
+  @ApiErrorResponses({
+    400: 'Body validation failed (reason required / strict schema).',
+    404: 'LINK_NOT_FOUND (unknown/expired/revoked — uniform) · VERSION_NOT_FOUND',
+    422: 'OBJECTION_NOT_APPLICABLE · OBJECTION_PERIOD_EXPIRED · INVALID_STATE',
+    429: 'RATE_LIMITED (per-token, in-memory MVP limit).',
+  })
+  @HttpCode(201)
+  async object(
+    @Param('token') token: string,
+    @Body(new ZodBodyPipe(linkObjectionBodySchema)) body: LinkObjectionBody,
+    @Req() req: Request,
+  ): Promise<ObjectionResponse> {
+    this.assertWithinRateLimit(token);
+    return this.pageService.object(token, {
+      versionId: body.versionId,
+      reason: body.reason,
+      signerName: body.signerName,
+      signerEmail: body.signerEmail,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
     });
   }
 

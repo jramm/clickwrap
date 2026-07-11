@@ -15,6 +15,9 @@ export const versionModelSchema = z.object({
   changeSummary: z.string(),
   consentText: z.optional(z.string().describe('Exact checkbox consent text (ACTIVE only).')),
   objectionPeriodDays: z.optional(z.number().describe('PASSIVE only: objection period in days.')),
+  objectionConsequence: z.optional(
+    z.string().describe('PASSIVE only: shown on the acceptance page next to the objection button.'),
+  ),
   gracePeriodDays: z.optional(
     z.number().describe('Deprecated: no longer drives ACTIVE blocking (legacy rows only).'),
   ),

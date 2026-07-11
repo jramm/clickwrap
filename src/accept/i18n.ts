@@ -27,6 +27,13 @@ export interface AcceptPageStrings {
   passiveInfo: string;
   /** Button on a PASSIVE item to opt in early, before the objection deadline (no consent checkbox). */
   passiveAcceptButton: string;
+  /** PASSIVE only — objection ("Widerspruch") UI on the acceptance page (#30). */
+  objectButton: string;
+  objectionReasonLabel: string;
+  objectionReasonPlaceholder: string;
+  objectionConsequenceLabel: string;
+  objectedBadge: string;
+  errorObjectionReasonRequired: string;
   acceptButton: string;
   acceptedBadge: string;
   allDoneTitle: string;
@@ -62,6 +69,12 @@ export const ACCEPT_PAGE_STRINGS: Record<AcceptPageLang, AcceptPageStrings> = {
     passiveInfo:
       'This document takes effect automatically unless an objection is raised before the deadline. No action is required here.',
     passiveAcceptButton: 'Accept now',
+    objectButton: 'Object to this document',
+    objectionReasonLabel: 'Reason for your objection (required)',
+    objectionReasonPlaceholder: 'Please state why you object…',
+    objectionConsequenceLabel: 'What objecting means',
+    objectedBadge: 'Objection recorded — thank you.',
+    errorObjectionReasonRequired: 'Please state a reason for your objection.',
     acceptButton: 'I agree — accept',
     acceptedBadge: 'Accepted — thank you!',
     allDoneTitle: 'Everything is accepted',
@@ -96,6 +109,12 @@ export const ACCEPT_PAGE_STRINGS: Record<AcceptPageLang, AcceptPageStrings> = {
     passiveInfo:
       'Dieses Dokument tritt automatisch in Kraft, sofern nicht vor Ablauf der Frist widersprochen wird. Hier ist keine Aktion erforderlich.',
     passiveAcceptButton: 'Jetzt akzeptieren',
+    objectButton: 'Diesem Dokument widersprechen',
+    objectionReasonLabel: 'Grund für Ihren Widerspruch (erforderlich)',
+    objectionReasonPlaceholder: 'Bitte begründen Sie Ihren Widerspruch…',
+    objectionConsequenceLabel: 'Was ein Widerspruch bedeutet',
+    objectedBadge: 'Widerspruch erfasst — vielen Dank.',
+    errorObjectionReasonRequired: 'Bitte geben Sie einen Grund für Ihren Widerspruch an.',
     acceptButton: 'Ich stimme zu — akzeptieren',
     acceptedBadge: 'Akzeptiert — vielen Dank!',
     allDoneTitle: 'Alles akzeptiert',

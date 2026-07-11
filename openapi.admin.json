@@ -2374,6 +2374,11 @@
             "example": 14,
             "description": "PASSIVE only: objection period in days."
           },
+          "objectionConsequence": {
+            "type": "string",
+            "example": "If you object, your existing terms remain in force and we may contact you about the change.",
+            "description": "PASSIVE only: shown on the acceptance page next to the objection button."
+          },
           "gracePeriodDays": {
             "type": "number",
             "example": 14,
@@ -2535,6 +2540,11 @@
             "example": 14,
             "description": "PASSIVE only: objection period in days."
           },
+          "objectionConsequence": {
+            "type": "string",
+            "example": "If you object, your existing terms remain in force and we may contact you about the change.",
+            "description": "PASSIVE only: shown on the acceptance page next to the objection button."
+          },
           "gracePeriodDays": {
             "type": "number",
             "example": 14,
@@ -2636,6 +2646,10 @@
           },
           "objectionPeriodDays": {
             "type": "number"
+          },
+          "objectionConsequence": {
+            "type": "string",
+            "description": "PASSIVE only: objection consequence text for the acceptance page."
           },
           "gracePeriodDays": {
             "type": "number"

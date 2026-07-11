@@ -16,6 +16,8 @@ export interface CreateDraftInput {
   acceptanceMode: AcceptanceMode;
   consentText?: string;
   objectionPeriodDays?: number;
+  /** PASSIVE only: text shown on the acceptance page explaining what objecting means. */
+  objectionConsequence?: string;
   gracePeriodDays?: number;
   /** ACTIVE only: absolute calendar acceptance deadline (must be >= validFrom). */
   hardDeadlineAt?: Date;
@@ -32,6 +34,7 @@ export type PatchDraftInput = Partial<
     | 'acceptanceMode'
     | 'consentText'
     | 'objectionPeriodDays'
+    | 'objectionConsequence'
     | 'gracePeriodDays'
     | 'hardDeadlineAt'
     | 'validFrom'
@@ -81,6 +84,7 @@ export class VersionService {
       status: 'DRAFT',
       acceptanceMode: input.acceptanceMode,
       objectionPeriodDays: input.objectionPeriodDays,
+      objectionConsequence: input.objectionConsequence,
       gracePeriodDays: input.gracePeriodDays,
       hardDeadlineAt: input.hardDeadlineAt,
       changeSummary: input.changeSummary,

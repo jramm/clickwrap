@@ -118,6 +118,57 @@ describe('renderAcceptPage', () => {
     expect(html).toContain('Jetzt akzeptieren');
   });
 
+  it('objectable items (#30) render the object button, a required reason field and the consequence text (en + de)', () => {
+    const item = anItem({
+      mode: 'PASSIVE',
+      consentText: undefined,
+      canObject: true,
+      objectionConsequence: 'Your current tariff stays in effect while we clarify next steps.',
+    });
+    const en = renderAcceptPage(aView({ items: [item] }), 'en');
+    expect(en).toContain('data-objection-card');
+    expect(en).toContain('>Object to this document<');
+    expect(en).toContain('<textarea');
+    expect(en).toContain('What objecting means');
+    expect(en).toContain('Your current tariff stays in effect while we clarify next steps.');
+    // The reason strings are transported to the inline JS via the JSON data block.
+    expect(en).toContain('Please state a reason for your objection.');
+
+    const de = renderAcceptPage(aView({ items: [item] }), 'de');
+    expect(de).toContain('Diesem Dokument widersprechen');
+    expect(de).toContain('Was ein Widerspruch bedeutet');
+  });
+
+  it('does not render objection UI for items that cannot be objected to', () => {
+    const html = renderAcceptPage(aView({ items: [anItem({ mode: 'PASSIVE', consentText: undefined })] }), 'en');
+    // The attribute selectors live in the inline JS regardless; assert the rendered markup is absent.
+    expect(html).not.toContain('<div class="objection"');
+    expect(html).not.toContain('>Object to this document<');
+    expect(html).not.toContain('<textarea');
+  });
+
+  it('escapes HTML in the objection consequence text', () => {
+    const html = renderAcceptPage(
+      aView({
+        items: [
+          anItem({ mode: 'PASSIVE', consentText: undefined, canObject: true, objectionConsequence: '<b>bad</b>' }),
+        ],
+      }),
+      'en',
+    );
+    expect(html).not.toContain('<b>bad</b>');
+    expect(html).toContain('&lt;b&gt;bad&lt;/b&gt;');
+  });
+
+  it('renders the objection reason field even without a consequence text', () => {
+    const html = renderAcceptPage(
+      aView({ items: [anItem({ mode: 'PASSIVE', consentText: undefined, canObject: true })] }),
+      'en',
+    );
+    expect(html).toContain('data-object-button');
+    expect(html).not.toContain('What objecting means'); // consequence label omitted when no text
+  });
+
   it('blocking items carry the block warning', () => {
     const html = renderAcceptPage(aView({ items: [anItem({ blocking: true })] }), 'en');
     expect(html).toContain('Access is currently blocked');

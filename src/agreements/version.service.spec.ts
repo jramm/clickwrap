@@ -104,6 +104,22 @@ describe('VersionService', () => {
       await expectCode(service.createDraft(draftInput({ documentId: 'doc-unknown' })), 'INVALID_STATE');
       expect((await events.query({})).total).toBe(0);
     });
+
+    it('persists the PASSIVE objectionConsequence text (#30)', async () => {
+      const version = await service.createDraft(
+        draftInput({
+          acceptanceMode: 'PASSIVE',
+          consentText: undefined,
+          hardDeadlineAt: undefined,
+          objectionPeriodDays: 14,
+          objectionConsequence: 'Your current tariff stays in effect while we clarify next steps.',
+        }),
+      );
+      expect(version.objectionConsequence).toBe('Your current tariff stays in effect while we clarify next steps.');
+      expect((await versions.findById(version.id))?.objectionConsequence).toBe(
+        'Your current tariff stays in effect while we clarify next steps.',
+      );
+    });
   });
 
   describe('patchDraft', () => {

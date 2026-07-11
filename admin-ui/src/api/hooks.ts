@@ -308,6 +308,8 @@ export interface CreateVersionInput {
   validFrom: string;
   consentText?: string;
   objectionPeriodDays?: number;
+  /** PASSIVE only: consequence text shown next to the objection button on the acceptance page. */
+  objectionConsequence?: string;
   /** ACTIVE only: absolute acceptance deadline as a full ISO date-time (>= validFrom). */
   hardDeadlineAt?: string;
 }
@@ -332,6 +334,8 @@ export function useCreateVersion() {
       if (input.consentText) form.set('consentText', input.consentText);
       if (input.objectionPeriodDays !== undefined)
         form.set('objectionPeriodDays', String(input.objectionPeriodDays));
+      if (input.objectionConsequence !== undefined)
+        form.set('objectionConsequence', input.objectionConsequence);
       if (input.hardDeadlineAt !== undefined) form.set('hardDeadlineAt', input.hardDeadlineAt);
       return apiRequest(`/admin/documents/${input.documentId}/versions`, {
         method: 'POST',

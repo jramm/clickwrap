@@ -175,6 +175,8 @@
     "consentText": "Einwilligungstext (Checkbox-Text, versioniert)",
     "hardDeadlineAt": "Zustimmungsfrist (bis dahin müssen alle Kunden zustimmen)",
     "objectionPeriodDays": "Widerspruchsfrist (Tage)",
+    "objectionConsequence": "Folge eines Widerspruchs (dem Kunden angezeigt, optional)",
+    "objectionConsequencePlaceholder": "z. B. Bei Widerspruch bleibt Ihr aktueller Tarif bestehen; wir melden uns zur Abstimmung des weiteren Vorgehens.",
     "validFrom": "Gültig ab",
     "createDraft": "Entwurf anlegen",
     "validationFile": "Bitte eine PDF-Datei auswählen.",

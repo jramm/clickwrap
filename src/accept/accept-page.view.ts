@@ -53,6 +53,12 @@ const STYLES = `
   button { width: 100%; padding: 0.75rem 1rem; font-size: 1rem; font-weight: 600; border: 0;
            border-radius: 0.5rem; background: #1d4f91; color: #fff; cursor: pointer; }
   button:disabled { background: #9fb4cc; cursor: not-allowed; }
+  button.secondary { background: #fff; color: #8a1c12; border: 1px solid #e2b3ae; }
+  button.secondary:disabled { background: #fff; color: #b79490; border-color: #ecd6d4; cursor: not-allowed; }
+  .objection { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #dde3e9; }
+  .objection label { display: block; font-size: 0.875rem; margin-bottom: 0.25rem; }
+  .objection textarea { width: 100%; padding: 0.6rem 0.7rem; font-size: 1rem; font-family: inherit;
+           border: 1px solid #c3ccd4; border-radius: 0.5rem; background: #fff; margin-bottom: 0.5rem; resize: vertical; }
   a.pdf { display: inline-block; margin: 0.25rem 0 0.5rem; color: #1d4f91; font-weight: 600; }
   .msg-error { color: #8a1c12; font-size: 0.875rem; margin: 0.5rem 0 0; }
   .accepted { background: #e8f5ec; border: 1px solid #bfe3c8; color: #1d6b34;
@@ -106,6 +112,21 @@ const renderItem = (item: AcceptPageItem, s: AcceptPageStrings, lang: AcceptPage
   } else {
     action = `<div class="info">${escapeHtml(s.passiveInfo)}</div>`;
   }
+  // PASSIVE, in-effect items can be objected to (#30): the version-specific consequence text + a
+  // required reason + an object button. Its own message element so it never clashes with accept.
+  const objection = item.canObject
+    ? `<div class="objection" data-objection-card data-version-id="${escapeHtml(item.versionId)}">
+      ${
+        item.objectionConsequence
+          ? `<div class="info"><strong>${escapeHtml(s.objectionConsequenceLabel)}:</strong> ${escapeHtml(item.objectionConsequence)}</div>`
+          : ''
+      }
+      <label for="objection-reason-${escapeHtml(item.versionId)}">${escapeHtml(s.objectionReasonLabel)}</label>
+      <textarea id="objection-reason-${escapeHtml(item.versionId)}" data-objection-reason rows="2" placeholder="${escapeHtml(s.objectionReasonPlaceholder)}"></textarea>
+      <button type="button" class="secondary" data-object-button>${escapeHtml(s.objectButton)}</button>
+      <p class="msg-error" data-objection-message hidden></p>
+    </div>`
+    : '';
   return `<section class="card" data-accept-card data-version-id="${escapeHtml(item.versionId)}">
     <h2>${escapeHtml(item.documentName)}</h2>
     <p class="meta">${escapeHtml(s.versionLabel)}: ${escapeHtml(item.versionLabel)}${deadline}</p>
@@ -114,6 +135,7 @@ const renderItem = (item: AcceptPageItem, s: AcceptPageStrings, lang: AcceptPage
     <p><strong>${escapeHtml(s.changeSummary)}:</strong> ${escapeHtml(item.changeSummary)}</p>
     <a class="pdf" href="${escapeHtml(item.pdfUrl)}" target="_blank" rel="noopener">${escapeHtml(s.openPdf)}</a>
     ${action}
+    ${objection}
   </section>`;
 };
 
@@ -196,6 +218,75 @@ const PAGE_SCRIPT = `
         });
     });
   });
+
+  // Objection (#30): PASSIVE, in-effect items carry an object button + required reason. Same signer
+  // block, same idempotency + rate-limit handling, but POSTs to <path>/objections.
+  function markObjected(card, text) {
+    var button = card.querySelector('[data-object-button]');
+    var reason = card.querySelector('[data-objection-reason]');
+    var reasonLabel = card.querySelector('label');
+    if (button) button.remove();
+    if (reason) reason.remove();
+    if (reasonLabel) reasonLabel.remove();
+    var done = document.createElement('div');
+    done.className = 'accepted';
+    done.textContent = text;
+    card.appendChild(done);
+  }
+
+  document.querySelectorAll('[data-objection-card]').forEach(function (card) {
+    var button = card.querySelector('[data-object-button]');
+    if (!button) return;
+    var versionId = card.getAttribute('data-version-id');
+    var reasonEl = card.querySelector('[data-objection-reason]');
+    var message = card.querySelector('[data-objection-message]');
+
+    function showError(text) {
+      message.textContent = text;
+      message.hidden = false;
+    }
+
+    button.addEventListener('click', function () {
+      message.hidden = true;
+      var reason = (reasonEl.value || '').trim();
+      if (!reason) return showError(data.strings.errorObjectionReasonRequired);
+      var signerName = (nameInput.value || '').trim();
+      var signerEmail = (emailInput.value || '').trim();
+      // Signer is optional for an objection, but an e-mail, if given, must be well-formed
+      // (the server rejects a malformed one) — surface that here rather than as a generic error.
+      if (signerEmail && !emailPattern.test(signerEmail)) return showError(data.strings.errorInvalidEmail);
+
+      button.disabled = true;
+      var idempotencyKey = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+      var body = { versionId: versionId, reason: reason };
+      if (signerName) body.signerName = signerName;
+      if (signerEmail) body.signerEmail = signerEmail;
+      fetch(window.location.pathname.replace(/\\/$/, '') + '/objections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+        body: JSON.stringify(body),
+      })
+        .then(function (response) {
+          if (response.ok) return { ok: true };
+          return response.json().then(
+            function (b) { return { ok: false, code: b && b.code }; },
+            function () { return { ok: false }; }
+          );
+        })
+        .then(function (result) {
+          if (result.ok) return markObjected(card, data.strings.objectedBadge);
+          button.disabled = false;
+          if (result.code === 'RATE_LIMITED') return showError(data.strings.errorRateLimited);
+          showError(data.strings.errorGeneric);
+        })
+        .catch(function () {
+          button.disabled = false;
+          showError(data.strings.errorGeneric);
+        });
+    });
+  });
 })();
 `;
 
@@ -248,6 +339,8 @@ export const renderAcceptPage = (view: AcceptPageView, lang: AcceptPageLang): st
       errorVersionNotCurrent: s.errorVersionNotCurrent,
       errorRateLimited: s.errorRateLimited,
       errorGeneric: s.errorGeneric,
+      objectedBadge: s.objectedBadge,
+      errorObjectionReasonRequired: s.errorObjectionReasonRequired,
     },
   });
 
