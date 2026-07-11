@@ -9,6 +9,7 @@ import { DomainErrorFilter } from './common/http/domain-error.filter.js';
 import { ComplianceModule } from './compliance/compliance.module.js';
 import { ConsentModule } from './consent/consent.module.js';
 import { EventsModule } from './events/events.module.js';
+import { HealthModule } from './health/health.module.js';
 import { LegalEntitiesModule } from './legal-entities/legal-entities.module.js';
 import { RepositoryModule } from './persistence/repository.module.js';
 import { EmailModule } from './plugins/email/email.module.js';
@@ -46,6 +47,7 @@ import { SweeperModule } from './sweeper/sweeper.module.js';
     SweeperModule,
     AdminModule,
     EventsModule,
+    HealthModule,
     LegalEntitiesModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: DomainErrorFilter }],

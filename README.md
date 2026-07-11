@@ -381,6 +381,29 @@ first start (see Quickstart). The admin UI production build ships inside the ima
 `VITE_API_URL` as a build arg when the API origin differs). The backend deliberately does not serve
 static files.
 
+### Full stack via docker-compose
+
+`docker compose up --build` runs the whole thing locally: Postgres, a one-shot `migrate` step
+(`prisma db push` + the partial unique index), the backend, and an `nginx` container that serves
+the admin UI and reverse-proxies the admin API **same-origin**:
+
+- **Admin UI** → `http://localhost:8080` (log in with `ADMIN_API_TOKEN`, `dev-admin-token` by default).
+- **Public/integration API + hosted acceptance page** → `http://localhost:3000` (= `PUBLIC_BASE_URL`).
+
+Two surfaces on purpose: nginx (`deploy/nginx/clickwrap-admin.conf`) serves the SPA at `/` and
+reverse-proxies the **entire backend under `/api/*`** (the admin UI is built with `VITE_API_URL=/api`;
+nginx strips the prefix). Because the SPA owns every non-`/api` path, its client-side routes
+(`/customers`, `/documents`, …) never collide with the backend's controllers of the same name — and
+no future backend route can either. Same-origin, so no CORS. The reverse-proxy image is a dedicated
+Dockerfile target: `docker build --target adminui-nginx --build-arg VITE_API_URL=/api -t clickwrap-admin-nginx .`.
+
+### Health probes
+
+`GET /health` is a cheap liveness check (no I/O); `GET /health/ready` is readiness — it pings the
+database with the `prisma` driver (503 when the DB is down) and is a no-op with `inmemory`. Wire
+these into your orchestrator's `livenessProbe` / `readinessProbe` (see the compose `backend`
+healthcheck for an example).
+
 CI (GitHub Actions) runs on every push/PR: backend lint/unit/build, **Prisma integration tests
 against a real Postgres 16 service container** (verifying the partial-unique-index and
 atomic-transition guarantees), OpenAPI/kubb drift checks, and the admin-ui suite.

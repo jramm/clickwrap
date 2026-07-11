@@ -1,10 +1,20 @@
+# Local full-stack clickwrap-server: Postgres + backend (:3000, public/integration surface incl.
+# the hosted acceptance page) + nginx serving the admin-ui SPA and reverse-proxying the admin API
+# same-origin (:8080). Mirrors the intended two-surface topology (public host = backend,
+# admin host = nginx) used for the tier2/k8s deployment.
+#
+# Quick start:  docker compose up --build
+#   Admin UI:   http://localhost:8080         (login with ADMIN_API_TOKEN below)
+#   Public API + hosted acceptance page:       http://localhost:3000  (= PUBLIC_BASE_URL)
+#   Swagger:    http://localhost:3000/docs/admin , /docs/integration
+#
+# The tokens/secrets below are DEV-ONLY throwaway values — never reuse them anywhere real.
+
 services:
   postgres:
     image: postgres:16
     restart: unless-stopped
     environment:
-      # Must match DATABASE_URL in .env.example:
-      # postgresql://clickwrap:clickwrap@localhost:5432/clickwrap
       POSTGRES_USER: clickwrap
       POSTGRES_PASSWORD: clickwrap
       POSTGRES_DB: clickwrap
@@ -18,5 +28,90 @@ services:
       timeout: 5s
       retries: 10
 
+  # One-shot schema sync: `prisma db push` + the partial unique index that Prisma cannot express
+  # declaratively (see prisma/partial-indexes.sql). The REVOKE/GRANT append-only hardening from
+  # that file is intentionally omitted here — with the single-owner dev role it is a no-op.
+  migrate:
+    build:
+      context: .
+    image: clickwrap-server:local
+    environment:
+      REPOSITORY_DRIVER: prisma
+      DATABASE_URL: postgresql://clickwrap:clickwrap@postgres:5432/clickwrap
+    command:
+      - sh
+      - -c
+      - |
+        node_modules/.bin/prisma db push &&
+        printf '%s' 'CREATE UNIQUE INDEX IF NOT EXISTS "Acceptance_customerId_versionId_effective_key" ON "Acceptance" ("customerId","versionId") WHERE "isEffective";' \
+          | node_modules/.bin/prisma db execute --stdin --schema prisma/schema.prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  backend:
+    build:
+      context: .
+    image: clickwrap-server:local
+    restart: unless-stopped
+    environment:
+      REPOSITORY_DRIVER: prisma
+      DATABASE_URL: postgresql://clickwrap:clickwrap@postgres:5432/clickwrap
+      PORT: '3000'
+      # Public surface base (hosted acceptance links + document URLs are built from this).
+      PUBLIC_BASE_URL: http://localhost:3000
+      APP_NAME: Clickwrap (local)
+      # Admin UI is served same-origin by nginx → no CORS needed (ADMIN_UI_ORIGINS unset).
+      ADMIN_AUTH: static-token
+      ADMIN_API_TOKEN: dev-admin-token
+      SERVICE_API_TOKEN: dev-service-token
+      ACCEPTANCE_LINK_SECRET: dev-acceptance-link-secret
+      EMAIL_PROVIDER: noop
+      EMAIL_FROM: clickwrap@example.test
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_DIR: /data/files
+      FILE_STORAGE_LOCAL_SECRET: dev-file-storage-secret
+      OPENAPI_DOCS_ENABLED: 'true'
+    ports:
+      - '3000:3000'
+    volumes:
+      - clickwrap-file-storage:/data/files
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      # node:slim ships neither curl nor wget; Node 26 has global fetch.
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Admin surface: serves the admin-ui SPA and reverse-proxies /admin, /files, /health, /docs to
+  # the backend same-origin (config: deploy/nginx/clickwrap-admin.conf).
+  nginx:
+    build:
+      context: .
+      target: adminui-nginx
+      args:
+        # The served admin-ui calls the backend under /api (nginx strips the prefix). Baked at
+        # build time into the SPA (see deploy/nginx/clickwrap-admin.conf).
+        VITE_API_URL: /api
+    image: clickwrap-admin-nginx:local
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   clickwrap-postgres-data:
+  clickwrap-file-storage:

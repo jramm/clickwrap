@@ -29,6 +29,15 @@ ARG VITE_API_URL=/
 ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm build
 
+# ---------- admin-ui reverse proxy (optional target) ----------
+# Serves the built admin-ui SPA and proxies the admin-facing backend paths (see
+# deploy/nginx/clickwrap-admin.conf). Placed BEFORE the runtime stage so the DEFAULT build target
+# stays the backend image (`docker build .` and release.yml are unaffected); build this image
+# explicitly with `--target adminui-nginx`.
+FROM nginx:1.27-alpine AS adminui-nginx
+COPY --from=adminui-build /ui/dist /usr/share/nginx/html
+COPY deploy/nginx/clickwrap-admin.conf /etc/nginx/conf.d/default.conf
+
 # ---------- runtime ----------
 FROM node:26-slim
 WORKDIR /app
@@ -42,6 +51,9 @@ RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends openssl
 COPY --from=backend-build /app/node_modules ./node_modules
 COPY --from=backend-build /app/dist ./dist
 COPY --from=backend-build /app/prisma ./prisma
+# prisma.config.ts holds the Prisma 7 datasource URL (from DATABASE_URL) used by the CLI — needed
+# so the image can run `prisma db push` itself (docker-compose `migrate` service, k8s pre-deploy Job).
+COPY prisma.config.ts ./
 COPY package.json ./
 COPY openapi.admin.json openapi.integration.json ./
 # Legal-entities config — reconciled at boot (LEGAL_ENTITIES_CONFIG overrides the path).

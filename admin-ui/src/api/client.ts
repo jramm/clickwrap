@@ -39,7 +39,10 @@ interface RequestOptions<T> {
 }
 
 function buildUrl(path: string, query?: RequestOptions<unknown>['query']): string {
-  const url = new URL(`${API_URL}${path}`, API_URL || window.location.origin);
+  // Base is always the page origin so a RELATIVE VITE_API_URL sub-path (e.g. "/api", used when a
+  // reverse proxy serves the backend under /api/*) resolves correctly. An ABSOLUTE VITE_API_URL
+  // still wins because `${API_URL}${path}` is then already absolute and the base is ignored.
+  const url = new URL(`${API_URL}${path}`, window.location.origin);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined && value !== '') url.searchParams.set(key, String(value));

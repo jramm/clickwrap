@@ -42,7 +42,9 @@ export type Client = <TResponseData, _TError = unknown, TRequestData = unknown>(
 
 function buildUrl(config: RequestConfig): string {
   const base = config.baseURL ?? API_URL;
-  const url = new URL(`${base}${config.url ?? ''}`, base || window.location.origin);
+  // Origin as the URL base so a relative sub-path base (e.g. "/api") resolves; an absolute base
+  // still wins via the already-absolute first argument. (Mirrors client.ts buildUrl.)
+  const url = new URL(`${base}${config.url ?? ''}`, window.location.origin);
   const params = config.params;
   if (params && typeof params === 'object') {
     for (const [key, value] of Object.entries(params as Record<string, unknown>)) {
