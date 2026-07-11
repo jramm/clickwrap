@@ -1,5 +1,5 @@
-import { aSignedDocument } from '../../domain/testing/fixtures';
-import { InMemorySignedDocumentRepo } from './signed-document.repo';
+import { aSignedDocument } from '../../domain/testing/fixtures.js';
+import { InMemorySignedDocumentRepo } from './signed-document.repo.js';
 
 describe('InMemorySignedDocumentRepo', () => {
   let repo: InMemorySignedDocumentRepo;

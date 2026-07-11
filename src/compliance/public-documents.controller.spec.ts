@@ -6,16 +6,16 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { FixedClock } from '../domain/clock';
-import { aDocument, aState, aVersion } from '../domain/testing/fixtures';
+import { FixedClock } from '../domain/clock.js';
+import { aDocument, aState, aVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerVersionStateRepo,
-} from '../persistence/inmemory';
-import { PublicDocumentsController } from './public-documents.controller';
-import { PublicDocumentsService } from './public-documents.service';
-import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider';
+} from '../persistence/inmemory/index.js';
+import { PublicDocumentsController } from './public-documents.controller.js';
+import { PublicDocumentsService } from './public-documents.service.js';
+import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const FLIP = new Date('2026-08-01T00:00:00Z');

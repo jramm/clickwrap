@@ -1,5 +1,5 @@
-import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory';
-import type { OutboundEmail } from './outbound-email';
+import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory.js';
+import type { OutboundEmail } from './outbound-email.js';
 
 const anEmail = (overrides: Partial<OutboundEmail> = {}): OutboundEmail => ({
   providerRef: 'ref-1',

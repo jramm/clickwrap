@@ -10,16 +10,16 @@
  * IdempotencyStore, OutboundEmailRepo, ESCALATION_LOG) without their own imports.
  */
 import { Global, Module, type DynamicModule, type Provider } from '@nestjs/common';
-import { ADMIN_AUDIT_TOKEN, InMemoryAdminAuditRepo } from '../agreements/audit';
-import { ESCALATION_LOG } from '../common/escalation/escalation-log';
-import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory';
-import { InMemoryIdempotencyStore } from '../consent/inmemory';
-import { CONSENT_TOKENS } from '../consent/ports';
-import { EventRecorder } from '../events/event-recorder';
-import { SystemClock } from '../domain/clock';
-import type { AgreementDocumentRepo, CustomerRepo, DocumentTypeRepo } from '../domain/ports';
-import { EMAIL_TOKENS } from '../plugins/email/core/email-delivery-provider';
-import { InMemoryOutboundEmailRepo } from '../plugins/email/core/outbound-email.repo.inmemory';
+import { ADMIN_AUDIT_TOKEN, InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { ESCALATION_LOG } from '../common/escalation/escalation-log.js';
+import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory.js';
+import { InMemoryIdempotencyStore } from '../consent/inmemory.js';
+import { CONSENT_TOKENS } from '../consent/ports.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { SystemClock } from '../domain/clock.js';
+import type { AgreementDocumentRepo, CustomerRepo, DocumentTypeRepo } from '../domain/ports.js';
+import { EMAIL_TOKENS } from '../plugins/email/core/email-delivery-provider.js';
+import { InMemoryOutboundEmailRepo } from '../plugins/email/core/outbound-email.repo.inmemory.js';
 import {
   InMemoryAcceptanceLinkRepo,
   InMemoryAcceptanceRepo,
@@ -34,9 +34,9 @@ import {
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
   InMemorySignedDocumentRepo,
-} from './inmemory';
-import { PersistenceModule } from './prisma/persistence.module';
-import { TOKENS } from './tokens';
+} from './inmemory/index.js';
+import { PersistenceModule } from './prisma/persistence.module.js';
+import { TOKENS } from './tokens.js';
 
 export type RepositoryDriver = 'inmemory' | 'prisma';
 

@@ -4,10 +4,10 @@
  * CRM); `findByRole` uses the Postgres array filter `has` on the audience-key array.
  */
 import { Injectable } from '@nestjs/common';
-import type { CustomerRepo } from '../../domain/ports';
-import type { Customer } from '../../domain/types';
-import { toDomain, toUpsertData } from './mappers/customer.mapper';
-import { PrismaService } from './prisma.service';
+import type { CustomerRepo } from '../../domain/ports.js';
+import type { Customer } from '../../domain/types.js';
+import { toDomain, toUpsertData } from './mappers/customer.mapper.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaCustomerRepo implements CustomerRepo {

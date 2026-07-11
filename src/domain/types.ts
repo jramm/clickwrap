@@ -2,7 +2,7 @@
  * Domain model of the agreement service.
  * Pure types/constants: no Nest/Prisma imports (CONVENTIONS: domain is pure).
  */
-import type { Actor } from '../common/auth/actor';
+import type { Actor } from '../common/auth/actor.js';
 
 /**
  * Dynamic document type ("terms", "dpa", ...). `key` is a URL-safe slug

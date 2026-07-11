@@ -1,7 +1,7 @@
-import { DomainError } from '../../common/errors';
-import type { AcceptanceLinkRepo } from '../../domain/ports';
-import type { AcceptanceLink } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import type { AcceptanceLinkRepo } from '../../domain/ports.js';
+import type { AcceptanceLink } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 export class InMemoryAcceptanceLinkRepo implements AcceptanceLinkRepo {
   private readonly links = new Map<string, AcceptanceLink>();

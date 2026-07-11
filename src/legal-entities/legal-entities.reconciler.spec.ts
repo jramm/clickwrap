@@ -1,10 +1,10 @@
-import { aDocument } from '../domain/testing/fixtures';
-import { InMemoryAgreementDocumentRepo } from '../persistence/inmemory/agreement-document.repo';
-import { InMemoryAudienceRepo } from '../persistence/inmemory/audience.repo';
-import { InMemoryCustomerRepo } from '../persistence/inmemory/customer.repo';
-import { InMemoryDocumentTypeRepo } from '../persistence/inmemory/document-type.repo';
-import type { LegalEntitiesConfig } from './legal-entities.config';
-import { LegalEntitiesReconciler } from './legal-entities.reconciler';
+import { aDocument } from '../domain/testing/fixtures.js';
+import { InMemoryAgreementDocumentRepo } from '../persistence/inmemory/agreement-document.repo.js';
+import { InMemoryAudienceRepo } from '../persistence/inmemory/audience.repo.js';
+import { InMemoryCustomerRepo } from '../persistence/inmemory/customer.repo.js';
+import { InMemoryDocumentTypeRepo } from '../persistence/inmemory/document-type.repo.js';
+import type { LegalEntitiesConfig } from './legal-entities.config.js';
+import { LegalEntitiesReconciler } from './legal-entities.reconciler.js';
 
 const demoConfig: LegalEntitiesConfig = {
   audiences: [

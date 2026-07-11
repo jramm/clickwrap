@@ -2,25 +2,25 @@ import { INestApplication, type CanActivate, type ExecutionContext } from '@nest
 import { Test } from '@nestjs/testing';
 import { createHash } from 'node:crypto';
 import request from 'supertest';
-import { ADMIN_AUDIT_TOKEN, InMemoryAdminAuditRepo } from '../agreements/audit';
-import { FileStoragePdfAdapter } from '../agreements/file-storage-pdf.adapter';
-import { AGREEMENTS_TOKENS } from '../agreements/ports';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
-import { aCustomer, aDocumentTypeDef, anAudience } from '../domain/testing/fixtures';
-import { InMemoryFileStorage } from '../plugins/file-storage/memory/in-memory-file-storage';
+import { ADMIN_AUDIT_TOKEN, InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { FileStoragePdfAdapter } from '../agreements/file-storage-pdf.adapter.js';
+import { AGREEMENTS_TOKENS } from '../agreements/ports.js';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
+import { aCustomer, aDocumentTypeDef, anAudience } from '../domain/testing/fixtures.js';
+import { InMemoryFileStorage } from '../plugins/file-storage/memory/in-memory-file-storage.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryDocumentTypeRepo,
   InMemorySignedDocumentRepo,
-} from '../persistence/inmemory';
-import { TOKENS } from '../persistence/tokens';
-import { SignedDocumentsAdminController } from './signed-documents-admin.controller';
-import { SignedDocumentsIntegrationController } from './signed-documents-integration.controller';
-import { SignedDocumentService } from './signed-document.service';
+} from '../persistence/inmemory/index.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { SignedDocumentsAdminController } from './signed-documents-admin.controller.js';
+import { SignedDocumentsIntegrationController } from './signed-documents-integration.controller.js';
+import { SignedDocumentService } from './signed-document.service.js';
 
 const T0 = new Date('2026-07-08T09:00:00Z');
 const PDF = Buffer.from('%PDF-1.7 signed offer');

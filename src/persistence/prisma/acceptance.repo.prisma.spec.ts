@@ -9,13 +9,13 @@
  * translation in acceptance.repo.ts (`ALREADY_ACCEPTED` vs. `INVALID_STATE`) matches the real
  * DB error message — this could not be executed in this environment without Postgres.
  */
-import { aCustomer, aDocument, anAcceptance, aVersion, testActor } from '../../domain/testing/fixtures';
-import { PrismaAcceptanceRepo } from './acceptance.repo';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaAgreementVersionRepo } from './agreement-version.repo';
-import { PrismaCustomerRepo } from './customer.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aCustomer, aDocument, anAcceptance, aVersion, testActor } from '../../domain/testing/fixtures.js';
+import { PrismaAcceptanceRepo } from './acceptance.repo.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaAgreementVersionRepo } from './agreement-version.repo.js';
+import { PrismaCustomerRepo } from './customer.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

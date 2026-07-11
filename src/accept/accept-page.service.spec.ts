@@ -1,5 +1,5 @@
-import { FixedClock } from '../domain/clock';
-import { acceptanceLinkTokenHash } from '../domain/acceptance-links';
+import { FixedClock } from '../domain/clock.js';
+import { acceptanceLinkTokenHash } from '../domain/acceptance-links.js';
 import {
   aCustomer,
   aDocument,
@@ -8,12 +8,12 @@ import {
   anAudience,
   aState,
   aVersion,
-} from '../domain/testing/fixtures';
-import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider';
-import { PendingAgreementsService } from '../compliance/pending-agreements.service';
-import { AcceptanceService } from '../consent/acceptance.service';
-import { NotificationService } from '../consent/notification.service';
-import { InMemoryIdempotencyStore, SequentialIdGenerator } from '../consent/inmemory';
+} from '../domain/testing/fixtures.js';
+import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider.js';
+import { PendingAgreementsService } from '../compliance/pending-agreements.service.js';
+import { AcceptanceService } from '../consent/acceptance.service.js';
+import { NotificationService } from '../consent/notification.service.js';
+import { InMemoryIdempotencyStore, SequentialIdGenerator } from '../consent/inmemory.js';
 import {
   InMemoryAcceptanceLinkRepo,
   InMemoryAcceptanceRepo,
@@ -23,8 +23,8 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryNotificationEventRepo,
-} from '../persistence/inmemory';
-import { AcceptPageService } from './accept-page.service';
+} from '../persistence/inmemory/index.js';
+import { AcceptPageService } from './accept-page.service.js';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
 const CONSENT_TEXT = 'I have read the new revision and agree.';

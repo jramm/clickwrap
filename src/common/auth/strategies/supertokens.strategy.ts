@@ -1,6 +1,6 @@
 import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
-import type { AdminAuthRequest, AdminAuthStrategy, AdminIdentity, LoginMethodDescriptor } from '../../../plugin-sdk';
-import { extractBearer } from './extract-bearer';
+import type { AdminAuthRequest, AdminAuthStrategy, AdminIdentity, LoginMethodDescriptor } from '../../../plugin-sdk/index.js';
+import { extractBearer } from './extract-bearer.js';
 
 export interface SupertokensStrategyOptions {
   /** JWKS endpoint of the SuperTokens core (e.g. https://st.example.org/auth/jwt/jwks.json). */

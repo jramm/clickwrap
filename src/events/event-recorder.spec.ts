@@ -1,12 +1,12 @@
-import { FixedClock } from '../domain/clock';
-import { aCustomer, aDocument, aVersion } from '../domain/testing/fixtures';
+import { FixedClock } from '../domain/clock.js';
+import { aCustomer, aDocument, aVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from './event-recorder';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from './event-recorder.js';
 
 const T0 = new Date('2026-07-09T10:00:00Z');
 

@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { timingSafeEqual } from 'crypto';
 import { Request } from 'express';
-import { CustomerContext } from './actor';
+import { CustomerContext } from './actor.js';
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a);

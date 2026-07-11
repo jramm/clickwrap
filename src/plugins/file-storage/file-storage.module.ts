@@ -13,10 +13,10 @@
  * see agreements.module.
  */
 import { Module, type DynamicModule, type Provider } from '@nestjs/common';
-import { PLUGIN_DI_TOKENS } from '../../plugin-sdk';
-import { createPluginContext } from '../registry/plugin-context';
-import { getPluginRegistry } from '../registry/plugin-registry';
-import { selectedFileStorageKey } from '../registry/selection';
+import { PLUGIN_DI_TOKENS } from '../../plugin-sdk/index.js';
+import { createPluginContext } from '../registry/plugin-context.js';
+import { getPluginRegistry } from '../registry/plugin-registry.js';
+import { selectedFileStorageKey } from '../registry/selection.js';
 
 @Module({})
 export class FileStorageModule {

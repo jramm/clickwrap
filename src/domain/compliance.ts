@@ -4,8 +4,8 @@
  * as long as the successor version has not been accepted); all other pending states are
  * compliant.
  */
-import { detailKey } from './keys';
-import { isBlocking } from './state-machine';
+import { detailKey } from './keys.js';
+import { isBlocking } from './state-machine.js';
 import type {
   AcceptanceMode,
   AgreementDocument,
@@ -13,7 +13,7 @@ import type {
   Customer,
   CustomerVersionState,
   CustomerVersionStateValue,
-} from './types';
+} from './types.js';
 
 /** Applicable revision per (type key, audience key) including its document bracket. */
 export interface CurrentVersionEntry {

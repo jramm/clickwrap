@@ -7,20 +7,20 @@
  * just the next). ACCEPTED/OBJECTED/SUPERSEDED never appear (nothing left to do or no block).
  */
 import { Inject, Injectable } from '@nestjs/common';
-import { DomainError } from '../common/errors';
-import type { Clock } from '../domain/clock';
-import { isBlocking } from '../domain/state-machine';
+import { DomainError } from '../common/errors.js';
+import type { Clock } from '../domain/clock.js';
+import { isBlocking } from '../domain/state-machine.js';
 import type {
   AgreementDocumentRepo,
   AgreementVersionRepo,
   AudienceRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
-import type { AcceptanceMode, CustomerVersionStateValue } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
-import { resolveAudienceKey } from './audience';
-import { PDF_URL_PROVIDER, type PdfUrlProvider } from './ports/pdf-url-provider';
+} from '../domain/ports.js';
+import type { AcceptanceMode, CustomerVersionStateValue } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { resolveAudienceKey } from './audience.js';
+import { PDF_URL_PROVIDER, type PdfUrlProvider } from './ports/pdf-url-provider.js';
 
 /** Open (non-terminal) states shown in the popup — ACCEPTED/OBJECTED/SUPERSEDED are not. */
 const OPEN_STATES: readonly CustomerVersionStateValue[] = ['PENDING_NOTIFICATION', 'NOTIFIED', 'EXPIRED_BLOCKING'];

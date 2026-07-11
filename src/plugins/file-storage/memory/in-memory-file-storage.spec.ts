@@ -1,4 +1,4 @@
-import { InMemoryFileStorage } from './in-memory-file-storage';
+import { InMemoryFileStorage } from './in-memory-file-storage.js';
 
 describe('InMemoryFileStorage', () => {
   it('retrieve returns the exact stored bytes (roundtrip)', async () => {

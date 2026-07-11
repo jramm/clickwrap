@@ -12,31 +12,31 @@ import type { Request } from 'express';
 import {
   AcceptanceLinkAdminService,
   type CreateAcceptanceLinkInput,
-} from '../accept/acceptance-link-admin.service';
+} from '../accept/acceptance-link-admin.service.js';
 import {
   CreateAcceptanceLinkBodyModel,
   CreateAcceptanceLinkResponseModel,
-} from '../accept/openapi.models';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { AdminAuth } from '../common/openapi/security.decorators';
-import { PublishService } from '../agreements/publish.service';
-import type { Actor } from '../common/auth/actor';
+} from '../accept/openapi.models.js';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { AdminAuth } from '../common/openapi/security.decorators.js';
+import { PublishService } from '../agreements/publish.service.js';
+import type { Actor } from '../common/auth/actor.js';
 import {
   CustomerAdminService,
   type ComplianceFilter,
   type CreateCustomerInput,
   type UpdateCustomerInput,
-} from '../customers/customer-admin.service';
-import { createCustomerBodySchema, updateCustomerBodySchema } from '../customers/dto';
+} from '../customers/customer-admin.service.js';
+import { createCustomerBodySchema, updateCustomerBodySchema } from '../customers/dto.js';
 import {
   CreateCustomerBodyModel,
   CreateCustomerResponseModel,
   CustomerListResponseModel,
   CustomerRowModel,
   UpdateCustomerBodyModel,
-} from '../customers/openapi.models';
-import { PublishResponseModel } from '../agreements/openapi.models';
+} from '../customers/openapi.models.js';
+import { PublishResponseModel } from '../agreements/openapi.models.js';
 import {
   CreateEmailTemplateBodyModel,
   CustomerHistoryResponseModel,
@@ -53,29 +53,29 @@ import {
   UpdateEmailTemplateBodyModel,
   VersionCustomersResponseModel,
   VersionStatsModel,
-} from './openapi.models';
-import { ZodBodyPipe } from '../consent/dto';
-import { AudienceAdminService } from './audience-admin.service';
-import { CustomerVersionStateAdminService } from './customer-version-state-admin.service';
-import { DocumentTypeAdminService } from './document-type-admin.service';
+} from './openapi.models.js';
+import { ZodBodyPipe } from '../consent/dto.js';
+import { AudienceAdminService } from './audience-admin.service.js';
+import { CustomerVersionStateAdminService } from './customer-version-state-admin.service.js';
+import { DocumentTypeAdminService } from './document-type-admin.service.js';
 import {
   EmailTemplateAdminService,
   type CreateEmailTemplateInput,
   type UpdateEmailTemplateInput,
-} from './email-template-admin.service';
+} from './email-template-admin.service.js';
 import {
   createEmailTemplateBodySchema,
   emailTemplatePreviewBodySchema,
   updateEmailTemplateBodySchema,
   type EmailTemplatePreviewBody,
-} from './email-template.dto';
-import { DashboardService } from './dashboard.service';
-import { HistoryService } from './history.service';
-import { ManualAcceptanceService } from './manual-acceptance.service';
+} from './email-template.dto.js';
+import { DashboardService } from './dashboard.service.js';
+import { HistoryService } from './history.service.js';
+import { ManualAcceptanceService } from './manual-acceptance.service.js';
 import {
   VersionCustomersService,
   type VersionCustomerFilterState,
-} from './version-customers.service';
+} from './version-customers.service.js';
 
 type AdminRequest = Request & { adminActor?: { userId: string } };
 

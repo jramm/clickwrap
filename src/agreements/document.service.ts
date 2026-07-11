@@ -1,14 +1,14 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { DomainError } from '../common/errors';
-import { latestPdfPath, publicBaseUrl } from '../common/public-documents';
-import { EventRecorder } from '../events/event-recorder';
-import { TOKENS } from '../persistence/tokens';
-import type { Clock } from '../domain/clock';
-import type { AgreementDocumentRepo, AgreementVersionRepo, AudienceRepo, DocumentTypeRepo } from '../domain/ports';
-import type { AgreementDocument } from '../domain/types';
-import { AGREEMENTS_TOKENS, type PdfStorage } from './ports';
-import { toVersionDto, type VersionDto } from './version.dto';
-import { newId } from './ids';
+import { DomainError } from '../common/errors.js';
+import { latestPdfPath, publicBaseUrl } from '../common/public-documents.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { Clock } from '../domain/clock.js';
+import type { AgreementDocumentRepo, AgreementVersionRepo, AudienceRepo, DocumentTypeRepo } from '../domain/ports.js';
+import type { AgreementDocument } from '../domain/types.js';
+import { AGREEMENTS_TOKENS, type PdfStorage } from './ports.js';
+import { toVersionDto, type VersionDto } from './version.dto.js';
+import { newId } from './ids.js';
 
 export interface CreateDocumentInput {
   /** Document type key (must exist in DocumentTypeRepo). */

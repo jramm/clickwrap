@@ -1,6 +1,6 @@
 import type { AcceptanceLink as PrismaAcceptanceLink, Prisma } from '@prisma/client';
-import type { AcceptanceLink } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { AcceptanceLink } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → domain type. */
 export const toDomain = (row: PrismaAcceptanceLink): AcceptanceLink => ({

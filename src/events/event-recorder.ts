@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import { newId } from '../agreements/ids';
-import type { Clock } from '../domain/clock';
-import { customerDisplayName } from '../domain/customer';
-import type { AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo, EventRepo } from '../domain/ports';
-import type { DomainEvent } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
+import { newId } from '../agreements/ids.js';
+import type { Clock } from '../domain/clock.js';
+import { customerDisplayName } from '../domain/customer.js';
+import type { AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo, EventRepo } from '../domain/ports.js';
+import type { DomainEvent } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
 
 /**
  * The caller-supplied part of a {@link DomainEvent}: everything except `id` and `occurredAt`, which

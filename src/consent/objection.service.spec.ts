@@ -1,17 +1,17 @@
-import type { CustomerContext } from '../common/auth/actor';
-import { FixedClock } from '../domain/clock';
-import { aDocument, anActiveVersion, aState, aVersion, testActor } from '../domain/testing/fixtures';
+import type { CustomerContext } from '../common/auth/actor.js';
+import { FixedClock } from '../domain/clock.js';
+import { aDocument, anActiveVersion, aState, aVersion, testActor } from '../domain/testing/fixtures.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
   InMemoryObjectionRepo,
-} from '../persistence/inmemory';
-import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory';
-import { ObjectionService } from './objection.service';
+} from '../persistence/inmemory/index.js';
+import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory.js';
+import { ObjectionService } from './objection.service.js';
 
 const NOTIFIED_AT = new Date('2026-07-01T00:00:00Z');
 const DEADLINE_AT = new Date('2026-07-15T00:00:00Z'); // notifiedAt + 14d (PASSIVE)

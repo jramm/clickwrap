@@ -5,10 +5,10 @@
  * acceptance evidence.
  */
 import { Inject, Injectable } from '@nestjs/common';
-import { DomainError } from '../common/errors';
-import type { Clock } from '../domain/clock';
-import { computeCompliance, type ComplianceDetail, type CurrentVersionEntry } from '../domain/compliance';
-import { detailKey } from '../domain/keys';
+import { DomainError } from '../common/errors.js';
+import type { Clock } from '../domain/clock.js';
+import { computeCompliance, type ComplianceDetail, type CurrentVersionEntry } from '../domain/compliance.js';
+import { detailKey } from '../domain/keys.js';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
@@ -16,10 +16,10 @@ import type {
   AudienceRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
-import type { AcceptanceMethod, AcceptanceMode, CustomerVersionStateValue } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
-import { resolveAudienceKey } from './audience';
+} from '../domain/ports.js';
+import type { AcceptanceMethod, AcceptanceMode, CustomerVersionStateValue } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { resolveAudienceKey } from './audience.js';
 
 /** Detail schema — no `compliant` field per entry (only the aggregate on top). */
 export interface ComplianceDetailResponse {

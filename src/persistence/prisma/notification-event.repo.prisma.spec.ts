@@ -3,14 +3,14 @@
  * src/persistence/inmemory/simple-repos.spec.ts (InMemoryNotificationEventRepo block). Runs only
  * with DATABASE_URL (see agreement-document.repo.prisma.spec.ts for details/invocation).
  */
-import { aCustomer, aDocument, aNotification, aState, aVersion } from '../../domain/testing/fixtures';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaAgreementVersionRepo } from './agreement-version.repo';
-import { PrismaCustomerRepo } from './customer.repo';
-import { PrismaCustomerVersionStateRepo } from './customer-version-state.repo';
-import { PrismaNotificationEventRepo } from './notification-event.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aCustomer, aDocument, aNotification, aState, aVersion } from '../../domain/testing/fixtures.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaAgreementVersionRepo } from './agreement-version.repo.js';
+import { PrismaCustomerRepo } from './customer.repo.js';
+import { PrismaCustomerVersionStateRepo } from './customer-version-state.repo.js';
+import { PrismaNotificationEventRepo } from './notification-event.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

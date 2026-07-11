@@ -10,7 +10,7 @@
  *    deadline explicitly does NOT start in this case). `inactivatedEmail` = postmark has
  *    permanently deactivated the recipient — do not e-mail the address again.
  */
-import type { Actor } from '../auth/actor';
+import type { Actor } from '../auth/actor.js';
 
 export type EscalationKind = 'OBJECTION_AFTER_PERIOD' | 'EMAIL_BOUNCE';
 

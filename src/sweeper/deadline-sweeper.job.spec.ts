@@ -1,6 +1,6 @@
-import type { ActivationSweeperService } from './activation-sweeper.service';
-import { DeadlineSweeperJob } from './deadline-sweeper.job';
-import type { DeadlineSweeperService } from './deadline-sweeper.service';
+import type { ActivationSweeperService } from './activation-sweeper.service.js';
+import { DeadlineSweeperJob } from './deadline-sweeper.job.js';
+import type { DeadlineSweeperService } from './deadline-sweeper.service.js';
 
 describe('DeadlineSweeperJob', () => {
   it('runs the activation sweep BEFORE the deadline sweep (SUPERSEDED before TACIT across the flip)', async () => {

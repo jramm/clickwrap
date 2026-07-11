@@ -1,28 +1,28 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { DomainError } from '../common/errors';
-import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
-import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
-import { AGREEMENTS_TOKENS, type PdfStorage, type PdfUpload } from '../agreements/ports';
-import { newId } from '../agreements/ids';
+import { DomainError } from '../common/errors.js';
+import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service.js';
+import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit.js';
+import { AGREEMENTS_TOKENS, type PdfStorage, type PdfUpload } from '../agreements/ports.js';
+import { newId } from '../agreements/ids.js';
 import {
   assertCustomerHasRole,
   assertMethodChannelAllowed,
   consentTextHashFor,
-} from '../domain/consent-rules';
-import { accept } from '../domain/state-machine';
-import { customerDisplayName } from '../domain/customer';
-import { EventRecorder } from '../events/event-recorder';
-import { TOKENS } from '../persistence/tokens';
-import type { Actor } from '../common/auth/actor';
-import type { Clock } from '../domain/clock';
+} from '../domain/consent-rules.js';
+import { accept } from '../domain/state-machine.js';
+import { customerDisplayName } from '../domain/customer.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { Actor } from '../common/auth/actor.js';
+import type { Clock } from '../domain/clock.js';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
   AgreementVersionRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
-import type { Acceptance, CustomerVersionState } from '../domain/types';
+} from '../domain/ports.js';
+import type { Acceptance, CustomerVersionState } from '../domain/types.js';
 
 export interface ManualAcceptanceInput {
   versionId: string;

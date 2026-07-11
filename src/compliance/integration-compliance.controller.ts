@@ -12,16 +12,16 @@
  */
 import { BadRequestException, Controller, Get, Inject, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ServiceTokenGuard } from '../common/auth/service-token.guard';
-import { DomainError } from '../common/errors';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { ServiceApiKey } from '../common/openapi/security.decorators';
-import type { Customer } from '../domain/types';
-import type { AudienceRepo, CustomerRepo } from '../domain/ports';
-import { TOKENS } from '../persistence/tokens';
-import { resolveAudienceKey } from './audience';
-import { ComplianceService, type ComplianceResponse } from './compliance.service';
-import { ComplianceResponseModel } from './openapi.models';
+import { ServiceTokenGuard } from '../common/auth/service-token.guard.js';
+import { DomainError } from '../common/errors.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { ServiceApiKey } from '../common/openapi/security.decorators.js';
+import type { Customer } from '../domain/types.js';
+import type { AudienceRepo, CustomerRepo } from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { resolveAudienceKey } from './audience.js';
+import { ComplianceService, type ComplianceResponse } from './compliance.service.js';
+import { ComplianceResponseModel } from './openapi.models.js';
 
 @ApiTags('integration-compliance')
 @ServiceApiKey()

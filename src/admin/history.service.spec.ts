@@ -1,4 +1,4 @@
-import { DomainError } from '../common/errors';
+import { DomainError } from '../common/errors.js';
 import {
   aCustomer,
   aDocument,
@@ -7,7 +7,7 @@ import {
   aVersion,
   anAcceptance,
   anObjection,
-} from '../domain/testing/fixtures';
+} from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -17,9 +17,9 @@ import {
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
   InMemorySignedDocumentRepo,
-} from '../persistence/inmemory';
-import { aSignedDocument } from '../domain/testing/fixtures';
-import { HistoryService } from './history.service';
+} from '../persistence/inmemory/index.js';
+import { aSignedDocument } from '../domain/testing/fixtures.js';
+import { HistoryService } from './history.service.js';
 
 describe('HistoryService', () => {
   let documents: InMemoryAgreementDocumentRepo;

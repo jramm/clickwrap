@@ -1,20 +1,20 @@
-import { FixedClock } from '../../../domain/clock';
-import { defaultEmailTemplates } from '../../../domain/email-template';
-import { aCustomer, aDocument, anActiveVersion, aVersion } from '../../../domain/testing/fixtures';
-import { InMemoryFileStorage } from '../../file-storage/memory/in-memory-file-storage';
-import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo';
-import { InMemoryAgreementDocumentRepo } from '../../../persistence/inmemory/agreement-document.repo';
-import { InMemoryAudienceRepo } from '../../../persistence/inmemory/audience.repo';
-import { InMemoryCustomerRepo } from '../../../persistence/inmemory/customer.repo';
-import { InMemoryDocumentTypeRepo } from '../../../persistence/inmemory/document-type.repo';
-import { InMemoryEmailTemplateRepo } from '../../../persistence/inmemory/email-template.repo';
-import { InMemoryEventRepo } from '../../../persistence/inmemory/event.repo';
-import { EventRecorder } from '../../../events/event-recorder';
-import { AgreementEmailService } from './agreement-email.service';
-import { EmailContentService } from './email-content.service';
-import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from './email-delivery-provider';
-import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory';
-import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service';
+import { FixedClock } from '../../../domain/clock.js';
+import { defaultEmailTemplates } from '../../../domain/email-template.js';
+import { aCustomer, aDocument, anActiveVersion, aVersion } from '../../../domain/testing/fixtures.js';
+import { InMemoryFileStorage } from '../../file-storage/memory/in-memory-file-storage.js';
+import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo.js';
+import { InMemoryAgreementDocumentRepo } from '../../../persistence/inmemory/agreement-document.repo.js';
+import { InMemoryAudienceRepo } from '../../../persistence/inmemory/audience.repo.js';
+import { InMemoryCustomerRepo } from '../../../persistence/inmemory/customer.repo.js';
+import { InMemoryDocumentTypeRepo } from '../../../persistence/inmemory/document-type.repo.js';
+import { InMemoryEmailTemplateRepo } from '../../../persistence/inmemory/email-template.repo.js';
+import { InMemoryEventRepo } from '../../../persistence/inmemory/event.repo.js';
+import { EventRecorder } from '../../../events/event-recorder.js';
+import { AgreementEmailService } from './agreement-email.service.js';
+import { EmailContentService } from './email-content.service.js';
+import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from './email-delivery-provider.js';
+import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory.js';
+import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service.js';
 
 class FakeEmailProvider implements EmailDeliveryProvider {
   public readonly sentMessages: OutboundMail[] = [];

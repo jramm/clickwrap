@@ -1,7 +1,7 @@
-import { DomainError } from '../../common/errors';
-import { aDocument, aVersion } from '../../domain/testing/fixtures';
-import { InMemoryAgreementDocumentRepo } from './agreement-document.repo';
-import { InMemoryAgreementVersionRepo } from './agreement-version.repo';
+import { DomainError } from '../../common/errors.js';
+import { aDocument, aVersion } from '../../domain/testing/fixtures.js';
+import { InMemoryAgreementDocumentRepo } from './agreement-document.repo.js';
+import { InMemoryAgreementVersionRepo } from './agreement-version.repo.js';
 
 const NOW = new Date('2026-07-07T09:00:00Z');
 

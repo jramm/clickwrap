@@ -1,13 +1,13 @@
-import { FixedClock } from '../domain/clock';
+import { FixedClock } from '../domain/clock.js';
 import {
   DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID,
   DEFAULT_NOTIFICATION_TEMPLATE_ID,
   DEFAULT_REMINDER_TEMPLATE_ID,
-} from '../domain/email-template';
-import { InMemoryAgreementDocumentRepo } from '../persistence/inmemory/agreement-document.repo';
-import { InMemoryDocumentTypeRepo } from '../persistence/inmemory/document-type.repo';
-import { InMemoryEmailTemplateRepo } from '../persistence/inmemory/email-template.repo';
-import { DefaultEmailTemplateSeeder } from './default-email-template.seeder';
+} from '../domain/email-template.js';
+import { InMemoryAgreementDocumentRepo } from '../persistence/inmemory/agreement-document.repo.js';
+import { InMemoryDocumentTypeRepo } from '../persistence/inmemory/document-type.repo.js';
+import { InMemoryEmailTemplateRepo } from '../persistence/inmemory/email-template.repo.js';
+import { DefaultEmailTemplateSeeder } from './default-email-template.seeder.js';
 
 describe('DefaultEmailTemplateSeeder', () => {
   let templates: InMemoryEmailTemplateRepo;

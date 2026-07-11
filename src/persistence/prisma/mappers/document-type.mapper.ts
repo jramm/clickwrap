@@ -1,6 +1,6 @@
 import type { DocumentTypeDef as PrismaDocumentTypeDef } from '@prisma/client';
-import type { DocumentTypeDef } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { DocumentTypeDef } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → domain type (createdAt/updatedAt are infrastructure-only fields). */
 export const toDomain = (row: PrismaDocumentTypeDef): DocumentTypeDef => ({

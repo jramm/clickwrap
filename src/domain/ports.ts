@@ -19,7 +19,7 @@ import type {
   Objection,
   ObjectionResolution,
   SignedDocument,
-} from './types';
+} from './types.js';
 
 /**
  * Dynamic audiences ("customer", "partner", ...). `save` validates the key slug

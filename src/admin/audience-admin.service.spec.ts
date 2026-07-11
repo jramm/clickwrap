@@ -1,10 +1,10 @@
 import { NotFoundException } from '@nestjs/common';
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
-import { anAudience, aCustomer, aDocument } from '../domain/testing/fixtures';
-import { InMemoryAgreementDocumentRepo, InMemoryAudienceRepo, InMemoryCustomerRepo } from '../persistence/inmemory';
-import { AudienceAdminService } from './audience-admin.service';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
+import { anAudience, aCustomer, aDocument } from '../domain/testing/fixtures.js';
+import { InMemoryAgreementDocumentRepo, InMemoryAudienceRepo, InMemoryCustomerRepo } from '../persistence/inmemory/index.js';
+import { AudienceAdminService } from './audience-admin.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 

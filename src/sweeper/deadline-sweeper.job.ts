@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ActivationSweeperService } from './activation-sweeper.service';
-import { DeadlineSweeperService } from './deadline-sweeper.service';
+import { ActivationSweeperService } from './activation-sweeper.service.js';
+import { DeadlineSweeperService } from './deadline-sweeper.service.js';
 
 /**
  * Thin cron registration (hourly) — the actual logic, testable without Nest, lives in the

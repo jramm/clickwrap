@@ -1,7 +1,7 @@
 import type { EscalationEntry as PrismaEscalationEntry } from '@prisma/client';
-import type { EscalationEntry } from '../../../common/escalation/escalation-log';
-import { extractActor } from './actor.mapper';
-import { nullToUndefined } from './null';
+import type { EscalationEntry } from '../../../common/escalation/escalation-log.js';
+import { extractActor } from './actor.mapper.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → port type. Actor only if actorUserId is set (OBJECTION_AFTER_PERIOD only). */
 export const toDomain = (row: PrismaEscalationEntry): EscalationEntry => ({

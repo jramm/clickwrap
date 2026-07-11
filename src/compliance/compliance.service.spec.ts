@@ -2,8 +2,8 @@
  * ComplianceService — end-to-end with real domain functions (computeCompliance/isBlocking) and
  * in-memory fakes as data storage (CONVENTIONS: pure domain, ports in src/persistence/inmemory).
  */
-import { FixedClock } from '../domain/clock';
-import { DomainError } from '../common/errors';
+import { FixedClock } from '../domain/clock.js';
+import { DomainError } from '../common/errors.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -12,7 +12,7 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemorySignedDocumentRepo,
-} from '../persistence/inmemory';
+} from '../persistence/inmemory/index.js';
 import {
   aCustomer,
   aDocument,
@@ -22,8 +22,8 @@ import {
   anAcceptance,
   anActiveVersion,
   anAudience,
-} from '../domain/testing/fixtures';
-import { ComplianceService } from './compliance.service';
+} from '../domain/testing/fixtures.js';
+import { ComplianceService } from './compliance.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const DEADLINE = new Date('2026-07-21T09:00:00Z');

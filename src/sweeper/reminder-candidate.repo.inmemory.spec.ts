@@ -1,10 +1,10 @@
-import type { AgreementVersionRepo } from '../domain/ports';
-import { aCustomer, aNotification, aState, aVersion } from '../domain/testing/fixtures';
-import type { AgreementVersion } from '../domain/types';
-import { InMemoryCustomerRepo } from '../persistence/inmemory/customer.repo';
-import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo';
-import { InMemoryNotificationEventRepo } from '../persistence/inmemory/notification-event.repo';
-import { InMemoryReminderCandidateRepo } from './reminder-candidate.repo.inmemory';
+import type { AgreementVersionRepo } from '../domain/ports.js';
+import { aCustomer, aNotification, aState, aVersion } from '../domain/testing/fixtures.js';
+import type { AgreementVersion } from '../domain/types.js';
+import { InMemoryCustomerRepo } from '../persistence/inmemory/customer.repo.js';
+import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo.js';
+import { InMemoryNotificationEventRepo } from '../persistence/inmemory/notification-event.repo.js';
+import { InMemoryReminderCandidateRepo } from './reminder-candidate.repo.inmemory.js';
 
 class FakeAgreementVersionRepo implements AgreementVersionRepo {
   private readonly versions = new Map<string, AgreementVersion>();

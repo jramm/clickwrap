@@ -1,8 +1,8 @@
 /** Seed helpers for boot/smoke tests: create master data directly via the domain ports. */
 import type { INestApplication } from '@nestjs/common';
-import type { AudienceRepo, CustomerRepo, DocumentTypeRepo } from '../src/domain/ports';
-import type { Audience, Customer, DocumentTypeDef } from '../src/domain/types';
-import { TOKENS } from '../src/persistence/tokens';
+import type { AudienceRepo, CustomerRepo, DocumentTypeRepo } from '../src/domain/ports.js';
+import type { Audience, Customer, DocumentTypeDef } from '../src/domain/types.js';
+import { TOKENS } from '../src/persistence/tokens.js';
 
 /** Audience entity ("customer", "partner", ...) — documents and roles reference its key. */
 export const seedAudience = async (

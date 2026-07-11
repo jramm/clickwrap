@@ -1,7 +1,7 @@
 import { Controller, ForbiddenException, Get, NotFoundException, Param, Query, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { LocalFileStorage } from './local-file-storage';
+import { LocalFileStorage } from './local-file-storage.js';
 
 /** Content-Disposition value: keep it printable ASCII, no quotes/control chars. */
 const sanitizeFileName = (fileName: string): string =>

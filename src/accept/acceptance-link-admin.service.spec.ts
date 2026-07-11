@@ -1,16 +1,16 @@
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { FixedClock } from '../domain/clock';
-import { acceptanceLinkTokenHash } from '../domain/acceptance-links';
-import { aCustomer, anAudience } from '../domain/testing/fixtures';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { FixedClock } from '../domain/clock.js';
+import { acceptanceLinkTokenHash } from '../domain/acceptance-links.js';
+import { aCustomer, anAudience } from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceLinkRepo,
   InMemoryAgreementDocumentRepo,
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { AcceptanceLinkAdminService } from './acceptance-link-admin.service';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { AcceptanceLinkAdminService } from './acceptance-link-admin.service.js';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
 

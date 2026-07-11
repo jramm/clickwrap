@@ -7,31 +7,31 @@
  * (REPOSITORY_DRIVER=prisma).
  */
 import { Module } from '@nestjs/common';
-import { ADMIN_AUDIT_TOKEN } from '../../agreements/audit';
-import { ESCALATION_LOG } from '../../common/escalation/escalation-log';
-import { CONSENT_TOKENS } from '../../consent/ports';
-import { EventRecorder } from '../../events/event-recorder';
-import { SystemClock } from '../../domain/clock';
-import { EMAIL_TOKENS } from '../../plugins/email/core/email-delivery-provider';
-import { TOKENS } from '../tokens';
-import { PrismaAcceptanceLinkRepo } from './acceptance-link.repo';
-import { PrismaAcceptanceRepo } from './acceptance.repo';
-import { PrismaAdminAuditRepo } from './admin-audit.repo';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaAgreementVersionRepo } from './agreement-version.repo';
-import { PrismaAudienceRepo } from './audience.repo';
-import { PrismaCustomerRepo } from './customer.repo';
-import { PrismaCustomerVersionStateRepo } from './customer-version-state.repo';
-import { PrismaDocumentTypeRepo } from './document-type.repo';
-import { PrismaEmailTemplateRepo } from './email-template.repo';
-import { PrismaEscalationLog } from './escalation-log.repo';
-import { PrismaEventRepo } from './event.repo';
-import { PrismaIdempotencyStore } from './idempotency-store.repo';
-import { PrismaNotificationEventRepo } from './notification-event.repo';
-import { PrismaObjectionRepo } from './objection.repo';
-import { PrismaOutboundEmailRepo } from './outbound-email.repo';
-import { PrismaSignedDocumentRepo } from './signed-document.repo';
-import { PrismaService } from './prisma.service';
+import { ADMIN_AUDIT_TOKEN } from '../../agreements/audit.js';
+import { ESCALATION_LOG } from '../../common/escalation/escalation-log.js';
+import { CONSENT_TOKENS } from '../../consent/ports.js';
+import { EventRecorder } from '../../events/event-recorder.js';
+import { SystemClock } from '../../domain/clock.js';
+import { EMAIL_TOKENS } from '../../plugins/email/core/email-delivery-provider.js';
+import { TOKENS } from '../tokens.js';
+import { PrismaAcceptanceLinkRepo } from './acceptance-link.repo.js';
+import { PrismaAcceptanceRepo } from './acceptance.repo.js';
+import { PrismaAdminAuditRepo } from './admin-audit.repo.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaAgreementVersionRepo } from './agreement-version.repo.js';
+import { PrismaAudienceRepo } from './audience.repo.js';
+import { PrismaCustomerRepo } from './customer.repo.js';
+import { PrismaCustomerVersionStateRepo } from './customer-version-state.repo.js';
+import { PrismaDocumentTypeRepo } from './document-type.repo.js';
+import { PrismaEmailTemplateRepo } from './email-template.repo.js';
+import { PrismaEscalationLog } from './escalation-log.repo.js';
+import { PrismaEventRepo } from './event.repo.js';
+import { PrismaIdempotencyStore } from './idempotency-store.repo.js';
+import { PrismaNotificationEventRepo } from './notification-event.repo.js';
+import { PrismaObjectionRepo } from './objection.repo.js';
+import { PrismaOutboundEmailRepo } from './outbound-email.repo.js';
+import { PrismaSignedDocumentRepo } from './signed-document.repo.js';
+import { PrismaService } from './prisma.service.js';
 
 @Module({
   providers: [

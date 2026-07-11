@@ -6,17 +6,17 @@
  * backed by the registry-selected file-storage plugin, env FILE_STORAGE).
  */
 import { Module } from '@nestjs/common';
-import { AgreementsModule } from '../agreements/agreements.module';
-import { AGREEMENTS_TOKENS } from '../agreements/ports';
-import { ComplianceController } from './compliance.controller';
-import { ComplianceService } from './compliance.service';
-import { IntegrationComplianceController } from './integration-compliance.controller';
-import { IntegrationPendingAgreementsController } from './integration-pending-agreements.controller';
-import { PendingAgreementsController } from './pending-agreements.controller';
-import { PendingAgreementsService } from './pending-agreements.service';
-import { PublicDocumentsController } from './public-documents.controller';
-import { PublicDocumentsService } from './public-documents.service';
-import { PDF_URL_PROVIDER } from './ports/pdf-url-provider';
+import { AgreementsModule } from '../agreements/agreements.module.js';
+import { AGREEMENTS_TOKENS } from '../agreements/ports.js';
+import { ComplianceController } from './compliance.controller.js';
+import { ComplianceService } from './compliance.service.js';
+import { IntegrationComplianceController } from './integration-compliance.controller.js';
+import { IntegrationPendingAgreementsController } from './integration-pending-agreements.controller.js';
+import { PendingAgreementsController } from './pending-agreements.controller.js';
+import { PendingAgreementsService } from './pending-agreements.service.js';
+import { PublicDocumentsController } from './public-documents.controller.js';
+import { PublicDocumentsService } from './public-documents.service.js';
+import { PDF_URL_PROVIDER } from './ports/pdf-url-provider.js';
 
 @Module({
   imports: [AgreementsModule],

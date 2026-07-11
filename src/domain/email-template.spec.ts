@@ -1,4 +1,4 @@
-import { FixedClock } from './clock';
+import { FixedClock } from './clock.js';
 import {
   DEFAULT_ACCEPTANCE_CONFIRMATION_TEMPLATE_ID,
   DEFAULT_NOTIFICATION_TEMPLATE_ID,
@@ -11,8 +11,8 @@ import {
   emptyTemplateVars,
   isDefaultEmailTemplateId,
   renderTemplate,
-} from './email-template';
-import type { TemplateVars } from './email-template';
+} from './email-template.js';
+import type { TemplateVars } from './email-template.js';
 
 const vars = (overrides: Partial<TemplateVars> = {}): TemplateVars => ({
   ...emptyTemplateVars(),

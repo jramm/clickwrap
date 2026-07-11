@@ -3,7 +3,7 @@
  * For tests and REPOSITORY_DRIVER=inmemory operation (does not survive restarts).
  */
 import { randomUUID } from 'node:crypto';
-import type { IdempotencyStore, IdGenerator } from './ports';
+import type { IdempotencyStore, IdGenerator } from './ports.js';
 
 /** Internal marker for "reserved, response not stored yet" (putIfAbsent). */
 const PENDING = Symbol('idempotency-pending');

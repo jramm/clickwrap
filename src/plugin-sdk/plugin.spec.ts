@@ -1,4 +1,4 @@
-import { definePlugin, isClickwrapPlugin, PLUGIN_DI_TOKENS } from './plugin';
+import { definePlugin, isClickwrapPlugin, PLUGIN_DI_TOKENS } from './plugin.js';
 
 const validEmailPlugin = {
   kind: 'email-provider' as const,

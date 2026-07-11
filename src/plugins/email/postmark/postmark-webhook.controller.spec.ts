@@ -1,6 +1,6 @@
-import { PostmarkWebhookController } from './postmark-webhook.controller';
-import type { DeliveryEventService } from '../core/delivery-event.service';
-import type { InboundDeliveryEvent } from '../core/inbound-delivery-event';
+import { PostmarkWebhookController } from './postmark-webhook.controller.js';
+import type { DeliveryEventService } from '../core/delivery-event.service.js';
+import type { InboundDeliveryEvent } from '../core/inbound-delivery-event.js';
 
 const fakeDeliveryEvents = (): jest.Mocked<Pick<DeliveryEventService, 'handle'>> => ({
   handle: jest.fn().mockResolvedValue(undefined),

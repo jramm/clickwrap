@@ -9,10 +9,10 @@
  * `acceptedVersions` import on customer creation.
  */
 import { Inject, Injectable } from '@nestjs/common';
-import type { Clock } from '../domain/clock';
-import type { AgreementVersionRepo } from '../domain/ports';
-import { TOKENS } from '../persistence/tokens';
-import { PDF_URL_PROVIDER, type PdfUrlProvider } from './ports/pdf-url-provider';
+import type { Clock } from '../domain/clock.js';
+import type { AgreementVersionRepo } from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { PDF_URL_PROVIDER, type PdfUrlProvider } from './ports/pdf-url-provider.js';
 
 @Injectable()
 export class PublicDocumentsService {

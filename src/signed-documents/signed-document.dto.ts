@@ -4,7 +4,7 @@
  * `pdfUrl` is always resolved via PdfStorage.getPresignedUrl; the internal `storageKey` is
  * NEVER exposed.
  */
-import type { SignedDocument } from '../domain/types';
+import type { SignedDocument } from '../domain/types.js';
 
 export interface SignedDocumentDto {
   id: string;

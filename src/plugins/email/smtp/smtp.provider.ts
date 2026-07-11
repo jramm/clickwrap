@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
-import type { EmailDeliveryProvider, OutboundMail, SendResult } from '../core/email-delivery-provider';
+import type { EmailDeliveryProvider, OutboundMail, SendResult } from '../core/email-delivery-provider.js';
 
 export interface SmtpConfig {
   host: string;

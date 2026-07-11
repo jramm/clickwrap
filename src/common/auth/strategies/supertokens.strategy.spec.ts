@@ -1,9 +1,9 @@
 import type { ExecutionContext } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common';
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWTVerifyGetKey, type KeyLike } from 'jose';
-import { AdminGuard } from '../admin.guard';
-import { StaticTokenAdminAuthStrategy } from './static-token.strategy';
-import { SupertokensAdminAuthStrategy } from './supertokens.strategy';
+import { AdminGuard } from '../admin.guard.js';
+import { StaticTokenAdminAuthStrategy } from './static-token.strategy.js';
+import { SupertokensAdminAuthStrategy } from './supertokens.strategy.js';
 
 interface SignOptions {
   roles?: string[] | undefined;

@@ -3,8 +3,8 @@
  * ComplianceService and PendingAgreementsService. Audiences are dynamic entities, so the
  * value is checked against the AudienceRepo instead of a hardcoded enum.
  */
-import { DomainError } from '../common/errors';
-import type { AudienceRepo } from '../domain/ports';
+import { DomainError } from '../common/errors.js';
+import type { AudienceRepo } from '../domain/ports.js';
 
 /**
  * Missing parameter: no restriction (aggregation across all roles).

@@ -13,16 +13,16 @@
  * Idempotent: a second boot with the same config performs no writes.
  */
 import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
-import { newId } from '../agreements/ids';
-import type { AudienceRepo, DocumentTypeRepo } from '../domain/ports';
-import type { Audience, DocumentTypeDef } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
+import { newId } from '../agreements/ids.js';
+import type { AudienceRepo, DocumentTypeRepo } from '../domain/ports.js';
+import type { Audience, DocumentTypeDef } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
 import {
   loadLegalEntitiesConfig,
   type LegalEntitiesConfig,
   type LegalEntitiesConfigAudience,
   type LegalEntitiesConfigDocumentType,
-} from './legal-entities.config';
+} from './legal-entities.config.js';
 
 interface ReconcileCounts {
   created: number;

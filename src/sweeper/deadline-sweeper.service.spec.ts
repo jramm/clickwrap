@@ -1,15 +1,15 @@
-import { FixedClock } from '../domain/clock';
-import { consentTextHashFor } from '../domain/consent-rules';
-import type { AgreementVersionRepo } from '../domain/ports';
-import { aState, anActiveVersion, aVersion } from '../domain/testing/fixtures';
-import type { AgreementVersion, CustomerVersionState } from '../domain/types';
-import { InMemoryAcceptanceRepo } from '../persistence/inmemory/acceptance.repo';
-import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo';
-import { InMemoryEventRepo } from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import type { DomainEvent } from '../domain/types';
-import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
-import { DeadlineSweeperService } from './deadline-sweeper.service';
+import { FixedClock } from '../domain/clock.js';
+import { consentTextHashFor } from '../domain/consent-rules.js';
+import type { AgreementVersionRepo } from '../domain/ports.js';
+import { aState, anActiveVersion, aVersion } from '../domain/testing/fixtures.js';
+import type { AgreementVersion, CustomerVersionState } from '../domain/types.js';
+import { InMemoryAcceptanceRepo } from '../persistence/inmemory/acceptance.repo.js';
+import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo.js';
+import { InMemoryEventRepo } from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import type { DomainEvent } from '../domain/types.js';
+import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service.js';
+import { DeadlineSweeperService } from './deadline-sweeper.service.js';
 
 /** Minimal fake: only findById is needed by the sweeper; can be made to throw deliberately for error tests. */
 class FakeAgreementVersionRepo implements AgreementVersionRepo {

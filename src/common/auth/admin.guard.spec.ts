@@ -1,8 +1,8 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { AdminGuard } from './admin.guard';
-import { GoogleIdTokenClaims, GoogleTokenVerifier } from './google-token.verifier';
-import { GoogleSsoAdminAuthStrategy } from './strategies/google-sso.strategy';
-import { StaticTokenAdminAuthStrategy } from './strategies/static-token.strategy';
+import { AdminGuard } from './admin.guard.js';
+import { GoogleIdTokenClaims, GoogleTokenVerifier } from './google-token.verifier.js';
+import { GoogleSsoAdminAuthStrategy } from './strategies/google-sso.strategy.js';
+import { StaticTokenAdminAuthStrategy } from './strategies/static-token.strategy.js';
 
 interface FakeReq {
   headers: Record<string, string | undefined>;

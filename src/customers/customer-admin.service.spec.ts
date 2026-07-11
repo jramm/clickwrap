@@ -1,12 +1,12 @@
 import { Logger } from '@nestjs/common';
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import type { RolloutNotifier } from '../agreements/ports';
-import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory';
-import { DomainError } from '../common/errors';
-import { PendingAgreementsService } from '../compliance/pending-agreements.service';
-import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider';
-import { FixedClock } from '../domain/clock';
-import { anAudience, aState, aVersion } from '../domain/testing/fixtures';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import type { RolloutNotifier } from '../agreements/ports.js';
+import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory.js';
+import { DomainError } from '../common/errors.js';
+import { PendingAgreementsService } from '../compliance/pending-agreements.service.js';
+import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider.js';
+import { FixedClock } from '../domain/clock.js';
+import { anAudience, aState, aVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -15,9 +15,9 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { CustomerAdminService } from './customer-admin.service';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { CustomerAdminService } from './customer-admin.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const ADMIN = { userId: 'admin-1', name: 'Admin One' };

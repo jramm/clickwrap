@@ -1,14 +1,14 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
-import { newId } from '../agreements/ids';
-import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
-import { EventRecorder } from '../events/event-recorder';
-import type { Actor } from '../common/auth/actor';
-import { DomainError } from '../common/errors';
-import type { Clock } from '../domain/clock';
-import { computeCompliance, type ComplianceResult, type CurrentVersionEntry } from '../domain/compliance';
-import { customerDisplayName } from '../domain/customer';
-import { rolloutDeadlineFor } from '../domain/state-machine';
+import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit.js';
+import { newId } from '../agreements/ids.js';
+import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import type { Actor } from '../common/auth/actor.js';
+import { DomainError } from '../common/errors.js';
+import type { Clock } from '../domain/clock.js';
+import { computeCompliance, type ComplianceResult, type CurrentVersionEntry } from '../domain/compliance.js';
+import { customerDisplayName } from '../domain/customer.js';
+import { rolloutDeadlineFor } from '../domain/state-machine.js';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
@@ -16,16 +16,16 @@ import type {
   AudienceRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
+} from '../domain/ports.js';
 import type {
   AgreementDocument,
   AgreementVersion,
   Customer,
   CustomerVersionStateValue,
   EventActorKind,
-} from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
-import { matchesCustomerSearch } from './customer-search';
+} from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { matchesCustomerSearch } from './customer-search.js';
 
 /** A version the customer accepted out-of-band (e.g. by signing an offer in the CRM). */
 export interface AcceptedVersionImport {

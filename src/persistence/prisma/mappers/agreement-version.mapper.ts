@@ -1,6 +1,6 @@
 import type { AgreementVersion as PrismaAgreementVersion, Prisma } from '@prisma/client';
-import type { AgreementVersion } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { AgreementVersion } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → domain type (createdAt/updatedAt/relations are infrastructure-only fields). */
 export const toDomain = (row: PrismaAgreementVersion): AgreementVersion => ({

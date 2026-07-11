@@ -5,9 +5,9 @@
  */
 import { INestApplication, Logger } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
-import { buildAdminDocument, buildIntegrationDocument } from './common/openapi/build-documents';
-import { repositoryDriver } from './persistence/repository.module';
-import { PrismaService } from './persistence/prisma/prisma.service';
+import { buildAdminDocument, buildIntegrationDocument } from './common/openapi/build-documents.js';
+import { repositoryDriver } from './persistence/repository.module.js';
+import { PrismaService } from './persistence/prisma/prisma.service.js';
 
 export async function configureApp(app: INestApplication): Promise<void> {
   const logger = new Logger('Bootstrap');

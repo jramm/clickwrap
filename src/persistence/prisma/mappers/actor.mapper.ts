@@ -2,8 +2,8 @@
  * Actor (src/common/auth/actor.ts) ↔ the four `actor*` columns on Acceptance/Objection.
  * Shared mapper because both models use exactly the same pattern.
  */
-import type { Actor } from '../../../common/auth/actor';
-import { nullToUndefined } from './null';
+import type { Actor } from '../../../common/auth/actor.js';
+import { nullToUndefined } from './null.js';
 
 export interface ActorColumns {
   actorUserId: string;

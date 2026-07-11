@@ -1,5 +1,5 @@
-import { FixedClock } from '../domain/clock';
-import { SlidingWindowRateLimiter } from './rate-limiter';
+import { FixedClock } from '../domain/clock.js';
+import { SlidingWindowRateLimiter } from './rate-limiter.js';
 
 describe('SlidingWindowRateLimiter', () => {
   it('allows up to the limit within the window, then blocks', () => {

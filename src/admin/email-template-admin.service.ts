@@ -1,18 +1,18 @@
 import { Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
-import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
-import { newId } from '../agreements/ids';
-import { EventRecorder } from '../events/event-recorder';
-import { DomainError } from '../common/errors';
-import type { Clock } from '../domain/clock';
+import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit.js';
+import { newId } from '../agreements/ids.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { DomainError } from '../common/errors.js';
+import type { Clock } from '../domain/clock.js';
 import {
   emptyTemplateVars,
   isDefaultEmailTemplateId,
   renderTemplate,
   type RenderedTemplate,
-} from '../domain/email-template';
-import type { DocumentTypeRepo, EmailTemplateRepo } from '../domain/ports';
-import type { EmailTemplate, EmailTemplateKind } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
+} from '../domain/email-template.js';
+import type { DocumentTypeRepo, EmailTemplateRepo } from '../domain/ports.js';
+import type { EmailTemplate, EmailTemplateKind } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
 
 export interface CreateEmailTemplateInput {
   name: string;

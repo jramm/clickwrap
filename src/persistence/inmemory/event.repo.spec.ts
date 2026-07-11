@@ -1,6 +1,6 @@
-import { DomainError } from '../../common/errors';
-import { anEvent } from '../../domain/testing/fixtures';
-import { InMemoryEventRepo } from './event.repo';
+import { DomainError } from '../../common/errors.js';
+import { anEvent } from '../../domain/testing/fixtures.js';
+import { InMemoryEventRepo } from './event.repo.js';
 
 const at = (iso: string) => new Date(iso);
 

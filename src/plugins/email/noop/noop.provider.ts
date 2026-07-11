@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { EmailDeliveryProvider, OutboundMail, SendResult } from '../core/email-delivery-provider';
+import type { EmailDeliveryProvider, OutboundMail, SendResult } from '../core/email-delivery-provider.js';
 
 /**
  * Default provider for dev/tests: sends nothing, logs the recipient, and returns a fake providerRef so

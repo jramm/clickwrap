@@ -6,7 +6,7 @@
  * `pdfUrl` is always resolved via PdfStorage.getPresignedUrl; the internal `storageKey` is
  * NEVER exposed.
  */
-import type { AcceptanceMode, AgreementVersion, VersionStatus } from '../domain/types';
+import type { AcceptanceMode, AgreementVersion, VersionStatus } from '../domain/types.js';
 
 export interface VersionDto {
   id: string;

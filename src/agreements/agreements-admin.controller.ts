@@ -24,11 +24,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { AdminAuth } from '../common/openapi/security.decorators';
-import type { AcceptanceMode } from '../domain/types';
-import { DocumentService } from './document.service';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { AdminAuth } from '../common/openapi/security.decorators.js';
+import type { AcceptanceMode } from '../domain/types.js';
+import { DocumentService } from './document.service.js';
 import {
   CreateDocumentBodyModel,
   CreateVersionBodyModel,
@@ -38,9 +38,9 @@ import {
   PatchVersionBodyModel,
   VersionListResponseModel,
   VersionModel,
-} from './openapi.models';
-import type { PdfUpload } from './ports';
-import { VersionService, type PatchDraftInput } from './version.service';
+} from './openapi.models.js';
+import type { PdfUpload } from './ports.js';
+import { VersionService, type PatchDraftInput } from './version.service.js';
 
 /** AdminGuard populates `adminActor` on the request; the admin user id defaults to 'admin'. */
 type AdminRequest = Request & { adminActor?: { userId: string } };

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DomainError } from '../common/errors';
-import { TOKENS } from '../persistence/tokens';
-import type { Actor } from '../common/auth/actor';
+import { DomainError } from '../common/errors.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { Actor } from '../common/auth/actor.js';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
@@ -11,7 +11,7 @@ import type {
   NotificationEventRepo,
   ObjectionRepo,
   SignedDocumentRepo,
-} from '../domain/ports';
+} from '../domain/ports.js';
 import type {
   AcceptanceChannel,
   AcceptanceMethod,
@@ -19,7 +19,7 @@ import type {
   NotificationChannel,
   Objection,
   SignedDocument,
-} from '../domain/types';
+} from '../domain/types.js';
 
 export interface HistoryAcceptance {
   versionId: string;

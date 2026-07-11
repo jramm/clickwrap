@@ -5,7 +5,7 @@
  */
 import { applyDecorators } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
-import { ErrorResponseDto } from './error-response.dto';
+import { ErrorResponseDto } from './error-response.dto.js';
 
 /** `ApiErrorResponses({ 404: 'VERSION_NOT_FOUND', 422: 'INVALID_STATE · UNKNOWN_AUDIENCE' })` */
 export const ApiErrorResponses = (byStatus: Record<number, string>): MethodDecorator & ClassDecorator =>

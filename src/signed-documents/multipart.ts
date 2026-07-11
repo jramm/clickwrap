@@ -4,8 +4,8 @@
  * Mirrors the version-upload handling in agreements-admin.controller.ts.
  */
 import { BadRequestException } from '@nestjs/common';
-import type { PdfUpload } from '../agreements/ports';
-import type { UploadSignedDocumentInput } from './signed-document.service';
+import type { PdfUpload } from '../agreements/ports.js';
+import type { UploadSignedDocumentInput } from './signed-document.service.js';
 
 /** PDF max. 20 MB (same limit as version uploads). */
 export const MAX_SIGNED_PDF_BYTES = 20 * 1024 * 1024;

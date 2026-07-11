@@ -2,7 +2,7 @@
  * Shared helpers for the dynamic entity keys (document type keys, audience keys).
  * Pure functions: no Nest/Prisma imports (CONVENTIONS: domain is pure).
  */
-import { DomainError } from '../common/errors';
+import { DomainError } from '../common/errors.js';
 
 /** URL-safe slug: lowercase letters, digits and hyphens, 2–32 characters. */
 export const ENTITY_KEY_PATTERN = /^[a-z0-9-]{2,32}$/;

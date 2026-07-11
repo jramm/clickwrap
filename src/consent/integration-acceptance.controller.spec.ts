@@ -10,10 +10,10 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
-import { TOKENS } from '../persistence/tokens';
-import { aCustomer, aDocument, aState, aVersion, anActiveVersion, anAudience } from '../domain/testing/fixtures';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { aCustomer, aDocument, aState, aVersion, anActiveVersion, anAudience } from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -21,10 +21,10 @@ import {
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
-} from '../persistence/inmemory';
-import { AcceptanceService } from './acceptance.service';
-import { IntegrationAcceptanceController } from './integration-acceptance.controller';
-import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory';
+} from '../persistence/inmemory/index.js';
+import { AcceptanceService } from './acceptance.service.js';
+import { IntegrationAcceptanceController } from './integration-acceptance.controller.js';
+import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory.js';
 
 const SERVICE_TOKEN = 'test-service-token';
 const NOW = new Date('2026-07-08T08:00:00Z');

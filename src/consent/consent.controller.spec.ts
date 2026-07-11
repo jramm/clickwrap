@@ -1,11 +1,11 @@
 import { ExecutionContext, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import type { CustomerContext } from '../common/auth/actor';
-import { ServiceGuard } from '../common/auth/service.guard';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
-import { aCustomer, aDocument, anActiveVersion, aState, aVersion } from '../domain/testing/fixtures';
+import type { CustomerContext } from '../common/auth/actor.js';
+import { ServiceGuard } from '../common/auth/service.guard.js';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
+import { aCustomer, aDocument, anActiveVersion, aState, aVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -14,13 +14,13 @@ import {
   InMemoryCustomerVersionStateRepo,
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
-} from '../persistence/inmemory';
-import { AcceptanceService } from './acceptance.service';
-import { ConsentController } from './consent.controller';
-import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory';
-import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory';
-import { NotificationService } from './notification.service';
-import { ObjectionService } from './objection.service';
+} from '../persistence/inmemory/index.js';
+import { AcceptanceService } from './acceptance.service.js';
+import { ConsentController } from './consent.controller.js';
+import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory.js';
+import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory.js';
+import { NotificationService } from './notification.service.js';
+import { ObjectionService } from './objection.service.js';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
 const CONSENT_TEXT = 'I have read the new revision and agree.';

@@ -16,18 +16,18 @@
 import { BadRequestException, Body, Controller, Headers, HttpCode, Inject, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiCreatedResponse, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import type { Actor, CustomerContext } from '../common/auth/actor';
-import { ServiceTokenGuard } from '../common/auth/service-token.guard';
-import { DomainError } from '../common/errors';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { ServiceApiKey } from '../common/openapi/security.decorators';
-import type { AudienceRepo, CustomerRepo } from '../domain/ports';
-import type { Customer } from '../domain/types';
-import { resolveAudienceKey } from '../compliance/audience';
-import { TOKENS } from '../persistence/tokens';
-import { AcceptanceService, type AcceptanceResponse } from './acceptance.service';
-import { integrationAcceptanceBodySchema, ZodBodyPipe, type IntegrationAcceptanceBody } from './dto';
-import { AcceptanceResponseModel, IntegrationAcceptanceBodyModel } from './openapi.models';
+import type { Actor, CustomerContext } from '../common/auth/actor.js';
+import { ServiceTokenGuard } from '../common/auth/service-token.guard.js';
+import { DomainError } from '../common/errors.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { ServiceApiKey } from '../common/openapi/security.decorators.js';
+import type { AudienceRepo, CustomerRepo } from '../domain/ports.js';
+import type { Customer } from '../domain/types.js';
+import { resolveAudienceKey } from '../compliance/audience.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { AcceptanceService, type AcceptanceResponse } from './acceptance.service.js';
+import { integrationAcceptanceBodySchema, ZodBodyPipe, type IntegrationAcceptanceBody } from './dto.js';
+import { AcceptanceResponseModel, IntegrationAcceptanceBodyModel } from './openapi.models.js';
 
 type RequestWithServiceActor = Request & { serviceActor?: Actor };
 

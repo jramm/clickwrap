@@ -1,5 +1,5 @@
 import type { AgreementDocument as PrismaAgreementDocument } from '@prisma/client';
-import type { AgreementDocument } from '../../../domain/types';
+import type { AgreementDocument } from '../../../domain/types.js';
 
 /** Prisma row → domain type (createdAt/updatedAt are infrastructure-only fields). */
 export const toDomain = (row: PrismaAgreementDocument): AgreementDocument => ({

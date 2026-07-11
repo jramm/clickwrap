@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import type { ClickwrapPluginKind, PluginContext } from '../../plugin-sdk';
+import type { ClickwrapPluginKind, PluginContext } from '../../plugin-sdk/index.js';
 
 /**
  * Host implementation of the SDK {@link PluginContext}: env access over process.env (empty values

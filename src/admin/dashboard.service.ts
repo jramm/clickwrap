@@ -1,21 +1,21 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { DomainError } from '../common/errors';
-import type { Clock } from '../domain/clock';
+import { DomainError } from '../common/errors.js';
+import type { Clock } from '../domain/clock.js';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
   AgreementVersionRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
-import { TOKENS } from '../persistence/tokens';
+} from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
 import type {
   AcceptanceChannel,
   AcceptanceMethod,
   AgreementDocument,
   AgreementVersion,
   VersionStatus,
-} from '../domain/types';
+} from '../domain/types.js';
 
 /** All acceptance channels — every bucket is always present (0 when empty). */
 const CHANNELS: readonly AcceptanceChannel[] = ['PORTAL', 'LINK', 'ADMIN', 'SYSTEM'];

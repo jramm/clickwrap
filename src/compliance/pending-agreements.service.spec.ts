@@ -2,18 +2,18 @@
  * PendingAgreementsService — popup content, in-memory fakes as data storage,
  * FakePdfUrlProvider as the fake for the PdfUrlProvider port.
  */
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
-} from '../persistence/inmemory';
-import { aCustomer, aDocument, aState, anActiveVersion, anAudience } from '../domain/testing/fixtures';
-import { PendingAgreementsService } from './pending-agreements.service';
-import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider';
+} from '../persistence/inmemory/index.js';
+import { aCustomer, aDocument, aState, anActiveVersion, anAudience } from '../domain/testing/fixtures.js';
+import { PendingAgreementsService } from './pending-agreements.service.js';
+import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const DEADLINE = new Date('2026-07-21T09:00:00Z');

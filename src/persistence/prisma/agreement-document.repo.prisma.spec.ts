@@ -8,10 +8,10 @@
  *   DATABASE_URL=postgresql://clickwrap:clickwrap@localhost:5432/clickwrap \
  *     pnpm jest --testPathIgnorePatterns=/node_modules/ src/persistence/prisma
  */
-import { aDocument } from '../../domain/testing/fixtures';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aDocument } from '../../domain/testing/fixtures.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

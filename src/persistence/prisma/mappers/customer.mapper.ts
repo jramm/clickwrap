@@ -1,6 +1,6 @@
 import type { Customer as PrismaCustomer } from '@prisma/client';
-import type { Customer } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { Customer } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → domain type (createdAt/updatedAt are infrastructure-only fields). */
 export const toDomain = (row: PrismaCustomer): Customer => ({

@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { z } from 'zod';
-import { ENTITY_KEY_PATTERN } from '../domain/keys';
+import { ENTITY_KEY_PATTERN } from '../domain/keys.js';
 
 /** Default config path (relative to the process working directory), overridable via env. */
 export const DEFAULT_LEGAL_ENTITIES_CONFIG_PATH = 'config/legal-entities.json';

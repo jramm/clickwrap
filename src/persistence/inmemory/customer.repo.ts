@@ -1,6 +1,6 @@
-import type { CustomerRepo } from '../../domain/ports';
-import type { Customer } from '../../domain/types';
-import { deepCopy } from './clone';
+import type { CustomerRepo } from '../../domain/ports.js';
+import type { Customer } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 export class InMemoryCustomerRepo implements CustomerRepo {
   private readonly customers = new Map<string, Customer>();

@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
-import type { AdminAuthStrategy, LoginMethodDescriptor } from '../../plugin-sdk';
-import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens';
+import type { AdminAuthStrategy, LoginMethodDescriptor } from '../../plugin-sdk/index.js';
+import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens.js';
 
 /** OpenAPI documentation model of one login method (runtime shape: SDK LoginMethodDescriptor). */
 export class LoginMethodModel {

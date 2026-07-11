@@ -1,5 +1,5 @@
-import type { CustomerContext } from '../common/auth/actor';
-import { FixedClock } from '../domain/clock';
+import type { CustomerContext } from '../common/auth/actor.js';
+import { FixedClock } from '../domain/clock.js';
 import {
   aCustomer,
   aDocument,
@@ -7,8 +7,8 @@ import {
   aState,
   aVersion,
   testActor,
-} from '../domain/testing/fixtures';
-import type { AgreementVersion } from '../domain/types';
+} from '../domain/testing/fixtures.js';
+import type { AgreementVersion } from '../domain/types.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -16,11 +16,11 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
-import { AcceptanceService } from './acceptance.service';
-import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service.js';
+import { AcceptanceService } from './acceptance.service.js';
+import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory.js';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
 const CONSENT_TEXT = 'I have read the new revision and agree.';

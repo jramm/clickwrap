@@ -1,6 +1,6 @@
 import type { NotificationEvent as PrismaNotificationEvent, Prisma } from '@prisma/client';
-import type { NotificationEvent } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { NotificationEvent } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → domain type (createdAt is an infrastructure-only field). */
 export const toDomain = (row: PrismaNotificationEvent): NotificationEvent => ({

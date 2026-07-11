@@ -5,11 +5,11 @@
  * via REVOKE UPDATE, DELETE (prisma/partial-indexes.sql) to enforce the append-only guarantee.
  */
 import { Injectable } from '@nestjs/common';
-import type { AdminAuditLog, AdminAuditRepo } from '../../agreements/audit';
-import { DomainError } from '../../common/errors';
-import { toCreateData, toDomain } from './mappers/admin-audit.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import type { AdminAuditLog, AdminAuditRepo } from '../../agreements/audit.js';
+import { DomainError } from '../../common/errors.js';
+import { toCreateData, toDomain } from './mappers/admin-audit.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaAdminAuditRepo implements AdminAuditRepo {

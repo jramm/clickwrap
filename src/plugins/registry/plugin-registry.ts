@@ -13,8 +13,16 @@
  * (validated structurally — see `isClickwrapPlugin`). Every loaded plugin is logged one-line.
  */
 import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { Logger } from '@nestjs/common';
+
+// The registry is bootstrapped synchronously at NestJS module-metadata evaluation time, so plugin
+// loading must stay synchronous. Under ESM there is no ambient `require`; createRequire gives a
+// CommonJS require (main/exports/index resolution intact) that loads a plugin package's entry
+// synchronously — a dynamic `import()` would force the whole discovery path (and its callers up to
+// module metadata) to become async.
+const require = createRequire(import.meta.url);
 import {
   type AnyClickwrapPlugin,
   type ClickwrapPlugin,
@@ -23,8 +31,8 @@ import {
   CLICKWRAP_PLUGIN_KINDS,
   isClickwrapPlugin,
   isPluginKind,
-} from '../../plugin-sdk';
-import { builtinPlugins } from '../builtins';
+} from '../../plugin-sdk/index.js';
+import { builtinPlugins } from '../builtins/index.js';
 
 export interface PluginRegistryOptions {
   /** App root containing package.json + node_modules. Default: process.cwd(). */

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { LegalEntitiesReconciler } from './legal-entities.reconciler';
+import { LegalEntitiesReconciler } from './legal-entities.reconciler.js';
 
 /**
  * Wires the {@link LegalEntitiesReconciler} (an OnApplicationBootstrap step). It reconciles the

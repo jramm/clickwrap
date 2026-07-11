@@ -7,12 +7,12 @@
  * fake).
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import type { AgreementDocumentRepo } from '../../domain/ports';
-import type { AgreementDocument } from '../../domain/types';
-import { toDomain, toUpsertData } from './mappers/agreement-document.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { AgreementDocumentRepo } from '../../domain/ports.js';
+import type { AgreementDocument } from '../../domain/types.js';
+import { toDomain, toUpsertData } from './mappers/agreement-document.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaAgreementDocumentRepo implements AgreementDocumentRepo {

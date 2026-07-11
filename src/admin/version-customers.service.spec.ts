@@ -1,15 +1,15 @@
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
-import { aCustomer, aState, aVersion, anAcceptance, testActor } from '../domain/testing/fixtures';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
+import { aCustomer, aState, aVersion, anAcceptance, testActor } from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
-} from '../persistence/inmemory';
-import { DashboardService } from './dashboard.service';
-import { VersionCustomersService } from './version-customers.service';
+} from '../persistence/inmemory/index.js';
+import { DashboardService } from './dashboard.service.js';
+import { VersionCustomersService } from './version-customers.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const PAST = new Date('2026-06-01T00:00:00Z');

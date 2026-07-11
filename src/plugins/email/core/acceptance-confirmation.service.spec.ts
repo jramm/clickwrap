@@ -1,18 +1,18 @@
-import { FixedClock } from '../../../domain/clock';
-import { defaultEmailTemplates } from '../../../domain/email-template';
-import { anAcceptance, aCustomer, aDocument, aVersion, testActor } from '../../../domain/testing/fixtures';
-import { InMemoryFileStorage } from '../../file-storage/memory/in-memory-file-storage';
-import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo';
-import { InMemoryAgreementDocumentRepo } from '../../../persistence/inmemory/agreement-document.repo';
-import { InMemoryAudienceRepo } from '../../../persistence/inmemory/audience.repo';
-import { InMemoryCustomerRepo } from '../../../persistence/inmemory/customer.repo';
-import { InMemoryDocumentTypeRepo } from '../../../persistence/inmemory/document-type.repo';
-import { InMemoryEmailTemplateRepo } from '../../../persistence/inmemory/email-template.repo';
-import { AcceptanceConfirmationService } from './acceptance-confirmation.service';
-import { EmailContentService } from './email-content.service';
-import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from './email-delivery-provider';
-import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory';
-import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service';
+import { FixedClock } from '../../../domain/clock.js';
+import { defaultEmailTemplates } from '../../../domain/email-template.js';
+import { anAcceptance, aCustomer, aDocument, aVersion, testActor } from '../../../domain/testing/fixtures.js';
+import { InMemoryFileStorage } from '../../file-storage/memory/in-memory-file-storage.js';
+import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo.js';
+import { InMemoryAgreementDocumentRepo } from '../../../persistence/inmemory/agreement-document.repo.js';
+import { InMemoryAudienceRepo } from '../../../persistence/inmemory/audience.repo.js';
+import { InMemoryCustomerRepo } from '../../../persistence/inmemory/customer.repo.js';
+import { InMemoryDocumentTypeRepo } from '../../../persistence/inmemory/document-type.repo.js';
+import { InMemoryEmailTemplateRepo } from '../../../persistence/inmemory/email-template.repo.js';
+import { AcceptanceConfirmationService } from './acceptance-confirmation.service.js';
+import { EmailContentService } from './email-content.service.js';
+import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from './email-delivery-provider.js';
+import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory.js';
+import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service.js';
 
 const T0 = new Date('2026-07-08T14:12:03Z');
 const CONFIG: NotificationConfig = {

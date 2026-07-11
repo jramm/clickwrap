@@ -10,12 +10,12 @@
  *   see docs/PERSISTENCE.md.
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import type { AgreementVersionRepo } from '../../domain/ports';
-import type { AgreementVersion } from '../../domain/types';
-import { toDomain, toUpsertData } from './mappers/agreement-version.mapper';
-import { isForeignKeyConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { AgreementVersionRepo } from '../../domain/ports.js';
+import type { AgreementVersion } from '../../domain/types.js';
+import { toDomain, toUpsertData } from './mappers/agreement-version.mapper.js';
+import { isForeignKeyConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaAgreementVersionRepo implements AgreementVersionRepo {

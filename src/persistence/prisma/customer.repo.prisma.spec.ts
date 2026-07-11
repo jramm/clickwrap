@@ -3,10 +3,10 @@
  * src/persistence/inmemory/simple-repos.spec.ts (InMemoryCustomerRepo block). Runs only with
  * DATABASE_URL (see agreement-document.repo.prisma.spec.ts for details/invocation).
  */
-import { aCustomer } from '../../domain/testing/fixtures';
-import { PrismaCustomerRepo } from './customer.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aCustomer } from '../../domain/testing/fixtures.js';
+import { PrismaCustomerRepo } from './customer.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

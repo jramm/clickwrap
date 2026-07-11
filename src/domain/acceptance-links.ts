@@ -7,8 +7,8 @@
  *    evidenceNote), never presented as a verified portal identity.
  */
 import { createHmac, randomBytes } from 'node:crypto';
-import { sha256Hex } from './consent-rules';
-import type { AcceptanceLink } from './types';
+import { sha256Hex } from './consent-rules.js';
+import type { AcceptanceLink } from './types.js';
 
 export const DEFAULT_LINK_EXPIRY_DAYS = 30;
 export const MAX_LINK_EXPIRY_DAYS = 365;

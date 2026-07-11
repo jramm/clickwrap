@@ -1,5 +1,5 @@
-import { definePlugin } from '../../plugin-sdk';
-import { SmtpEmailProvider } from '../email/smtp/smtp.provider';
+import { definePlugin } from '../../plugin-sdk/index.js';
+import { SmtpEmailProvider } from '../email/smtp/smtp.provider.js';
 
 const DEFAULT_SMTP_PORT = 587;
 

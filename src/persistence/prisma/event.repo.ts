@@ -6,13 +6,13 @@
  */
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { DomainError } from '../../common/errors';
-import type { EventQueryFilters, EventRepo } from '../../domain/ports';
-import type { DomainEvent } from '../../domain/types';
-import { EVENTS_PAGE_SIZE } from '../../domain/types';
-import { toCreateData, toDomain } from './mappers/event.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { EventQueryFilters, EventRepo } from '../../domain/ports.js';
+import type { DomainEvent } from '../../domain/types.js';
+import { EVENTS_PAGE_SIZE } from '../../domain/types.js';
+import { toCreateData, toDomain } from './mappers/event.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaEventRepo implements EventRepo {

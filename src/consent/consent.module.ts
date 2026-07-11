@@ -5,17 +5,17 @@
  * module-locally (UUID — no persistence dependency).
  */
 import { Module } from '@nestjs/common';
-import { CustomerServiceModule } from '../customers/customer-service.module';
-import { SignedDocumentsModule } from '../signed-documents/signed-documents.module';
-import { SignedDocumentsIntegrationController } from '../signed-documents/signed-documents-integration.controller';
-import { AcceptanceService } from './acceptance.service';
-import { ConsentController } from './consent.controller';
-import { CustomerOnboardingController } from './customer-onboarding.controller';
-import { IntegrationAcceptanceController } from './integration-acceptance.controller';
-import { UuidIdGenerator } from './inmemory';
-import { NotificationService } from './notification.service';
-import { ObjectionService } from './objection.service';
-import { CONSENT_TOKENS } from './ports';
+import { CustomerServiceModule } from '../customers/customer-service.module.js';
+import { SignedDocumentsModule } from '../signed-documents/signed-documents.module.js';
+import { SignedDocumentsIntegrationController } from '../signed-documents/signed-documents-integration.controller.js';
+import { AcceptanceService } from './acceptance.service.js';
+import { ConsentController } from './consent.controller.js';
+import { CustomerOnboardingController } from './customer-onboarding.controller.js';
+import { IntegrationAcceptanceController } from './integration-acceptance.controller.js';
+import { UuidIdGenerator } from './inmemory.js';
+import { NotificationService } from './notification.service.js';
+import { ObjectionService } from './objection.service.js';
+import { CONSENT_TOKENS } from './ports.js';
 
 @Module({
   imports: [CustomerServiceModule, SignedDocumentsModule],

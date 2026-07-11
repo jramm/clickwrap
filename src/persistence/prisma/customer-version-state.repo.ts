@@ -15,11 +15,11 @@
  *   (`@@index([state, deadlineAt])` resp. `@@index([customerId, state])` covers findByCustomer).
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import type { CustomerVersionStateRepo, CustomerVersionStateTransition } from '../../domain/ports';
-import type { CustomerVersionState } from '../../domain/types';
-import { toDomain, toUpsertData } from './mappers/customer-version-state.mapper';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { CustomerVersionStateRepo, CustomerVersionStateTransition } from '../../domain/ports.js';
+import type { CustomerVersionState } from '../../domain/types.js';
+import { toDomain, toUpsertData } from './mappers/customer-version-state.mapper.js';
+import { PrismaService } from './prisma.service.js';
 
 const OPEN_STATES: readonly CustomerVersionState['state'][] = [
   'PENDING_NOTIFICATION',

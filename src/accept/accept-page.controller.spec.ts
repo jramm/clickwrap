@@ -1,9 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
-import { acceptanceLinkTokenHash } from '../domain/acceptance-links';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
+import { acceptanceLinkTokenHash } from '../domain/acceptance-links.js';
 import {
   aCustomer,
   aDocument,
@@ -12,14 +12,14 @@ import {
   anAudience,
   aState,
   aVersion,
-} from '../domain/testing/fixtures';
-import { PDF_URL_PROVIDER } from '../compliance/ports/pdf-url-provider';
-import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider';
-import { PendingAgreementsService } from '../compliance/pending-agreements.service';
-import { AcceptanceService } from '../consent/acceptance.service';
-import { NotificationService } from '../consent/notification.service';
-import { InMemoryIdempotencyStore, SequentialIdGenerator } from '../consent/inmemory';
-import { CONSENT_TOKENS } from '../consent/ports';
+} from '../domain/testing/fixtures.js';
+import { PDF_URL_PROVIDER } from '../compliance/ports/pdf-url-provider.js';
+import { FakePdfUrlProvider } from '../compliance/testing/fake-pdf-url-provider.js';
+import { PendingAgreementsService } from '../compliance/pending-agreements.service.js';
+import { AcceptanceService } from '../consent/acceptance.service.js';
+import { NotificationService } from '../consent/notification.service.js';
+import { InMemoryIdempotencyStore, SequentialIdGenerator } from '../consent/inmemory.js';
+import { CONSENT_TOKENS } from '../consent/ports.js';
 import {
   InMemoryAcceptanceLinkRepo,
   InMemoryAcceptanceRepo,
@@ -30,13 +30,13 @@ import {
   InMemoryCustomerVersionStateRepo,
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
-} from '../persistence/inmemory';
-import { TOKENS } from '../persistence/tokens';
-import { PLUGIN_DI_TOKENS } from '../plugin-sdk';
-import { DefaultAcceptancePageRenderer } from '../plugins/acceptance-page/default/default-acceptance-page.renderer';
-import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.controller';
-import { AcceptPageService } from './accept-page.service';
-import { SlidingWindowRateLimiter } from './rate-limiter';
+} from '../persistence/inmemory/index.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { PLUGIN_DI_TOKENS } from '../plugin-sdk/index.js';
+import { DefaultAcceptancePageRenderer } from '../plugins/acceptance-page/default/default-acceptance-page.renderer.js';
+import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.controller.js';
+import { AcceptPageService } from './accept-page.service.js';
+import { SlidingWindowRateLimiter } from './rate-limiter.js';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
 const CONSENT_TEXT = 'I have read the new revision and agree.';

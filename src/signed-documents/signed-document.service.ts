@@ -1,16 +1,16 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
-import { newId } from '../agreements/ids';
-import { AGREEMENTS_TOKENS, type PdfStorage, type PdfUpload } from '../agreements/ports';
-import type { Actor } from '../common/auth/actor';
-import { DomainError } from '../common/errors';
-import type { Clock } from '../domain/clock';
-import { customerDisplayName } from '../domain/customer';
-import type { AudienceRepo, CustomerRepo, DocumentTypeRepo, SignedDocumentRepo } from '../domain/ports';
-import type { SignedDocument } from '../domain/types';
-import { EventRecorder } from '../events/event-recorder';
-import { TOKENS } from '../persistence/tokens';
-import { toSignedDocumentDto, type SignedDocumentDto } from './signed-document.dto';
+import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit.js';
+import { newId } from '../agreements/ids.js';
+import { AGREEMENTS_TOKENS, type PdfStorage, type PdfUpload } from '../agreements/ports.js';
+import type { Actor } from '../common/auth/actor.js';
+import { DomainError } from '../common/errors.js';
+import type { Clock } from '../domain/clock.js';
+import { customerDisplayName } from '../domain/customer.js';
+import type { AudienceRepo, CustomerRepo, DocumentTypeRepo, SignedDocumentRepo } from '../domain/ports.js';
+import type { SignedDocument } from '../domain/types.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { toSignedDocumentDto, type SignedDocumentDto } from './signed-document.dto.js';
 
 export interface UploadSignedDocumentInput {
   documentTypeKey: string;

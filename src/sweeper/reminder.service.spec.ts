@@ -1,9 +1,9 @@
-import { FixedClock } from '../domain/clock';
-import { defaultEmailTemplates } from '../domain/email-template';
-import type { CustomerVersionStateRepo } from '../domain/ports';
-import { aCustomer, aDocument, anActiveVersion, aState, aVersion } from '../domain/testing/fixtures';
-import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types';
-import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo';
+import { FixedClock } from '../domain/clock.js';
+import { defaultEmailTemplates } from '../domain/email-template.js';
+import type { CustomerVersionStateRepo } from '../domain/ports.js';
+import { aCustomer, aDocument, anActiveVersion, aState, aVersion } from '../domain/testing/fixtures.js';
+import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types.js';
+import { InMemoryCustomerVersionStateRepo } from '../persistence/inmemory/customer-version-state.repo.js';
 import {
   InMemoryAcceptanceLinkRepo,
   InMemoryAgreementDocumentRepo,
@@ -12,15 +12,15 @@ import {
   InMemoryDocumentTypeRepo,
   InMemoryEmailTemplateRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { AgreementEmailService } from '../plugins/email/core/agreement-email.service';
-import { EmailContentService } from '../plugins/email/core/email-content.service';
-import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from '../plugins/email/core/email-delivery-provider';
-import { InMemoryOutboundEmailRepo } from '../plugins/email/core/outbound-email.repo.inmemory';
-import { PermanentAcceptanceLinkService } from '../plugins/email/core/permanent-acceptance-link.service';
-import type { ReminderCandidate, ReminderCandidateRepo, ReminderMailer } from './ports';
-import { ReminderService } from './reminder.service';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { AgreementEmailService } from '../plugins/email/core/agreement-email.service.js';
+import { EmailContentService } from '../plugins/email/core/email-content.service.js';
+import type { EmailDeliveryProvider, NotificationConfig, OutboundMail } from '../plugins/email/core/email-delivery-provider.js';
+import { InMemoryOutboundEmailRepo } from '../plugins/email/core/outbound-email.repo.inmemory.js';
+import { PermanentAcceptanceLinkService } from '../plugins/email/core/permanent-acceptance-link.service.js';
+import type { ReminderCandidate, ReminderCandidateRepo, ReminderMailer } from './ports.js';
+import { ReminderService } from './reminder.service.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const T0 = new Date('2026-07-07T09:00:00Z');

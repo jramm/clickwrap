@@ -14,10 +14,10 @@
  * while that plugin is active, mirroring EmailModule/FileStorageModule.
  */
 import { Module, type DynamicModule, type Provider } from '@nestjs/common';
-import { PLUGIN_DI_TOKENS, type AcceptancePageRenderer } from '../plugin-sdk';
-import { createPluginContext } from '../plugins/registry/plugin-context';
-import { getPluginRegistry } from '../plugins/registry/plugin-registry';
-import { selectedAcceptancePageKey } from '../plugins/registry/selection';
+import { PLUGIN_DI_TOKENS, type AcceptancePageRenderer } from '../plugin-sdk/index.js';
+import { createPluginContext } from '../plugins/registry/plugin-context.js';
+import { getPluginRegistry } from '../plugins/registry/plugin-registry.js';
+import { selectedAcceptancePageKey } from '../plugins/registry/selection.js';
 
 /** Reads and validates ACCEPTANCE_PAGE against the registry (default: default). */
 export const acceptancePage = (): string => {

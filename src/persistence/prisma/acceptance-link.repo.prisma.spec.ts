@@ -3,10 +3,10 @@
  * src/persistence/inmemory/acceptance-link.repo.spec.ts. Runs only with DATABASE_URL (see
  * agreement-document.repo.prisma.spec.ts for details/invocation).
  */
-import { anAcceptanceLink } from '../../domain/testing/fixtures';
-import { PrismaAcceptanceLinkRepo } from './acceptance-link.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { anAcceptanceLink } from '../../domain/testing/fixtures.js';
+import { PrismaAcceptanceLinkRepo } from './acceptance-link.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

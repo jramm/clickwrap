@@ -1,6 +1,6 @@
-import type { DocumentTypeRepo, EmailTemplateRepo } from '../../domain/ports';
-import type { EmailTemplate } from '../../domain/types';
-import { deepCopy } from './clone';
+import type { DocumentTypeRepo, EmailTemplateRepo } from '../../domain/ports.js';
+import type { EmailTemplate } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 /**
  * In-memory fake of EmailTemplateRepo — mirrors src/persistence/prisma/email-template.repo.ts.

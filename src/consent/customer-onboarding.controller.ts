@@ -7,24 +7,24 @@
 import { BadRequestException, Body, Controller, Delete, HttpCode, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import type { Actor } from '../common/auth/actor';
-import { ServiceTokenGuard } from '../common/auth/service-token.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { ServiceApiKey } from '../common/openapi/security.decorators';
-import { CustomerAdminService, type CreateCustomerResult, type CustomerRow } from '../customers/customer-admin.service';
+import type { Actor } from '../common/auth/actor.js';
+import { ServiceTokenGuard } from '../common/auth/service-token.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { ServiceApiKey } from '../common/openapi/security.decorators.js';
+import { CustomerAdminService, type CreateCustomerResult, type CustomerRow } from '../customers/customer-admin.service.js';
 import {
   createCustomerBodySchema,
   upsertByExternalRefBodySchema,
   type CreateCustomerBody,
   type UpsertByExternalRefBody,
-} from '../customers/dto';
+} from '../customers/dto.js';
 import {
   CreateCustomerBodyModel,
   CreateCustomerResponseModel,
   CustomerRowModel,
   UpsertByExternalRefBodyModel,
-} from '../customers/openapi.models';
-import { ZodBodyPipe } from './dto';
+} from '../customers/openapi.models.js';
+import { ZodBodyPipe } from './dto.js';
 
 type RequestWithServiceActor = Request & { serviceActor?: Actor };
 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AgreementRolloutNotifier } from '../plugins/email/core/agreement-rollout-notifier';
-import { AGREEMENTS_TOKENS } from '../agreements/ports';
-import { CustomerAdminService } from './customer-admin.service';
+import { AgreementRolloutNotifier } from '../plugins/email/core/agreement-rollout-notifier.js';
+import { AGREEMENTS_TOKENS } from '../agreements/ports.js';
+import { CustomerAdminService } from './customer-admin.service.js';
 
 /**
  * Provider-only module for the shared {@link CustomerAdminService}. Domain repositories, Clock and

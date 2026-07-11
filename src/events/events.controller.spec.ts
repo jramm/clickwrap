@@ -1,13 +1,13 @@
 import { INestApplication, type CanActivate } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { anEvent } from '../domain/testing/fixtures';
-import { InMemoryEventRepo } from '../persistence/inmemory';
-import { TOKENS } from '../persistence/tokens';
-import { EventsController } from './events.controller';
-import { EventsService } from './events.service';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { anEvent } from '../domain/testing/fixtures.js';
+import { InMemoryEventRepo } from '../persistence/inmemory/index.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { EventsController } from './events.controller.js';
+import { EventsService } from './events.service.js';
 
 const allowAdmin: CanActivate = { canActivate: () => true };
 

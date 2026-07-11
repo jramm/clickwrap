@@ -5,8 +5,8 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -14,10 +14,10 @@ import {
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
-} from '../persistence/inmemory';
-import { aCustomer, aDocument, aState, aVersion, anAudience } from '../domain/testing/fixtures';
-import { ComplianceController } from './compliance.controller';
-import { ComplianceService } from './compliance.service';
+} from '../persistence/inmemory/index.js';
+import { aCustomer, aDocument, aState, aVersion, anAudience } from '../domain/testing/fixtures.js';
+import { ComplianceController } from './compliance.controller.js';
+import { ComplianceService } from './compliance.service.js';
 
 const SERVICE_TOKEN = 'test-service-token';
 const T0 = new Date('2026-07-07T09:00:00Z');

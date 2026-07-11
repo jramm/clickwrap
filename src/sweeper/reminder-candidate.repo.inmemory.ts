@@ -4,9 +4,9 @@ import type {
   CustomerRepo,
   CustomerVersionStateRepo,
   NotificationEventRepo,
-} from '../domain/ports';
-import { TOKENS } from '../persistence/tokens';
-import type { ReminderCandidate, ReminderCandidateRepo } from './ports';
+} from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { ReminderCandidate, ReminderCandidateRepo } from './ports.js';
 
 /**
  * Reference implementation built solely on existing domain ports (no new port needed): iterates all

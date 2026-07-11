@@ -7,8 +7,8 @@ import {
   type S3ClientConfig,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { DomainError } from '../../../common/errors';
-import type { FileMeta, FileStorage, StoredFileRef } from '../../../plugin-sdk';
+import { DomainError } from '../../../common/errors.js';
+import type { FileMeta, FileStorage, StoredFileRef } from '../../../plugin-sdk/index.js';
 
 /**
  * Built-in `s3` file storage: blobs in an S3 (or S3-compatible, e.g. MinIO) bucket.

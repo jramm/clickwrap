@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import type { Event as PrismaEvent } from '@prisma/client';
-import type { DomainEvent, EventActorKind, EventCategory, EventType } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { DomainEvent, EventActorKind, EventCategory, EventType } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → port type. The union columns are stored as text; the domain layer owns the unions. */
 export const toDomain = (row: PrismaEvent): DomainEvent => ({

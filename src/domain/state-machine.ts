@@ -2,13 +2,13 @@
  * State machine of the CustomerVersionState — pure transition functions.
  * Inputs are never mutated; time comes exclusively from the injected Clock.
  */
-import { DomainError } from '../common/errors';
-import type { Clock } from './clock';
+import { DomainError } from '../common/errors.js';
+import type { Clock } from './clock.js';
 import {
   type AcceptanceMethod,
   type AgreementVersion,
   type CustomerVersionState,
-} from './types';
+} from './types.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 

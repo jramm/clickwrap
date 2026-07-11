@@ -6,9 +6,9 @@
  * PENDING_NOTIFICATION and shows up in the escalation report ("not reachable").
  */
 import { Injectable } from '@nestjs/common';
-import type { AgreementVersion, Customer, CustomerVersionState } from '../../../domain/types';
-import type { RolloutNotifier } from '../../../agreements/ports';
-import { AgreementEmailService } from './agreement-email.service';
+import type { AgreementVersion, Customer, CustomerVersionState } from '../../../domain/types.js';
+import type { RolloutNotifier } from '../../../agreements/ports.js';
+import { AgreementEmailService } from './agreement-email.service.js';
 
 @Injectable()
 export class AgreementRolloutNotifier implements RolloutNotifier {

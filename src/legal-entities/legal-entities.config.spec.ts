@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import {
   loadLegalEntitiesConfig,
   parseLegalEntitiesConfig,
-} from './legal-entities.config';
+} from './legal-entities.config.js';
 
 const validConfig = {
   audiences: [{ key: 'customer', name: 'Customers' }],

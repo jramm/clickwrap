@@ -1,7 +1,7 @@
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
-import { sweep } from '../domain/state-machine';
-import { aCustomer, aState, aVersion, anActiveVersion } from '../domain/testing/fixtures';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
+import { sweep } from '../domain/state-machine.js';
+import { aCustomer, aState, aVersion, anActiveVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -9,11 +9,11 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { InMemoryAdminAuditRepo } from './audit';
-import { InMemoryRolloutNotifier } from './rollout-notifier.inmemory';
-import { PublishService } from './publish.service';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { InMemoryAdminAuditRepo } from './audit.js';
+import { InMemoryRolloutNotifier } from './rollout-notifier.inmemory.js';
+import { PublishService } from './publish.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 

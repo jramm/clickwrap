@@ -3,11 +3,11 @@
  * src/persistence/inmemory/email-template.repo.spec.ts. Runs only with DATABASE_URL
  * (see agreement-document.repo.prisma.spec.ts for details/invocation).
  */
-import type { EmailTemplate } from '../../domain/types';
-import { PrismaDocumentTypeRepo } from './document-type.repo';
-import { PrismaEmailTemplateRepo } from './email-template.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import type { EmailTemplate } from '../../domain/types.js';
+import { PrismaDocumentTypeRepo } from './document-type.repo.js';
+import { PrismaEmailTemplateRepo } from './email-template.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

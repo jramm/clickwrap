@@ -5,7 +5,7 @@
  *  - RolloutNotifier: e-mail delivery on publish/reminder. The integration layer wires real
  *    Postmark; tests use the spy.
  */
-import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types';
+import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types.js';
 
 export interface PdfUpload {
   buffer: Buffer;

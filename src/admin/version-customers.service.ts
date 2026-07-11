@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { matchesCustomerSearch } from '../customers/customer-search';
-import { customerDisplayName } from '../domain/customer';
-import { TOKENS } from '../persistence/tokens';
-import type { AcceptanceRepo, CustomerRepo, CustomerVersionStateRepo } from '../domain/ports';
+import { matchesCustomerSearch } from '../customers/customer-search.js';
+import { customerDisplayName } from '../domain/customer.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { AcceptanceRepo, CustomerRepo, CustomerVersionStateRepo } from '../domain/ports.js';
 import type {
   AcceptanceChannel,
   AcceptanceMethod,
   CustomerVersionStateValue,
-} from '../domain/types';
-import { DashboardService, type VersionStats } from './dashboard.service';
+} from '../domain/types.js';
+import { DashboardService, type VersionStats } from './dashboard.service.js';
 
 /**
  * State filter of the per-version customer view. Maps onto the raw

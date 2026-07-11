@@ -1,4 +1,4 @@
-import { DomainError } from '../common/errors';
+import { DomainError } from '../common/errors.js';
 import {
   assertCustomerHasRole,
   assertDisplayedConsentTextMatches,
@@ -8,9 +8,9 @@ import {
   consentTextHashFor,
   sha256Hex,
   validateForPublish,
-} from './consent-rules';
-import { aCustomer, aVersion, anActiveVersion } from './testing/fixtures';
-import type { AcceptanceChannel, AcceptanceMethod } from './types';
+} from './consent-rules.js';
+import { aCustomer, aVersion, anActiveVersion } from './testing/fixtures.js';
+import type { AcceptanceChannel, AcceptanceMethod } from './types.js';
 
 const expectDomainError = (fn: () => unknown, code: string): void => {
   try {

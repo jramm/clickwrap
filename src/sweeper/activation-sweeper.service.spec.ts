@@ -1,14 +1,14 @@
-import { FixedClock } from '../domain/clock';
-import { sweep } from '../domain/state-machine';
-import { aDocument, aState, aVersion } from '../domain/testing/fixtures';
+import { FixedClock } from '../domain/clock.js';
+import { sweep } from '../domain/state-machine.js';
+import { aDocument, aState, aVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { ActivationSweeperService } from './activation-sweeper.service';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { ActivationSweeperService } from './activation-sweeper.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const VALID_FROM = new Date('2026-08-01T00:00:00Z');

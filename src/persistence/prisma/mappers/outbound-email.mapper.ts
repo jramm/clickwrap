@@ -1,6 +1,6 @@
 import type { OutboundEmail as PrismaOutboundEmail } from '@prisma/client';
-import type { OutboundEmail } from '../../../plugins/email/core/outbound-email';
-import { nullToUndefined } from './null';
+import type { OutboundEmail } from '../../../plugins/email/core/outbound-email.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → port type (the DB column `messageId` maps to the agnostic `providerRef`; createdAt is infra-only). */
 export const toDomain = (row: PrismaOutboundEmail): OutboundEmail => ({

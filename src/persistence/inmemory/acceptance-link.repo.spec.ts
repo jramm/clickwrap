@@ -1,6 +1,6 @@
-import { DomainError } from '../../common/errors';
-import { anAcceptanceLink } from '../../domain/testing/fixtures';
-import { InMemoryAcceptanceLinkRepo } from './acceptance-link.repo';
+import { DomainError } from '../../common/errors.js';
+import { anAcceptanceLink } from '../../domain/testing/fixtures.js';
+import { InMemoryAcceptanceLinkRepo } from './acceptance-link.repo.js';
 
 describe('InMemoryAcceptanceLinkRepo', () => {
   let repo: InMemoryAcceptanceLinkRepo;

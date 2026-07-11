@@ -1,13 +1,13 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import type { Clock } from '../../../domain/clock';
-import { customerDisplayName } from '../../../domain/customer';
-import type { AgreementVersion, Customer } from '../../../domain/types';
-import { EventRecorder } from '../../../events/event-recorder';
-import { TOKENS } from '../../../persistence/tokens';
-import { PLUGIN_DI_TOKENS, type EmailAttachment, type FileStorage } from '../../../plugin-sdk';
-import { EmailContentService } from './email-content.service';
-import { EMAIL_TOKENS, type EmailDeliveryProvider, type SendResult } from './email-delivery-provider';
-import type { OutboundEmailRepo } from './outbound-email';
+import type { Clock } from '../../../domain/clock.js';
+import { customerDisplayName } from '../../../domain/customer.js';
+import type { AgreementVersion, Customer } from '../../../domain/types.js';
+import { EventRecorder } from '../../../events/event-recorder.js';
+import { TOKENS } from '../../../persistence/tokens.js';
+import { PLUGIN_DI_TOKENS, type EmailAttachment, type FileStorage } from '../../../plugin-sdk/index.js';
+import { EmailContentService } from './email-content.service.js';
+import { EMAIL_TOKENS, type EmailDeliveryProvider, type SendResult } from './email-delivery-provider.js';
+import type { OutboundEmailRepo } from './outbound-email.js';
 
 interface EmailContent {
   subject: string;

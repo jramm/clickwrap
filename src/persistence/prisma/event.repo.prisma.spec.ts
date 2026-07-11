@@ -3,10 +3,10 @@
  * src/persistence/inmemory/event.repo.spec.ts. Runs only with DATABASE_URL (see
  * agreement-document.repo.prisma.spec.ts for details/invocation).
  */
-import { anEvent } from '../../domain/testing/fixtures';
-import { PrismaEventRepo } from './event.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { anEvent } from '../../domain/testing/fixtures.js';
+import { PrismaEventRepo } from './event.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 const at = (iso: string) => new Date(iso);

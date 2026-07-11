@@ -1,16 +1,16 @@
 import { INestApplication, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AcceptanceLinkAdminService } from '../accept/acceptance-link-admin.service';
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { ADMIN_AUDIT_TOKEN } from '../agreements/audit';
-import { InMemoryPdfStorage } from '../agreements/pdf-storage.inmemory';
-import { AGREEMENTS_TOKENS } from '../agreements/ports';
-import { PublishService } from '../agreements/publish.service';
-import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
+import { AcceptanceLinkAdminService } from '../accept/acceptance-link-admin.service.js';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { ADMIN_AUDIT_TOKEN } from '../agreements/audit.js';
+import { InMemoryPdfStorage } from '../agreements/pdf-storage.inmemory.js';
+import { AGREEMENTS_TOKENS } from '../agreements/ports.js';
+import { PublishService } from '../agreements/publish.service.js';
+import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory.js';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
 import {
   aCustomer,
   aDocument,
@@ -19,8 +19,8 @@ import {
   aState,
   aVersion,
   anActiveVersion,
-} from '../domain/testing/fixtures';
-import { TOKENS } from '../persistence/tokens';
+} from '../domain/testing/fixtures.js';
+import { TOKENS } from '../persistence/tokens.js';
 import {
   InMemoryAcceptanceLinkRepo,
   InMemoryAcceptanceRepo,
@@ -34,17 +34,17 @@ import {
   InMemoryNotificationEventRepo,
   InMemoryObjectionRepo,
   InMemorySignedDocumentRepo,
-} from '../persistence/inmemory';
-import { CustomerAdminService } from '../customers/customer-admin.service';
-import { AdminController } from './admin.controller';
-import { AudienceAdminService } from './audience-admin.service';
-import { CustomerVersionStateAdminService } from './customer-version-state-admin.service';
-import { DocumentTypeAdminService } from './document-type-admin.service';
-import { EmailTemplateAdminService } from './email-template-admin.service';
-import { HistoryService } from './history.service';
-import { ManualAcceptanceService } from './manual-acceptance.service';
-import { DashboardService } from './dashboard.service';
-import { VersionCustomersService } from './version-customers.service';
+} from '../persistence/inmemory/index.js';
+import { CustomerAdminService } from '../customers/customer-admin.service.js';
+import { AdminController } from './admin.controller.js';
+import { AudienceAdminService } from './audience-admin.service.js';
+import { CustomerVersionStateAdminService } from './customer-version-state-admin.service.js';
+import { DocumentTypeAdminService } from './document-type-admin.service.js';
+import { EmailTemplateAdminService } from './email-template-admin.service.js';
+import { HistoryService } from './history.service.js';
+import { ManualAcceptanceService } from './manual-acceptance.service.js';
+import { DashboardService } from './dashboard.service.js';
+import { VersionCustomersService } from './version-customers.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const EVIDENCE_BASE64 = Buffer.from('letter-scan').toString('base64');

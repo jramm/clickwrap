@@ -7,17 +7,17 @@
 import { Body, Controller, Get, Headers, HttpCode, Inject, Param, Post, Query, Req, Res } from '@nestjs/common';
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiParam, ApiProduces, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { DomainError } from '../common/errors';
-import { acceptanceLinkTokenHash } from '../domain/acceptance-links';
-import { PLUGIN_DI_TOKENS, type AcceptancePageRenderer } from '../plugin-sdk';
-import type { AcceptanceResponse } from '../consent/acceptance.service';
-import { ZodBodyPipe } from '../consent/dto';
-import { AcceptPageService } from './accept-page.service';
-import { linkAcceptanceBodySchema, type LinkAcceptanceBody } from './dto';
-import { LinkAcceptanceBodyModel, LinkAcceptanceResponseModel } from './openapi.models';
-import { resolveAcceptPageLang } from './i18n';
-import { SlidingWindowRateLimiter } from './rate-limiter';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { DomainError } from '../common/errors.js';
+import { acceptanceLinkTokenHash } from '../domain/acceptance-links.js';
+import { PLUGIN_DI_TOKENS, type AcceptancePageRenderer } from '../plugin-sdk/index.js';
+import type { AcceptanceResponse } from '../consent/acceptance.service.js';
+import { ZodBodyPipe } from '../consent/dto.js';
+import { AcceptPageService } from './accept-page.service.js';
+import { linkAcceptanceBodySchema, type LinkAcceptanceBody } from './dto.js';
+import { LinkAcceptanceBodyModel, LinkAcceptanceResponseModel } from './openapi.models.js';
+import { resolveAcceptPageLang } from './i18n.js';
+import { SlidingWindowRateLimiter } from './rate-limiter.js';
 
 export const ACCEPT_PAGE_RATE_LIMITER = Symbol('AcceptPageRateLimiter');
 

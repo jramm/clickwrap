@@ -7,7 +7,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { S3FileStorage } from './s3-file-storage';
+import { S3FileStorage } from './s3-file-storage.js';
 
 const BUCKET = 'clickwrap-documents';
 const REGION = 'eu-central-1';

@@ -1,6 +1,6 @@
 import type { CustomerVersionState as PrismaCustomerVersionState } from '@prisma/client';
-import type { CustomerVersionState } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { CustomerVersionState } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /**
  * Prisma row → domain type. `lastReminderAt` is a persistence-only field with no domain

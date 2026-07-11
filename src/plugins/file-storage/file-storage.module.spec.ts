@@ -1,5 +1,5 @@
-import { FileStorageModule } from './file-storage.module';
-import { LocalFilesController } from './local/local-files.controller';
+import { FileStorageModule } from './file-storage.module.js';
+import { LocalFilesController } from './local/local-files.controller.js';
 
 /** Restores the relevant env after each test so cases do not leak into each other. */
 const withEnv = (env: Record<string, string | undefined>, run: () => void): void => {

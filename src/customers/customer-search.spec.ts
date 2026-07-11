@@ -1,5 +1,5 @@
-import { aCustomer } from '../domain/testing/fixtures';
-import { matchesCustomerSearch } from './customer-search';
+import { aCustomer } from '../domain/testing/fixtures.js';
+import { matchesCustomerSearch } from './customer-search.js';
 
 describe('matchesCustomerSearch', () => {
   const customer = aCustomer({

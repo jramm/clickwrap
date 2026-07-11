@@ -1,5 +1,5 @@
-import { SupertokensAdminAuthStrategy } from '../../common/auth/strategies/supertokens.strategy';
-import { definePlugin } from '../../plugin-sdk';
+import { SupertokensAdminAuthStrategy } from '../../common/auth/strategies/supertokens.strategy.js';
+import { definePlugin } from '../../plugin-sdk/index.js';
 
 /**
  * SuperTokens session verification (JWKS-based, no supertokens-node SDK) with a configurable

@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { definePlugin } from '../../plugin-sdk';
-import { PluginRegistry } from './plugin-registry';
+import { definePlugin } from '../../plugin-sdk/index.js';
+import { PluginRegistry } from './plugin-registry.js';
 
 /** Writes a plugin package (package.json + index.js) into `dir` and returns the dir. */
 const writePluginPackage = (

@@ -1,8 +1,8 @@
-import { DomainError } from '../../common/errors';
-import type { EventQueryFilters, EventRepo } from '../../domain/ports';
-import type { DomainEvent } from '../../domain/types';
-import { EVENTS_PAGE_SIZE } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import type { EventQueryFilters, EventRepo } from '../../domain/ports.js';
+import type { DomainEvent } from '../../domain/types.js';
+import { EVENTS_PAGE_SIZE } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 /**
  * In-memory {@link EventRepo} for tests/dev. Append-only (a duplicate id is a programming error).

@@ -8,11 +8,11 @@
  * enforced by the real DB (P2002 → INVALID_STATE) and that the application-level reference
  * check of `deleteIfUnused` (AgreementDocument.type) holds against real rows.
  */
-import { aDocument, aDocumentTypeDef } from '../../domain/testing/fixtures';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaDocumentTypeRepo } from './document-type.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aDocument, aDocumentTypeDef } from '../../domain/testing/fixtures.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaDocumentTypeRepo } from './document-type.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

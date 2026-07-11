@@ -1,7 +1,7 @@
-import { DomainError } from '../common/errors';
-import { anAudience } from '../domain/testing/fixtures';
-import { InMemoryAgreementDocumentRepo, InMemoryAudienceRepo, InMemoryCustomerRepo } from '../persistence/inmemory';
-import { resolveAudienceKey } from './audience';
+import { DomainError } from '../common/errors.js';
+import { anAudience } from '../domain/testing/fixtures.js';
+import { InMemoryAgreementDocumentRepo, InMemoryAudienceRepo, InMemoryCustomerRepo } from '../persistence/inmemory/index.js';
+import { resolveAudienceKey } from './audience.js';
 
 describe('resolveAudienceKey', () => {
   let audiences: InMemoryAudienceRepo;

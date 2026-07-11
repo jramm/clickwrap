@@ -1,7 +1,7 @@
 /**
  * Pure customer helpers (no Nest/Prisma imports; CONVENTIONS: domain is pure).
  */
-import type { Customer } from './types';
+import type { Customer } from './types.js';
 
 /**
  * The single human-readable label for a customer, used everywhere a customer is shown as one

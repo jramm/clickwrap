@@ -9,7 +9,7 @@
  *
  * Third-party providers ship as plugin packages — see docs/PLUGINS.md.
  */
-export type { DeliveryStatus, EmailDeliveryProvider, OutboundMail, SendResult } from '../../../plugin-sdk';
+export type { DeliveryStatus, EmailDeliveryProvider, OutboundMail, SendResult } from '../../../plugin-sdk/index.js';
 
 /**
  * DI tokens for the e-mail plugin's own ports (not part of src/persistence/tokens.ts).

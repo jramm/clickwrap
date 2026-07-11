@@ -1,7 +1,7 @@
-import type { EmailTemplate } from '../../domain/types';
-import { InMemoryAgreementDocumentRepo } from './agreement-document.repo';
-import { InMemoryDocumentTypeRepo } from './document-type.repo';
-import { InMemoryEmailTemplateRepo } from './email-template.repo';
+import type { EmailTemplate } from '../../domain/types.js';
+import { InMemoryAgreementDocumentRepo } from './agreement-document.repo.js';
+import { InMemoryDocumentTypeRepo } from './document-type.repo.js';
+import { InMemoryEmailTemplateRepo } from './email-template.repo.js';
 
 const aTemplate = (overrides: Partial<EmailTemplate> = {}): EmailTemplate => ({
   id: 'tpl-1',

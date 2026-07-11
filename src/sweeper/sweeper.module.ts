@@ -14,14 +14,14 @@
  * see final report.
  */
 import { Module } from '@nestjs/common';
-import { AgreementEmailService } from '../plugins/email/core/agreement-email.service';
-import { ActivationSweeperService } from './activation-sweeper.service';
-import { DeadlineSweeperJob } from './deadline-sweeper.job';
-import { DeadlineSweeperService } from './deadline-sweeper.service';
-import { SWEEPER_TOKENS } from './ports';
-import { InMemoryReminderCandidateRepo } from './reminder-candidate.repo.inmemory';
-import { ReminderJob } from './reminder.job';
-import { ReminderService } from './reminder.service';
+import { AgreementEmailService } from '../plugins/email/core/agreement-email.service.js';
+import { ActivationSweeperService } from './activation-sweeper.service.js';
+import { DeadlineSweeperJob } from './deadline-sweeper.job.js';
+import { DeadlineSweeperService } from './deadline-sweeper.service.js';
+import { SWEEPER_TOKENS } from './ports.js';
+import { InMemoryReminderCandidateRepo } from './reminder-candidate.repo.inmemory.js';
+import { ReminderJob } from './reminder.job.js';
+import { ReminderService } from './reminder.service.js';
 
 @Module({
   providers: [

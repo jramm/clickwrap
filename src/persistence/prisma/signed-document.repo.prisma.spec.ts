@@ -6,10 +6,10 @@
  * Verifies the append-only roundtrip and the newest-first ordering of findByCustomer against
  * real rows, plus that optional fields survive the null <-> undefined mapping.
  */
-import { aSignedDocument } from '../../domain/testing/fixtures';
-import { PrismaSignedDocumentRepo } from './signed-document.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aSignedDocument } from '../../domain/testing/fixtures.js';
+import { PrismaSignedDocumentRepo } from './signed-document.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

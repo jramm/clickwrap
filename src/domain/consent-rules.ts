@@ -3,13 +3,13 @@
  * Pure functions; node:crypto is allowed (no Nest/Prisma).
  */
 import { createHash } from 'node:crypto';
-import { DomainError } from '../common/errors';
+import { DomainError } from '../common/errors.js';
 import type {
   AcceptanceChannel,
   AcceptanceMethod,
   AgreementVersion,
   Customer,
-} from './types';
+} from './types.js';
 
 /**
  * Allowed method×channel combinations:

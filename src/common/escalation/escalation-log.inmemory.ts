@@ -1,5 +1,5 @@
-import { deepCopy } from '../../persistence/inmemory/clone';
-import type { EscalationEntry, EscalationLog } from './escalation-log';
+import { deepCopy } from '../../persistence/inmemory/clone.js';
+import type { EscalationEntry, EscalationLog } from './escalation-log.js';
 
 /** In-memory implementation (tests + REPOSITORY_DRIVER=inmemory). */
 export class InMemoryEscalationLog implements EscalationLog {

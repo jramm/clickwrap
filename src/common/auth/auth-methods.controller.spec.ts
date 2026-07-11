@@ -1,12 +1,12 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import type { AdminAuthStrategy } from '../../plugin-sdk';
-import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens';
-import { AuthMethodsController } from './auth-methods.controller';
-import { GoogleSsoAdminAuthStrategy } from './strategies/google-sso.strategy';
-import { StaticTokenAdminAuthStrategy } from './strategies/static-token.strategy';
-import { SupertokensAdminAuthStrategy } from './strategies/supertokens.strategy';
+import type { AdminAuthStrategy } from '../../plugin-sdk/index.js';
+import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens.js';
+import { AuthMethodsController } from './auth-methods.controller.js';
+import { GoogleSsoAdminAuthStrategy } from './strategies/google-sso.strategy.js';
+import { StaticTokenAdminAuthStrategy } from './strategies/static-token.strategy.js';
+import { SupertokensAdminAuthStrategy } from './strategies/supertokens.strategy.js';
 
 describe('GET /admin/auth/methods', () => {
   const env = { ...process.env };

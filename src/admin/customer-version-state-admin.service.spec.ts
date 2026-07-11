@@ -1,17 +1,17 @@
-import { DomainError } from '../common/errors';
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory';
-import { FixedClock } from '../domain/clock';
-import { aCustomer, aState, aVersion } from '../domain/testing/fixtures';
+import { DomainError } from '../common/errors.js';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { InMemoryRolloutNotifier } from '../agreements/rollout-notifier.inmemory.js';
+import { FixedClock } from '../domain/clock.js';
+import { aCustomer, aState, aVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { CustomerVersionStateAdminService } from './customer-version-state-admin.service';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { CustomerVersionStateAdminService } from './customer-version-state-admin.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const NEW_DEADLINE = new Date('2026-08-01T09:00:00Z');

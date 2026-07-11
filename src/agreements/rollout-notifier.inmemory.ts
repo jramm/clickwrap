@@ -1,5 +1,5 @@
-import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types';
-import type { RolloutNotifier } from './ports';
+import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types.js';
+import type { RolloutNotifier } from './ports.js';
 
 /** Spy notifier for tests: records publish notifications and reminders. */
 export class InMemoryRolloutNotifier implements RolloutNotifier {

@@ -1,5 +1,5 @@
-import { InMemoryFileStorage } from '../plugins/file-storage/memory/in-memory-file-storage';
-import { FileStoragePdfAdapter } from './file-storage-pdf.adapter';
+import { InMemoryFileStorage } from '../plugins/file-storage/memory/in-memory-file-storage.js';
+import { FileStoragePdfAdapter } from './file-storage-pdf.adapter.js';
 
 /**
  * In-memory PdfStorage for tests: the `memory` file-storage built-in behind the standard

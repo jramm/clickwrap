@@ -36,7 +36,7 @@ import 'dotenv/config';
  */
 import type { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { configureApp } from '../src/bootstrap';
+import { configureApp } from '../src/bootstrap.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN ?? 'dev-admin-token';
@@ -118,7 +118,7 @@ async function bootApp(): Promise<INestApplication> {
   process.env.ADMIN_API_TOKEN = ADMIN_TOKEN;
   process.env.POSTMARK_API_TOKEN = process.env.POSTMARK_API_TOKEN ?? ''; // noop client, no real sending
 
-  const { AppModule } = await import('../src/app.module');
+  const { AppModule } = await import('../src/app.module.js');
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
   await configureApp(app);
   await app.listen(PORT);

@@ -11,10 +11,10 @@
  * (`EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`, `ACCEPTANCE_PAGE`).
  */
 import type { DynamicModule } from '@nestjs/common';
-import type { AcceptancePageRenderer } from './kinds/acceptance-page';
-import type { AdminAuthStrategy } from './kinds/admin-auth';
-import type { EmailDeliveryProvider } from './kinds/email';
-import type { FileStorage } from './kinds/file-storage';
+import type { AcceptancePageRenderer } from './kinds/acceptance-page.js';
+import type { AdminAuthStrategy } from './kinds/admin-auth.js';
+import type { EmailDeliveryProvider } from './kinds/email.js';
+import type { FileStorage } from './kinds/file-storage.js';
 
 /** What `create(ctx)` must return, per plugin kind. */
 export interface PluginKindImplementations {

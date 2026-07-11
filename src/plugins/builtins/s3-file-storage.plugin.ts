@@ -1,5 +1,5 @@
-import { definePlugin } from '../../plugin-sdk';
-import { S3FileStorage } from '../file-storage/s3/s3-file-storage';
+import { definePlugin } from '../../plugin-sdk/index.js';
+import { S3FileStorage } from '../file-storage/s3/s3-file-storage.js';
 
 /**
  * Built-in `s3` file storage: version PDFs / signed-document archives in an S3 (or S3-compatible,

@@ -5,7 +5,7 @@
  * AgreementVersion and the last known e-mail recipient (from NotificationEvent) into a
  * `ReminderCandidate` — see final report.
  */
-import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types';
+import type { AgreementVersion, Customer, CustomerVersionState } from '../domain/types.js';
 
 export interface ReminderCandidate {
   state: CustomerVersionState;

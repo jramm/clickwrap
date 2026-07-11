@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { DomainError } from '../../../common/errors';
-import type { FileMeta, FileStorage, StoredFileRef } from '../../../plugin-sdk';
+import { DomainError } from '../../../common/errors.js';
+import type { FileMeta, FileStorage, StoredFileRef } from '../../../plugin-sdk/index.js';
 
 /**
  * Built-in `memory` file storage (default): keeps the buffers in memory — nothing survives a

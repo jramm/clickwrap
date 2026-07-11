@@ -1,6 +1,6 @@
-import { FixedClock } from '../../../domain/clock';
-import { FallbackPollingJob } from './fallback-polling.job';
-import type { DeliveryEventService } from '../core/delivery-event.service';
+import { FixedClock } from '../../../domain/clock.js';
+import { FallbackPollingJob } from './fallback-polling.job.js';
+import type { DeliveryEventService } from '../core/delivery-event.service.js';
 
 describe('FallbackPollingJob', () => {
   it('calls pollPendingDeliveries with the cutoff "now minus 10 minutes"', async () => {

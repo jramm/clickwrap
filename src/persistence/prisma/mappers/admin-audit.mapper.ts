@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import type { AdminAuditLog as PrismaAdminAuditLog } from '@prisma/client';
-import type { AdminAuditLog } from '../../../agreements/audit';
-import { nullToUndefined } from './null';
+import type { AdminAuditLog } from '../../../agreements/audit.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → port type. metadata is Json? — the domain layer knows Record<string, unknown>. */
 export const toDomain = (row: PrismaAdminAuditLog): AdminAuditLog => ({

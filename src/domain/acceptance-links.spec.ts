@@ -5,9 +5,9 @@ import {
   isAcceptanceLinkUsable,
   newAcceptanceLinkToken,
   permanentAcceptanceLinkToken,
-} from './acceptance-links';
-import { sha256Hex } from './consent-rules';
-import { anAcceptanceLink } from './testing/fixtures';
+} from './acceptance-links.js';
+import { sha256Hex } from './consent-rules.js';
+import { anAcceptanceLink } from './testing/fixtures.js';
 
 describe('newAcceptanceLinkToken', () => {
   it('is 32 random bytes as base64url (43 chars, URL-safe alphabet, no padding)', () => {

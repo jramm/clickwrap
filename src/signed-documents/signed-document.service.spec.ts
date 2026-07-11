@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto';
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { FileStoragePdfAdapter } from '../agreements/file-storage-pdf.adapter';
-import type { Actor } from '../common/auth/actor';
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
-import { aCustomer, aDocumentTypeDef, anAudience } from '../domain/testing/fixtures';
-import { EventRecorder } from '../events/event-recorder';
-import { InMemoryFileStorage } from '../plugins/file-storage/memory/in-memory-file-storage';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { FileStoragePdfAdapter } from '../agreements/file-storage-pdf.adapter.js';
+import type { Actor } from '../common/auth/actor.js';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
+import { aCustomer, aDocumentTypeDef, anAudience } from '../domain/testing/fixtures.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { InMemoryFileStorage } from '../plugins/file-storage/memory/in-memory-file-storage.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAudienceRepo,
@@ -14,8 +14,8 @@ import {
   InMemoryDocumentTypeRepo,
   InMemoryEventRepo,
   InMemorySignedDocumentRepo,
-} from '../persistence/inmemory';
-import { SignedDocumentService, type UploadSignedDocumentInput } from './signed-document.service';
+} from '../persistence/inmemory/index.js';
+import { SignedDocumentService, type UploadSignedDocumentInput } from './signed-document.service.js';
 
 const T0 = new Date('2026-07-08T09:00:00Z');
 const PDF = Buffer.from('%PDF-1.7 signed offer');

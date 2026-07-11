@@ -3,12 +3,12 @@
  * src/persistence/inmemory/agreement-version.repo.spec.ts. Runs only with DATABASE_URL
  * (see agreement-document.repo.prisma.spec.ts for details/invocation).
  */
-import { aDocument, aVersion } from '../../domain/testing/fixtures';
-import { AgreementDocumentRepo } from '../../domain/ports';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaAgreementVersionRepo } from './agreement-version.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aDocument, aVersion } from '../../domain/testing/fixtures.js';
+import { AgreementDocumentRepo } from '../../domain/ports.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaAgreementVersionRepo } from './agreement-version.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const NOW = new Date('2026-07-07T09:00:00Z');
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;

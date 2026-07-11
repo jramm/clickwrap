@@ -24,13 +24,13 @@ async function main(): Promise<void> {
   // Dynamic imports AFTER the env is pinned — AppModule/EmailModule read env while their
   // module metadata is evaluated.
   const { NestFactory } = await import('@nestjs/core');
-  const { AppModule } = await import('../src/app.module');
-  const { buildAdminDocument, buildIntegrationDocument } = await import('../src/common/openapi/build-documents');
+  const { AppModule } = await import('../src/app.module.js');
+  const { buildAdminDocument, buildIntegrationDocument } = await import('../src/common/openapi/build-documents.js');
 
   const app = await NestFactory.create(AppModule, { logger: false });
   await app.init();
 
-  const root = join(__dirname, '..');
+  const root = join(import.meta.dirname, '..');
   const documents = [
     { file: 'openapi.admin.json', document: buildAdminDocument(app) },
     { file: 'openapi.integration.json', document: buildIntegrationDocument(app) },

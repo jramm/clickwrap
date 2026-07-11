@@ -1,7 +1,7 @@
-import { DomainError } from '../../common/errors';
-import type { AcceptanceRepo } from '../../domain/ports';
-import type { Acceptance } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import type { AcceptanceRepo } from '../../domain/ports.js';
+import type { Acceptance } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 export class InMemoryAcceptanceRepo implements AcceptanceRepo {
   private readonly acceptances = new Map<string, Acceptance>();

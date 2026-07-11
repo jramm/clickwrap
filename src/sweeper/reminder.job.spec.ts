@@ -1,5 +1,5 @@
-import { ReminderJob } from './reminder.job';
-import type { ReminderService } from './reminder.service';
+import { ReminderJob } from './reminder.job.js';
+import type { ReminderService } from './reminder.service.js';
 
 describe('ReminderJob', () => {
   it('delegates to ReminderService.run()', async () => {

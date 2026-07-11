@@ -10,10 +10,10 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { join } from 'node:path';
-import type { EmailDeliveryProvider } from '../src/plugin-sdk';
-import { PluginRegistry, resetPluginRegistry } from '../src/plugins/registry/plugin-registry';
+import type { EmailDeliveryProvider } from '../src/plugin-sdk/index.js';
+import { PluginRegistry, resetPluginRegistry } from '../src/plugins/registry/plugin-registry.js';
 
-const FIXTURES = join(__dirname, 'fixtures', 'plugins');
+const FIXTURES = join(import.meta.dirname, 'fixtures', 'plugins');
 const ACME_DIR = join(FIXTURES, 'acme-email');
 
 const ENV_KEYS = ['CLICKWRAP_PLUGIN_PATHS', 'EMAIL_PROVIDER', 'REPOSITORY_DRIVER'] as const;
@@ -41,8 +41,8 @@ describe('plugin discovery (fixture packages via CLICKWRAP_PLUGIN_PATHS)', () =>
     process.env.EMAIL_PROVIDER = 'acme';
     process.env.REPOSITORY_DRIVER = 'inmemory';
 
-    const { AppModule } = await import('../src/app.module');
-    const { EMAIL_TOKENS } = await import('../src/plugins/email/core/email-delivery-provider');
+    const { AppModule } = await import('../src/app.module.js');
+    const { EMAIL_TOKENS } = await import('../src/plugins/email/core/email-delivery-provider.js');
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     const app: INestApplication = moduleRef.createNestApplication();
@@ -70,7 +70,7 @@ describe('plugin discovery (fixture packages via CLICKWRAP_PLUGIN_PATHS)', () =>
   it('an unknown EMAIL_PROVIDER key fails the boot listing the available keys (incl. discovered ones)', async () => {
     process.env.CLICKWRAP_PLUGIN_PATHS = ACME_DIR;
     process.env.EMAIL_PROVIDER = 'sendgrid';
-    const { EmailModule } = await import('../src/plugins/email/email.module');
+    const { EmailModule } = await import('../src/plugins/email/email.module.js');
     expect(() => EmailModule.forRoot()).toThrow(/Unknown EMAIL_PROVIDER "sendgrid".*acme.*noop/);
   });
 });

@@ -1,15 +1,15 @@
 import { NotFoundException } from '@nestjs/common';
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
-import { aDocument, aDocumentTypeDef } from '../domain/testing/fixtures';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
+import { aDocument, aDocumentTypeDef } from '../domain/testing/fixtures.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryDocumentTypeRepo,
   InMemoryEmailTemplateRepo,
-} from '../persistence/inmemory';
-import type { EmailTemplate } from '../domain/types';
-import { DocumentTypeAdminService } from './document-type-admin.service';
+} from '../persistence/inmemory/index.js';
+import type { EmailTemplate } from '../domain/types.js';
+import { DocumentTypeAdminService } from './document-type-admin.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 

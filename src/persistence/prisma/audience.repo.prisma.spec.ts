@@ -8,12 +8,12 @@
  * by the real DB (P2002 → INVALID_STATE) and that the application-level reference checks of
  * `deleteIfUnused` (AgreementDocument.audience, Customer.roles) hold against real rows.
  */
-import { aCustomer, aDocument, anAudience } from '../../domain/testing/fixtures';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaAudienceRepo } from './audience.repo';
-import { PrismaCustomerRepo } from './customer.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aCustomer, aDocument, anAudience } from '../../domain/testing/fixtures.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaAudienceRepo } from './audience.repo.js';
+import { PrismaCustomerRepo } from './customer.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const describeIfDb = process.env.DATABASE_URL ? describe : describe.skip;
 

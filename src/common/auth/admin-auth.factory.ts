@@ -1,7 +1,7 @@
-import type { AdminAuthStrategy } from '../../plugin-sdk';
-import { createPluginContext } from '../../plugins/registry/plugin-context';
-import { getPluginRegistry } from '../../plugins/registry/plugin-registry';
-import { selectedAdminAuthKeys } from '../../plugins/registry/selection';
+import type { AdminAuthStrategy } from '../../plugin-sdk/index.js';
+import { createPluginContext } from '../../plugins/registry/plugin-context.js';
+import { getPluginRegistry } from '../../plugins/registry/plugin-registry.js';
+import { selectedAdminAuthKeys } from '../../plugins/registry/selection.js';
 
 /**
  * Builds the ORDERED active admin-auth strategy chain from env ADMIN_AUTH (default

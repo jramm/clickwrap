@@ -11,15 +11,15 @@
  */
 import type { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule, type OpenAPIObject } from '@nestjs/swagger';
-import { AcceptModule } from '../../accept/accept.module';
-import { AdminModule } from '../../admin/admin.module';
-import { AgreementsModule } from '../../agreements/agreements.module';
-import { AdminAuthModule } from '../auth/admin-auth.module';
-import { ComplianceModule } from '../../compliance/compliance.module';
-import { ConsentModule } from '../../consent/consent.module';
-import { EmailModule } from '../../plugins/email/email.module';
-import { EventsModule } from '../../events/events.module';
-import { SEC_ADMIN_TOKEN, SEC_GOOGLE_SSO, SEC_SERVICE_TOKEN, SEC_WEBHOOK_TOKEN } from './security.decorators';
+import { AcceptModule } from '../../accept/accept.module.js';
+import { AdminModule } from '../../admin/admin.module.js';
+import { AgreementsModule } from '../../agreements/agreements.module.js';
+import { AdminAuthModule } from '../auth/admin-auth.module.js';
+import { ComplianceModule } from '../../compliance/compliance.module.js';
+import { ConsentModule } from '../../consent/consent.module.js';
+import { EmailModule } from '../../plugins/email/email.module.js';
+import { EventsModule } from '../../events/events.module.js';
+import { SEC_ADMIN_TOKEN, SEC_GOOGLE_SSO, SEC_SERVICE_TOKEN, SEC_WEBHOOK_TOKEN } from './security.decorators.js';
 
 const VERSION = '0.1.0';
 

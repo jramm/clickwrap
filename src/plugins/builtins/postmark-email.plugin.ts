@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { definePlugin } from '../../plugin-sdk';
-import { FallbackPollingJob } from '../email/postmark/fallback-polling.job';
-import { PostmarkEmailProvider } from '../email/postmark/postmark.provider';
-import { PostmarkWebhookController } from '../email/postmark/postmark-webhook.controller';
+import { definePlugin } from '../../plugin-sdk/index.js';
+import { FallbackPollingJob } from '../email/postmark/fallback-polling.job.js';
+import { PostmarkEmailProvider } from '../email/postmark/postmark.provider.js';
+import { PostmarkWebhookController } from '../email/postmark/postmark-webhook.controller.js';
 
 /** Carrier class for the plugin module fragment (its controllers/providers are merged by the host). */
 @Module({})

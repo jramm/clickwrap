@@ -4,8 +4,8 @@
  * page's inline JS via an embedded JSON block (never through HTML attributes) so the POST can
  * echo it verbatim (CONSENT_TEXT_MISMATCH cross-check).
  */
-import type { AcceptPageItem, AcceptPageView } from './accept-page.service';
-import { ACCEPT_PAGE_STRINGS, type AcceptPageLang, type AcceptPageStrings } from './i18n';
+import type { AcceptPageItem, AcceptPageView } from './accept-page.service.js';
+import { ACCEPT_PAGE_STRINGS, type AcceptPageLang, type AcceptPageStrings } from './i18n.js';
 
 export const escapeHtml = (value: string): string =>
   value

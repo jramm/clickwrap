@@ -1,9 +1,9 @@
-import { DomainError } from '../../common/errors';
-import { aCustomer, aDocument, aNotification, anObjection } from '../../domain/testing/fixtures';
-import { InMemoryAgreementDocumentRepo } from './agreement-document.repo';
-import { InMemoryCustomerRepo } from './customer.repo';
-import { InMemoryNotificationEventRepo } from './notification-event.repo';
-import { InMemoryObjectionRepo } from './objection.repo';
+import { DomainError } from '../../common/errors.js';
+import { aCustomer, aDocument, aNotification, anObjection } from '../../domain/testing/fixtures.js';
+import { InMemoryAgreementDocumentRepo } from './agreement-document.repo.js';
+import { InMemoryCustomerRepo } from './customer.repo.js';
+import { InMemoryNotificationEventRepo } from './notification-event.repo.js';
+import { InMemoryObjectionRepo } from './objection.repo.js';
 
 describe('InMemoryAgreementDocumentRepo', () => {
   let repo: InMemoryAgreementDocumentRepo;

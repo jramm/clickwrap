@@ -1,8 +1,8 @@
-import { DomainError } from '../../common/errors';
-import { assertValidEntityKey } from '../../domain/keys';
-import type { AgreementDocumentRepo, DocumentTypeRepo } from '../../domain/ports';
-import type { DocumentTypeDef } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import { assertValidEntityKey } from '../../domain/keys.js';
+import type { AgreementDocumentRepo, DocumentTypeRepo } from '../../domain/ports.js';
+import type { DocumentTypeDef } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 /**
  * In-memory fake of DocumentTypeRepo — mirrors src/persistence/prisma/document-type.repo.ts.

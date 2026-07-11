@@ -4,10 +4,10 @@
  * update/delete), `findByCustomer` returns newest first (uploadedAt desc, id desc tie-break).
  */
 import { Injectable } from '@nestjs/common';
-import type { SignedDocumentRepo } from '../../domain/ports';
-import type { SignedDocument } from '../../domain/types';
-import { toCreateData, toDomain } from './mappers/signed-document.mapper';
-import { PrismaService } from './prisma.service';
+import type { SignedDocumentRepo } from '../../domain/ports.js';
+import type { SignedDocument } from '../../domain/types.js';
+import { toCreateData, toDomain } from './mappers/signed-document.mapper.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaSignedDocumentRepo implements SignedDocumentRepo {

@@ -1,7 +1,7 @@
 import { Module, type DynamicModule } from '@nestjs/common';
-import { createSelectedAdminAuthStrategies } from './admin-auth.factory';
-import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens';
-import { AuthMethodsController } from './auth-methods.controller';
+import { createSelectedAdminAuthStrategies } from './admin-auth.factory.js';
+import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens.js';
+import { AuthMethodsController } from './auth-methods.controller.js';
 
 /**
  * Global admin-auth wiring: binds ADMIN_AUTH_STRATEGIES (the ORDERED active strategy chain from

@@ -15,29 +15,29 @@
  */
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { DomainError } from '../common/errors';
+import { DomainError } from '../common/errors.js';
 import {
   acceptanceLinkActorUserId,
   acceptanceLinkEvidenceNote,
   acceptanceLinkTokenHash,
   isAcceptanceLinkUsable,
-} from '../domain/acceptance-links';
-import type { Clock } from '../domain/clock';
-import { customerDisplayName } from '../domain/customer';
-import type { AcceptanceLinkRepo, AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo } from '../domain/ports';
-import type { AcceptanceLink } from '../domain/types';
-import type { AcceptancePageItem, AcceptancePageView } from '../plugin-sdk';
-import { TOKENS } from '../persistence/tokens';
-import { PendingAgreementsService } from '../compliance/pending-agreements.service';
-import { AcceptanceService, type AcceptanceResponse } from '../consent/acceptance.service';
-import { NotificationService } from '../consent/notification.service';
+} from '../domain/acceptance-links.js';
+import type { Clock } from '../domain/clock.js';
+import { customerDisplayName } from '../domain/customer.js';
+import type { AcceptanceLinkRepo, AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo } from '../domain/ports.js';
+import type { AcceptanceLink } from '../domain/types.js';
+import type { AcceptancePageItem, AcceptancePageView } from '../plugin-sdk/index.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { PendingAgreementsService } from '../compliance/pending-agreements.service.js';
+import { AcceptanceService, type AcceptanceResponse } from '../consent/acceptance.service.js';
+import { NotificationService } from '../consent/notification.service.js';
 
 /**
  * The acceptance-page view-model is defined once in the plugin SDK (the stable contract renderers
  * type against — see `src/plugin-sdk/kinds/acceptance-page.ts`). These aliases keep the historical
  * host-side names working; both refer to the SDK types, so there is a single definition.
  */
-export type { AcceptancePageItem, AcceptancePageView } from '../plugin-sdk';
+export type { AcceptancePageItem, AcceptancePageView } from '../plugin-sdk/index.js';
 export type AcceptPageItem = AcceptancePageItem;
 export type AcceptPageView = AcceptancePageView;
 

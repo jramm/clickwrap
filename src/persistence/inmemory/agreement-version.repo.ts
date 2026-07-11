@@ -1,7 +1,7 @@
-import { DomainError } from '../../common/errors';
-import type { AgreementDocumentRepo, AgreementVersionRepo } from '../../domain/ports';
-import type { AgreementVersion } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import type { AgreementDocumentRepo, AgreementVersionRepo } from '../../domain/ports.js';
+import type { AgreementVersion } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 export class InMemoryAgreementVersionRepo implements AgreementVersionRepo {
   private readonly versions = new Map<string, AgreementVersion>();

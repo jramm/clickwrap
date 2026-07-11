@@ -1,16 +1,16 @@
-import type { CustomerContext } from '../common/auth/actor';
-import { FixedClock } from '../domain/clock';
-import { aDocument, aState, aVersion, testActor } from '../domain/testing/fixtures';
-import { EventRecorder } from '../events/event-recorder';
+import type { CustomerContext } from '../common/auth/actor.js';
+import { FixedClock } from '../domain/clock.js';
+import { aDocument, aState, aVersion, testActor } from '../domain/testing/fixtures.js';
+import { EventRecorder } from '../events/event-recorder.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
   InMemoryNotificationEventRepo,
-} from '../persistence/inmemory';
-import { SequentialIdGenerator } from './inmemory';
-import { NotificationService } from './notification.service';
+} from '../persistence/inmemory/index.js';
+import { SequentialIdGenerator } from './inmemory.js';
+import { NotificationService } from './notification.service.js';
 
 const NOW = new Date('2026-07-08T08:00:00Z');
 const DEADLINE = new Date('2026-07-22T08:00:00Z'); // NOW + 14d (PASSIVE)
@@ -140,7 +140,7 @@ describe('NotificationService', () => {
     // Repo that returns a stale PENDING snapshot on read while the store already holds
     // SUPERSEDED — simulates publishing the successor version in parallel with the delivery evidence.
     class StaleReadStateRepo extends InMemoryCustomerVersionStateRepo {
-      staleSnapshot?: import('../domain/types').CustomerVersionState;
+      staleSnapshot?: import('../domain/types.js').CustomerVersionState;
 
       override async findByCustomerAndVersion(customerId: string, versionId: string) {
         return this.staleSnapshot ?? super.findByCustomerAndVersion(customerId, versionId);

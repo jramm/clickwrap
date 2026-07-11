@@ -1,20 +1,20 @@
-import { FixedClock } from '../../../domain/clock';
+import { FixedClock } from '../../../domain/clock.js';
 import {
   DEFAULT_NOTIFICATION_TEMPLATE_ID,
   DEFAULT_REMINDER_TEMPLATE_ID,
   defaultEmailTemplates,
-} from '../../../domain/email-template';
-import { aCustomer, aDocument, aVersion } from '../../../domain/testing/fixtures';
-import type { EmailTemplate } from '../../../domain/types';
-import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo';
-import { InMemoryAgreementDocumentRepo } from '../../../persistence/inmemory/agreement-document.repo';
-import { InMemoryAudienceRepo } from '../../../persistence/inmemory/audience.repo';
-import { InMemoryCustomerRepo } from '../../../persistence/inmemory/customer.repo';
-import { InMemoryDocumentTypeRepo } from '../../../persistence/inmemory/document-type.repo';
-import { InMemoryEmailTemplateRepo } from '../../../persistence/inmemory/email-template.repo';
-import { EmailContentService } from './email-content.service';
-import type { NotificationConfig } from './email-delivery-provider';
-import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service';
+} from '../../../domain/email-template.js';
+import { aCustomer, aDocument, aVersion } from '../../../domain/testing/fixtures.js';
+import type { EmailTemplate } from '../../../domain/types.js';
+import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo.js';
+import { InMemoryAgreementDocumentRepo } from '../../../persistence/inmemory/agreement-document.repo.js';
+import { InMemoryAudienceRepo } from '../../../persistence/inmemory/audience.repo.js';
+import { InMemoryCustomerRepo } from '../../../persistence/inmemory/customer.repo.js';
+import { InMemoryDocumentTypeRepo } from '../../../persistence/inmemory/document-type.repo.js';
+import { InMemoryEmailTemplateRepo } from '../../../persistence/inmemory/email-template.repo.js';
+import { EmailContentService } from './email-content.service.js';
+import type { NotificationConfig } from './email-delivery-provider.js';
+import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service.js';
 
 const CONFIG: NotificationConfig = {
   appName: 'Clickwrap',

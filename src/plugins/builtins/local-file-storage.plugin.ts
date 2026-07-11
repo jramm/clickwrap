@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { definePlugin, PLUGIN_DI_TOKENS } from '../../plugin-sdk';
-import { LocalFileStorage } from '../file-storage/local/local-file-storage';
-import { LocalFilesController } from '../file-storage/local/local-files.controller';
+import { definePlugin, PLUGIN_DI_TOKENS } from '../../plugin-sdk/index.js';
+import { LocalFileStorage } from '../file-storage/local/local-file-storage.js';
+import { LocalFilesController } from '../file-storage/local/local-files.controller.js';
 
 /** Carrier class for the plugin module fragment (its controllers/providers are merged by the host). */
 @Module({})

@@ -1,4 +1,4 @@
-import { assertValidEntityKey, detailKey, isValidEntityKey } from './keys';
+import { assertValidEntityKey, detailKey, isValidEntityKey } from './keys.js';
 
 describe('entity keys', () => {
   it.each(['ab', 'customer', 'end-user', 'a1', 'x'.repeat(32)])('accepts %j', (key) => {

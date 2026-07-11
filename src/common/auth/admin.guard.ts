@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Inject, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
-import { AdminAuthError, type AdminAuthStrategy, type AdminIdentity } from '../../plugin-sdk';
-import { createSelectedAdminAuthStrategies } from './admin-auth.factory';
-import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens';
+import { AdminAuthError, type AdminAuthStrategy, type AdminIdentity } from '../../plugin-sdk/index.js';
+import { createSelectedAdminAuthStrategies } from './admin-auth.factory.js';
+import { ADMIN_AUTH_STRATEGIES } from './admin-auth.tokens.js';
 
 type AdminRequest = Request & { adminActor?: AdminIdentity };
 

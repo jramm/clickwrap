@@ -1,16 +1,16 @@
-import { FixedClock } from '../../../domain/clock';
-import type { AgreementVersionRepo } from '../../../domain/ports';
-import { aState, aVersion } from '../../../domain/testing/fixtures';
-import type { AgreementVersion } from '../../../domain/types';
-import { InMemoryEscalationLog } from '../../../common/escalation/escalation-log.inmemory';
-import { InMemoryCustomerVersionStateRepo } from '../../../persistence/inmemory/customer-version-state.repo';
-import { InMemoryNotificationEventRepo } from '../../../persistence/inmemory/notification-event.repo';
-import { InMemoryEventRepo } from '../../../persistence/inmemory';
-import { EventRecorder } from '../../../events/event-recorder';
-import { DeliveryEventService } from './delivery-event.service';
-import type { DeliveryStatus, EmailDeliveryProvider } from './email-delivery-provider';
-import type { OutboundEmail } from './outbound-email';
-import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory';
+import { FixedClock } from '../../../domain/clock.js';
+import type { AgreementVersionRepo } from '../../../domain/ports.js';
+import { aState, aVersion } from '../../../domain/testing/fixtures.js';
+import type { AgreementVersion } from '../../../domain/types.js';
+import { InMemoryEscalationLog } from '../../../common/escalation/escalation-log.inmemory.js';
+import { InMemoryCustomerVersionStateRepo } from '../../../persistence/inmemory/customer-version-state.repo.js';
+import { InMemoryNotificationEventRepo } from '../../../persistence/inmemory/notification-event.repo.js';
+import { InMemoryEventRepo } from '../../../persistence/inmemory/index.js';
+import { EventRecorder } from '../../../events/event-recorder.js';
+import { DeliveryEventService } from './delivery-event.service.js';
+import type { DeliveryStatus, EmailDeliveryProvider } from './email-delivery-provider.js';
+import type { OutboundEmail } from './outbound-email.js';
+import { InMemoryOutboundEmailRepo } from './outbound-email.repo.inmemory.js';
 
 /** Minimal fake: DeliveryEventService only needs findById. */
 class FakeAgreementVersionRepo implements AgreementVersionRepo {

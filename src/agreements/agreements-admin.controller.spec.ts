@@ -1,23 +1,23 @@
 import { INestApplication, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
-import { aDocumentTypeDef, anAudience, aVersion } from '../domain/testing/fixtures';
-import { TOKENS } from '../persistence/tokens';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
+import { aDocumentTypeDef, anAudience, aVersion } from '../domain/testing/fixtures.js';
+import { TOKENS } from '../persistence/tokens.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryDocumentTypeRepo,
-} from '../persistence/inmemory';
-import { AgreementsAdminController } from './agreements-admin.controller';
-import { DocumentService } from './document.service';
-import { InMemoryPdfStorage } from './pdf-storage.inmemory';
-import { AGREEMENTS_TOKENS } from './ports';
-import { VersionService } from './version.service';
+} from '../persistence/inmemory/index.js';
+import { AgreementsAdminController } from './agreements-admin.controller.js';
+import { DocumentService } from './document.service.js';
+import { InMemoryPdfStorage } from './pdf-storage.inmemory.js';
+import { AGREEMENTS_TOKENS } from './ports.js';
+import { VersionService } from './version.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const PDF_BASE64 = Buffer.from('%PDF-1.7 test').toString('base64');

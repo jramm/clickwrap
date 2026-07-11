@@ -3,19 +3,19 @@
  * notifiedAt = server time (no backdating); displayedAt is only used for plausibility checks. Idempotent.
  */
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import type { CustomerContext } from '../common/auth/actor';
-import { Clock } from '../domain/clock';
-import { DomainError } from '../common/errors';
+import type { CustomerContext } from '../common/auth/actor.js';
+import type { Clock } from '../domain/clock.js';
+import { DomainError } from '../common/errors.js';
 import type {
   AgreementVersionRepo,
   CustomerVersionStateRepo,
   NotificationEventRepo,
-} from '../domain/ports';
-import { EventRecorder } from '../events/event-recorder';
-import { recordAccess } from '../domain/state-machine';
-import type { CustomerVersionStateValue } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
-import { CONSENT_TOKENS, type IdGenerator } from './ports';
+} from '../domain/ports.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { recordAccess } from '../domain/state-machine.js';
+import type { CustomerVersionStateValue } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { CONSENT_TOKENS, type IdGenerator } from './ports.js';
 
 /** Beyond this deviation displayedAt is considered implausible and is ignored (server time applies anyway). */
 const PLAUSIBILITY_WINDOW_MS = 10 * 60 * 1000;

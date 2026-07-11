@@ -12,12 +12,12 @@
  *   resolvedAt) — see the column-scoped GRANT exception in prisma/partial-indexes.sql.
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import type { ObjectionRepo } from '../../domain/ports';
-import type { Objection, ObjectionResolution } from '../../domain/types';
-import { toCreateData, toDomain } from './mappers/objection.mapper';
-import { isRecordNotFoundError, isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { ObjectionRepo } from '../../domain/ports.js';
+import type { Objection, ObjectionResolution } from '../../domain/types.js';
+import { toCreateData, toDomain } from './mappers/objection.mapper.js';
+import { isRecordNotFoundError, isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaObjectionRepo implements ObjectionRepo {

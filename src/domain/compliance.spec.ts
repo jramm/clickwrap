@@ -1,6 +1,6 @@
-import { computeCompliance, type CurrentVersionEntry } from './compliance';
-import { aCustomer, aDocument, aState, aVersion, anActiveVersion } from './testing/fixtures';
-import type { CustomerVersionState } from './types';
+import { computeCompliance, type CurrentVersionEntry } from './compliance.js';
+import { aCustomer, aDocument, aState, aVersion, anActiveVersion } from './testing/fixtures.js';
+import type { CustomerVersionState } from './types.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const DEADLINE = new Date('2026-07-21T09:00:00Z');

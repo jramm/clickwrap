@@ -1,6 +1,6 @@
 import type { SignedDocument as PrismaSignedDocument } from '@prisma/client';
-import type { SignedDocument } from '../../../domain/types';
-import { nullToUndefined } from './null';
+import type { SignedDocument } from '../../../domain/types.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → domain type (createdAt is an infrastructure-only field). */
 export const toDomain = (row: PrismaSignedDocument): SignedDocument => ({

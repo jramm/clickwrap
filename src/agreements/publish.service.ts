@@ -1,21 +1,21 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { EventRecorder } from '../events/event-recorder';
-import { DomainError } from '../common/errors';
-import { validateForPublish } from '../domain/consent-rules';
-import { customerDisplayName } from '../domain/customer';
-import { rolloutDeadlineFor, supersede } from '../domain/state-machine';
-import { TOKENS } from '../persistence/tokens';
-import type { Clock } from '../domain/clock';
+import { EventRecorder } from '../events/event-recorder.js';
+import { DomainError } from '../common/errors.js';
+import { validateForPublish } from '../domain/consent-rules.js';
+import { customerDisplayName } from '../domain/customer.js';
+import { rolloutDeadlineFor, supersede } from '../domain/state-machine.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { Clock } from '../domain/clock.js';
 import type {
   AgreementDocumentRepo,
   AgreementVersionRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
-import type { CustomerVersionState } from '../domain/types';
-import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from './audit';
-import { AGREEMENTS_TOKENS, type RolloutNotifier } from './ports';
-import { newId } from './ids';
+} from '../domain/ports.js';
+import type { CustomerVersionState } from '../domain/types.js';
+import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from './audit.js';
+import { AGREEMENTS_TOKENS, type RolloutNotifier } from './ports.js';
+import { newId } from './ids.js';
 
 export interface PublishResult {
   versionId: string;

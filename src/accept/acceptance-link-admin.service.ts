@@ -4,19 +4,19 @@
  * SHA-256 is persisted. Every mint writes an ACCEPTANCE_LINK_CREATE audit entry.
  */
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
-import { newId } from '../agreements/ids';
-import { EventRecorder } from '../events/event-recorder';
-import { DomainError } from '../common/errors';
+import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit.js';
+import { newId } from '../agreements/ids.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { DomainError } from '../common/errors.js';
 import {
   acceptanceLinkTokenHash,
   DEFAULT_LINK_EXPIRY_DAYS,
   MAX_LINK_EXPIRY_DAYS,
   newAcceptanceLinkToken,
-} from '../domain/acceptance-links';
-import type { Clock } from '../domain/clock';
-import type { AcceptanceLinkRepo, AudienceRepo, CustomerRepo } from '../domain/ports';
-import { TOKENS } from '../persistence/tokens';
+} from '../domain/acceptance-links.js';
+import type { Clock } from '../domain/clock.js';
+import type { AcceptanceLinkRepo, AudienceRepo, CustomerRepo } from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
 
 export interface CreateAcceptanceLinkInput {
   /** Optional scope: restrict the hosted page to documents of this audience. */

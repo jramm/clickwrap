@@ -1,5 +1,5 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { PostmarkWebhookGuard } from './postmark-webhook.guard';
+import { PostmarkWebhookGuard } from './postmark-webhook.guard.js';
 
 const contextWithToken = (token: string | undefined): ExecutionContext =>
   ({

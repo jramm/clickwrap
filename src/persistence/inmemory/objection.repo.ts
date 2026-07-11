@@ -1,7 +1,7 @@
-import { DomainError } from '../../common/errors';
-import type { ObjectionRepo } from '../../domain/ports';
-import type { Objection, ObjectionResolution } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import type { ObjectionRepo } from '../../domain/ports.js';
+import type { Objection, ObjectionResolution } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 export class InMemoryObjectionRepo implements ObjectionRepo {
   private readonly objections = new Map<string, Objection>();

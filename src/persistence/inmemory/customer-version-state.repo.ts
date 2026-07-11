@@ -1,7 +1,7 @@
-import { DomainError } from '../../common/errors';
-import type { CustomerVersionStateRepo, CustomerVersionStateTransition } from '../../domain/ports';
-import type { CustomerVersionState } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import type { CustomerVersionStateRepo, CustomerVersionStateTransition } from '../../domain/ports.js';
+import type { CustomerVersionState } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 const OPEN_STATES: readonly CustomerVersionState['state'][] = [
   'PENDING_NOTIFICATION',

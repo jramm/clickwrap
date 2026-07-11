@@ -6,13 +6,13 @@
  * Unlike the in-memory fake, the real schema enforces FK constraints on customerId/versionId
  * — every test therefore seeds document/version/customer rows first.
  */
-import { aCustomer, aDocument, aState, aVersion } from '../../domain/testing/fixtures';
-import { PrismaAgreementDocumentRepo } from './agreement-document.repo';
-import { PrismaAgreementVersionRepo } from './agreement-version.repo';
-import { PrismaCustomerRepo } from './customer.repo';
-import { PrismaCustomerVersionStateRepo } from './customer-version-state.repo';
-import { PrismaService } from './prisma.service';
-import { resetDatabase } from './testing/reset-database';
+import { aCustomer, aDocument, aState, aVersion } from '../../domain/testing/fixtures.js';
+import { PrismaAgreementDocumentRepo } from './agreement-document.repo.js';
+import { PrismaAgreementVersionRepo } from './agreement-version.repo.js';
+import { PrismaCustomerRepo } from './customer.repo.js';
+import { PrismaCustomerVersionStateRepo } from './customer-version-state.repo.js';
+import { PrismaService } from './prisma.service.js';
+import { resetDatabase } from './testing/reset-database.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const DEADLINE = new Date('2026-07-21T09:00:00Z');

@@ -1,10 +1,10 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { PluginRegistry } from '../registry/plugin-registry';
-import { createPluginContext } from '../registry/plugin-context';
-import { S3FileStorage } from '../file-storage/s3/s3-file-storage';
-import { s3FileStoragePlugin } from './s3-file-storage.plugin';
+import { PluginRegistry } from '../registry/plugin-registry.js';
+import { createPluginContext } from '../registry/plugin-context.js';
+import { S3FileStorage } from '../file-storage/s3/s3-file-storage.js';
+import { s3FileStoragePlugin } from './s3-file-storage.plugin.js';
 
 describe('s3 file-storage plugin', () => {
   const savedEnv = { ...process.env };

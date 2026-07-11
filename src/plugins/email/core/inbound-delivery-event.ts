@@ -10,4 +10,4 @@
  * NOTE ON TIME: `occurredAt` is informational only. Objection deadlines are ALWAYS computed from
  * server time (injected Clock), never from an inbound payload.
  */
-export type { InboundDeliveryEvent } from '../../../plugin-sdk';
+export type { InboundDeliveryEvent } from '../../../plugin-sdk/index.js';

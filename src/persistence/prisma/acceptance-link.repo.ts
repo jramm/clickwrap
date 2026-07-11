@@ -6,12 +6,12 @@
  * the capability was withdrawn, `updateMany` with `revokedAt: null` guard).
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import type { AcceptanceLinkRepo } from '../../domain/ports';
-import type { AcceptanceLink } from '../../domain/types';
-import { toCreateData, toDomain } from './mappers/acceptance-link.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { AcceptanceLinkRepo } from '../../domain/ports.js';
+import type { AcceptanceLink } from '../../domain/types.js';
+import { toCreateData, toDomain } from './mappers/acceptance-link.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaAcceptanceLinkRepo implements AcceptanceLinkRepo {

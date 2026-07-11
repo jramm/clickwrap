@@ -1,6 +1,6 @@
-import { DomainError } from '../../common/errors';
-import { aState } from '../../domain/testing/fixtures';
-import { InMemoryCustomerVersionStateRepo } from './customer-version-state.repo';
+import { DomainError } from '../../common/errors.js';
+import { aState } from '../../domain/testing/fixtures.js';
+import { InMemoryCustomerVersionStateRepo } from './customer-version-state.repo.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const DEADLINE = new Date('2026-07-21T09:00:00Z');

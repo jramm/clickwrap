@@ -1,6 +1,6 @@
-import { DomainError } from '../../common/errors';
-import { anAcceptance } from '../../domain/testing/fixtures';
-import { InMemoryAcceptanceRepo } from './acceptance.repo';
+import { DomainError } from '../../common/errors.js';
+import { anAcceptance } from '../../domain/testing/fixtures.js';
+import { InMemoryAcceptanceRepo } from './acceptance.repo.js';
 
 describe('InMemoryAcceptanceRepo', () => {
   let repo: InMemoryAcceptanceRepo;

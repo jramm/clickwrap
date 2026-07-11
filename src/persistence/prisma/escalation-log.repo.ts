@@ -4,11 +4,11 @@
  * like src/common/escalation/escalation-log.inmemory.ts.
  */
 import { Injectable } from '@nestjs/common';
-import type { EscalationEntry, EscalationLog } from '../../common/escalation/escalation-log';
-import { DomainError } from '../../common/errors';
-import { toCreateData, toDomain } from './mappers/escalation-entry.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import type { EscalationEntry, EscalationLog } from '../../common/escalation/escalation-log.js';
+import { DomainError } from '../../common/errors.js';
+import { toCreateData, toDomain } from './mappers/escalation-entry.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaEscalationLog implements EscalationLog {

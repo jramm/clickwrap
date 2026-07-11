@@ -3,8 +3,8 @@ import { createReadStream, existsSync, mkdirSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
-import { DomainError } from '../../../common/errors';
-import type { FileMeta, FileStorage, StoredFileRef } from '../../../plugin-sdk';
+import { DomainError } from '../../../common/errors.js';
+import type { FileMeta, FileStorage, StoredFileRef } from '../../../plugin-sdk/index.js';
 
 /**
  * Built-in `local` file storage: files on the backend server's own disk.

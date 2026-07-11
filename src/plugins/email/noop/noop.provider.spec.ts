@@ -1,4 +1,4 @@
-import { NoopEmailProvider } from './noop.provider';
+import { NoopEmailProvider } from './noop.provider.js';
 
 describe('NoopEmailProvider', () => {
   it('returns a unique fake providerRef and does not send', async () => {

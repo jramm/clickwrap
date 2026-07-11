@@ -1,18 +1,18 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { DomainError } from '../common/errors';
-import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit';
-import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
-import { newId } from '../agreements/ids';
-import { customerDisplayName } from '../domain/customer';
-import { EventRecorder } from '../events/event-recorder';
-import { TOKENS } from '../persistence/tokens';
-import type { Clock } from '../domain/clock';
+import { DomainError } from '../common/errors.js';
+import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from '../agreements/audit.js';
+import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports.js';
+import { newId } from '../agreements/ids.js';
+import { customerDisplayName } from '../domain/customer.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { Clock } from '../domain/clock.js';
 import type {
   AgreementVersionRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
-import type { CustomerVersionState } from '../domain/types';
+} from '../domain/ports.js';
+import type { CustomerVersionState } from '../domain/types.js';
 
 export interface PatchStateInput {
   /** New deadline (deadline extension). Required when suspending a block. */

@@ -3,16 +3,16 @@
  * PASSIVE versions within the period only; after expiry only an escalation note + error.
  */
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import type { CustomerContext } from '../common/auth/actor';
-import { Clock } from '../domain/clock';
-import { DomainError } from '../common/errors';
-import type { AgreementVersionRepo, CustomerVersionStateRepo, ObjectionRepo } from '../domain/ports';
-import { object as objectState } from '../domain/state-machine';
-import type { Objection } from '../domain/types';
-import { EventRecorder } from '../events/event-recorder';
-import { ESCALATION_LOG, type EscalationLog } from '../common/escalation/escalation-log';
-import { TOKENS } from '../persistence/tokens';
-import { CONSENT_TOKENS, type IdempotencyStore, type IdGenerator } from './ports';
+import type { CustomerContext } from '../common/auth/actor.js';
+import type { Clock } from '../domain/clock.js';
+import { DomainError } from '../common/errors.js';
+import type { AgreementVersionRepo, CustomerVersionStateRepo, ObjectionRepo } from '../domain/ports.js';
+import { object as objectState } from '../domain/state-machine.js';
+import type { Objection } from '../domain/types.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { ESCALATION_LOG, type EscalationLog } from '../common/escalation/escalation-log.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { CONSENT_TOKENS, type IdempotencyStore, type IdGenerator } from './ports.js';
 
 export interface ObjectionInput {
   customerId: string;

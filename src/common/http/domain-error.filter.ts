@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Response } from 'express';
-import { DomainError, HTTP_STATUS_BY_CODE } from '../errors';
+import { DomainError, HTTP_STATUS_BY_CODE } from '../errors.js';
 
 /** Maps DomainError → typed error response { code, message } (project convention). */
 @Catch(DomainError)

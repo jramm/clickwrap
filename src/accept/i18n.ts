@@ -2,7 +2,7 @@
  * UI strings of the hosted acceptance page (en + de). Language: `?lang=` query parameter wins,
  * then the Accept-Language header, default English.
  */
-import type { AcceptancePageLang } from '../plugin-sdk';
+import type { AcceptancePageLang } from '../plugin-sdk/index.js';
 
 /** The page language lives in the plugin SDK (the renderer contract's lang type); this is an alias. */
 export type AcceptPageLang = AcceptancePageLang;

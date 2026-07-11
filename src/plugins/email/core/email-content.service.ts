@@ -10,8 +10,8 @@
  * `documentPdfUrl` is the stable public latest-PDF URL. Both are '' when PUBLIC_BASE_URL is unset.
  */
 import { Inject, Injectable } from '@nestjs/common';
-import type { Clock } from '../../../domain/clock';
-import { customerDisplayName } from '../../../domain/customer';
+import type { Clock } from '../../../domain/clock.js';
+import { customerDisplayName } from '../../../domain/customer.js';
 import {
   defaultEmailTemplates,
   defaultTemplateIdForKind,
@@ -19,22 +19,22 @@ import {
   renderTemplate,
   type RenderedTemplate,
   type TemplateVars,
-} from '../../../domain/email-template';
+} from '../../../domain/email-template.js';
 import type {
   AgreementDocumentRepo,
   AudienceRepo,
   DocumentTypeRepo,
   EmailTemplateRepo,
-} from '../../../domain/ports';
+} from '../../../domain/ports.js';
 import type {
   AgreementVersion,
   Customer,
   EmailTemplate,
   EmailTemplateKind,
-} from '../../../domain/types';
-import { TOKENS } from '../../../persistence/tokens';
-import { EMAIL_TOKENS, type NotificationConfig } from './email-delivery-provider';
-import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service';
+} from '../../../domain/types.js';
+import { TOKENS } from '../../../persistence/tokens.js';
+import { EMAIL_TOKENS, type NotificationConfig } from './email-delivery-provider.js';
+import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service.js';
 
 const isoDate = (date: Date): string => date.toISOString().slice(0, 10);
 

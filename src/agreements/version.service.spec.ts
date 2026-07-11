@@ -1,9 +1,9 @@
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
-import { InMemoryAgreementDocumentRepo, InMemoryAgreementVersionRepo, InMemoryEventRepo } from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { InMemoryPdfStorage } from './pdf-storage.inmemory';
-import { VersionService, type CreateDraftInput } from './version.service';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
+import { InMemoryAgreementDocumentRepo, InMemoryAgreementVersionRepo, InMemoryEventRepo } from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { InMemoryPdfStorage } from './pdf-storage.inmemory.js';
+import { VersionService, type CreateDraftInput } from './version.service.js';
 
 const expectCode = async (promise: Promise<unknown>, code: string): Promise<void> => {
   await expect(promise).rejects.toBeInstanceOf(DomainError);

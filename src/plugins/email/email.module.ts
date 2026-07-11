@@ -23,17 +23,17 @@
  * src/plugins/builtins/) — see docs/PLUGINS.md.
  */
 import { Module, type DynamicModule, type Provider } from '@nestjs/common';
-import { PLUGIN_DI_TOKENS, type EmailDeliveryProvider } from '../../plugin-sdk';
-import { createPluginContext } from '../registry/plugin-context';
-import { getPluginRegistry } from '../registry/plugin-registry';
-import { selectedEmailProviderKey } from '../registry/selection';
-import { AcceptanceConfirmationService } from './core/acceptance-confirmation.service';
-import { AgreementEmailService } from './core/agreement-email.service';
-import { AgreementRolloutNotifier } from './core/agreement-rollout-notifier';
-import { DeliveryEventService } from './core/delivery-event.service';
-import { EmailContentService } from './core/email-content.service';
-import { EMAIL_TOKENS, type NotificationConfig } from './core/email-delivery-provider';
-import { PermanentAcceptanceLinkService } from './core/permanent-acceptance-link.service';
+import { PLUGIN_DI_TOKENS, type EmailDeliveryProvider } from '../../plugin-sdk/index.js';
+import { createPluginContext } from '../registry/plugin-context.js';
+import { getPluginRegistry } from '../registry/plugin-registry.js';
+import { selectedEmailProviderKey } from '../registry/selection.js';
+import { AcceptanceConfirmationService } from './core/acceptance-confirmation.service.js';
+import { AgreementEmailService } from './core/agreement-email.service.js';
+import { AgreementRolloutNotifier } from './core/agreement-rollout-notifier.js';
+import { DeliveryEventService } from './core/delivery-event.service.js';
+import { EmailContentService } from './core/email-content.service.js';
+import { EMAIL_TOKENS, type NotificationConfig } from './core/email-delivery-provider.js';
+import { PermanentAcceptanceLinkService } from './core/permanent-acceptance-link.service.js';
 
 /** Reads and validates EMAIL_PROVIDER against the registry (default: noop — dev/tests send nothing). */
 export const emailProvider = (): string => {

@@ -6,10 +6,10 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import type { AcceptancePageLang, AcceptancePageRenderer, AcceptancePageView } from '../plugin-sdk';
-import { PLUGIN_DI_TOKENS } from '../plugin-sdk';
-import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.controller';
-import { AcceptPageService } from './accept-page.service';
+import type { AcceptancePageLang, AcceptancePageRenderer, AcceptancePageView } from '../plugin-sdk/index.js';
+import { PLUGIN_DI_TOKENS } from '../plugin-sdk/index.js';
+import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.controller.js';
+import { AcceptPageService } from './accept-page.service.js';
 
 const KNOWN_TOKEN = 'known-token';
 const PAGE_SENTINEL = '<!doctype html><title>MG-UI SENTINEL PAGE</title>';

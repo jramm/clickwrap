@@ -1,10 +1,10 @@
-import { DomainError } from '../common/errors';
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { InMemoryPdfStorage } from '../agreements/pdf-storage.inmemory';
-import { FixedClock } from '../domain/clock';
-import { EventRecorder } from '../events/event-recorder';
-import { testActor } from '../domain/testing/fixtures';
-import { aCustomer, aState, aVersion, anActiveVersion } from '../domain/testing/fixtures';
+import { DomainError } from '../common/errors.js';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { InMemoryPdfStorage } from '../agreements/pdf-storage.inmemory.js';
+import { FixedClock } from '../domain/clock.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { testActor } from '../domain/testing/fixtures.js';
+import { aCustomer, aState, aVersion, anActiveVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -12,9 +12,9 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
-import { ManualAcceptanceService, type ManualAcceptanceInput } from './manual-acceptance.service';
+} from '../persistence/inmemory/index.js';
+import type { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service.js';
+import { ManualAcceptanceService, type ManualAcceptanceInput } from './manual-acceptance.service.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const adminActor = testActor({ userId: 'admin-1', portalRole: undefined });

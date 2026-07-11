@@ -5,7 +5,7 @@
  * concrete error shapes so a future engine/adapter bump that changes the shape fails loudly here.
  */
 import { Prisma } from '@prisma/client';
-import { isUniqueConstraintError, uniqueConstraintTargets } from './prisma-errors';
+import { isUniqueConstraintError, uniqueConstraintTargets } from './prisma-errors.js';
 
 const p2002 = (meta: Record<string, unknown>): Prisma.PrismaClientKnownRequestError =>
   new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {

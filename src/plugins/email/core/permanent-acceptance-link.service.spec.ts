@@ -1,10 +1,10 @@
-import { FixedClock } from '../../../domain/clock';
-import { isAcceptanceLinkUsable } from '../../../domain/acceptance-links';
-import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo';
-import { InMemoryEventRepo } from '../../../persistence/inmemory';
-import { EventRecorder } from '../../../events/event-recorder';
-import type { NotificationConfig } from './email-delivery-provider';
-import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service';
+import { FixedClock } from '../../../domain/clock.js';
+import { isAcceptanceLinkUsable } from '../../../domain/acceptance-links.js';
+import { InMemoryAcceptanceLinkRepo } from '../../../persistence/inmemory/acceptance-link.repo.js';
+import { InMemoryEventRepo } from '../../../persistence/inmemory/index.js';
+import { EventRecorder } from '../../../events/event-recorder.js';
+import type { NotificationConfig } from './email-delivery-provider.js';
+import { PermanentAcceptanceLinkService } from './permanent-acceptance-link.service.js';
 
 const config: NotificationConfig = {
   appName: 'Clickwrap',
@@ -67,7 +67,7 @@ describe('PermanentAcceptanceLinkService', () => {
     expect(url.startsWith('https://clickwrap.example.org/accept/')).toBe(true);
 
     const link = await service.ensureForCustomer('c-1');
-    const { acceptanceLinkTokenHash } = await import('../../../domain/acceptance-links');
+    const { acceptanceLinkTokenHash } = await import('../../../domain/acceptance-links.js');
     const token = url.split('/accept/')[1];
     expect(acceptanceLinkTokenHash(token)).toBe(link.tokenHash);
   });

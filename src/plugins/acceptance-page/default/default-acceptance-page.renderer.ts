@@ -6,8 +6,8 @@
  * button stay there, unchanged. Selected by default (`ACCEPTANCE_PAGE=default`), it reproduces the
  * previous behaviour byte-for-byte.
  */
-import { renderAcceptPage, renderLinkNotFoundPage } from '../../../accept/accept-page.view';
-import type { AcceptancePageLang, AcceptancePageRenderer, AcceptancePageView } from '../../../plugin-sdk';
+import { renderAcceptPage, renderLinkNotFoundPage } from '../../../accept/accept-page.view.js';
+import type { AcceptancePageLang, AcceptancePageRenderer, AcceptancePageView } from '../../../plugin-sdk/index.js';
 
 export class DefaultAcceptancePageRenderer implements AcceptancePageRenderer {
   renderAcceptPage(view: AcceptancePageView, lang: AcceptancePageLang): string {

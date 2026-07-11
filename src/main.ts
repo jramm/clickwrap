@@ -3,8 +3,8 @@
 // start) silently had no effect.
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { configureApp } from './bootstrap';
+import { AppModule } from './app.module.js';
+import { configureApp } from './bootstrap.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

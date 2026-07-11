@@ -4,19 +4,20 @@
   "description": "Self-hosted agreement/clickwrap acceptance service: versioned contract documents, active click-consent and passive tacit acceptance, and a compliance-gate API.",
   "license": "Apache-2.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=26"
   },
   "scripts": {
     "postinstall": "prisma generate",
     "build": "tsc -p tsconfig.build.json",
-    "test": "jest",
-    "test:integration": "jest --config jest.integration.config.js",
-    "test:watch": "jest --watch",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.js",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "lint": "tsc --noEmit",
-    "start:dev": "ts-node src/main.ts",
-    "seed-example": "ts-node scripts/seed-example.ts",
-    "openapi": "ts-node scripts/openapi.ts"
+    "start:dev": "node --import ./scripts/register-ts-node-esm.mjs src/main.ts",
+    "seed-example": "node --import ./scripts/register-ts-node-esm.mjs scripts/seed-example.ts",
+    "openapi": "node --import ./scripts/register-ts-node-esm.mjs scripts/openapi.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1084.0",

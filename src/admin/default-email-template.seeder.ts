@@ -5,10 +5,10 @@
  * overwritten — only missing defaults are created.
  */
 import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
-import type { Clock } from '../domain/clock';
-import { defaultEmailTemplates } from '../domain/email-template';
-import type { EmailTemplateRepo } from '../domain/ports';
-import { TOKENS } from '../persistence/tokens';
+import type { Clock } from '../domain/clock.js';
+import { defaultEmailTemplates } from '../domain/email-template.js';
+import type { EmailTemplateRepo } from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
 
 @Injectable()
 export class DefaultEmailTemplateSeeder implements OnApplicationBootstrap {

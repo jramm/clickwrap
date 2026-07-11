@@ -1,5 +1,5 @@
 /** Test fake: deterministic presigned URL without real storage access (import only from *.spec.ts). */
-import type { PdfUrlProvider } from '../ports/pdf-url-provider';
+import type { PdfUrlProvider } from '../ports/pdf-url-provider.js';
 
 export class FakePdfUrlProvider implements PdfUrlProvider {
   getPresignedUrl(storageKey: string): string {

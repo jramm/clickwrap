@@ -3,30 +3,30 @@
  * Evidence chain is built server-side; actor/IP/UA come exclusively from the CustomerContext.
  */
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import type { CustomerContext } from '../common/auth/actor';
-import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
-import { Clock } from '../domain/clock';
+import type { CustomerContext } from '../common/auth/actor.js';
+import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service.js';
+import type { Clock } from '../domain/clock.js';
 import {
   assertCustomerHasRole,
   assertDisplayedConsentTextMatches,
   assertMethodChannelAllowed,
   assertVersionCurrent,
   consentTextHashFor,
-} from '../domain/consent-rules';
-import { customerDisplayName } from '../domain/customer';
-import { DomainError } from '../common/errors';
+} from '../domain/consent-rules.js';
+import { customerDisplayName } from '../domain/customer.js';
+import { DomainError } from '../common/errors.js';
 import type {
   AcceptanceRepo,
   AgreementDocumentRepo,
   AgreementVersionRepo,
   CustomerRepo,
   CustomerVersionStateRepo,
-} from '../domain/ports';
-import { accept } from '../domain/state-machine';
-import type { Acceptance, CustomerVersionState } from '../domain/types';
-import { EventRecorder } from '../events/event-recorder';
-import { TOKENS } from '../persistence/tokens';
-import { CONSENT_TOKENS, type IdempotencyStore, type IdGenerator } from './ports';
+} from '../domain/ports.js';
+import { accept } from '../domain/state-machine.js';
+import type { Acceptance, CustomerVersionState } from '../domain/types.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { CONSENT_TOKENS, type IdempotencyStore, type IdGenerator } from './ports.js';
 
 /**
  * Interactive channels that may record ACTIVE_CONSENT through this service: the portal popup

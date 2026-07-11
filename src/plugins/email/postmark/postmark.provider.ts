@@ -5,7 +5,7 @@ import type {
   EmailDeliveryProvider,
   OutboundMail,
   SendResult,
-} from '../core/email-delivery-provider';
+} from '../core/email-delivery-provider.js';
 
 const DELIVERED_EVENT_TYPE = 'Delivered';
 

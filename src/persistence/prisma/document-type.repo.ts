@@ -8,13 +8,13 @@
  * check-then-delete is not transactional; acceptable for an admin-only operation.
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import { assertValidEntityKey } from '../../domain/keys';
-import type { DocumentTypeRepo } from '../../domain/ports';
-import type { DocumentTypeDef } from '../../domain/types';
-import { toDomain, toUpsertData } from './mappers/document-type.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import { assertValidEntityKey } from '../../domain/keys.js';
+import type { DocumentTypeRepo } from '../../domain/ports.js';
+import type { DocumentTypeDef } from '../../domain/types.js';
+import { toDomain, toUpsertData } from './mappers/document-type.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaDocumentTypeRepo implements DocumentTypeRepo {

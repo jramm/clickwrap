@@ -1,10 +1,10 @@
-import { AdminAuthError, type AdminAuthRequest, type AdminAuthStrategy, type AdminIdentity, type LoginMethodDescriptor } from '../../../plugin-sdk';
+import { AdminAuthError, type AdminAuthRequest, type AdminAuthStrategy, type AdminIdentity, type LoginMethodDescriptor } from '../../../plugin-sdk/index.js';
 import {
   GoogleAuthLibraryTokenVerifier,
   type GoogleIdTokenClaims,
   type GoogleTokenVerifier,
-} from '../google-token.verifier';
-import { extractBearer } from './extract-bearer';
+} from '../google-token.verifier.js';
+import { extractBearer } from './extract-bearer.js';
 
 /**
  * Built-in `google-sso` admin-auth strategy (admin web UI, Google Identity Services):

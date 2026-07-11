@@ -3,7 +3,7 @@
  * single-node — a multi-node deployment needs a shared store; documented in docs/API.md).
  * Time comes from the injected Clock (deterministic tests, CONVENTIONS.md).
  */
-import type { Clock } from '../domain/clock';
+import type { Clock } from '../domain/clock.js';
 
 export const ACCEPT_PAGE_RATE_LIMIT = 20;
 export const ACCEPT_PAGE_RATE_WINDOW_MS = 60 * 1000;

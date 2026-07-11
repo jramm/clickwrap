@@ -1,8 +1,8 @@
-import { DomainError } from '../../common/errors';
-import { assertValidEntityKey } from '../../domain/keys';
-import type { AgreementDocumentRepo, AudienceRepo, CustomerRepo } from '../../domain/ports';
-import type { Audience } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import { assertValidEntityKey } from '../../domain/keys.js';
+import type { AgreementDocumentRepo, AudienceRepo, CustomerRepo } from '../../domain/ports.js';
+import type { Audience } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 /**
  * In-memory fake of AudienceRepo — mirrors src/persistence/prisma/audience.repo.ts.

@@ -1,7 +1,7 @@
-import { DomainError } from '../../common/errors';
-import type { NotificationEventRepo } from '../../domain/ports';
-import type { NotificationEvent } from '../../domain/types';
-import { deepCopy } from './clone';
+import { DomainError } from '../../common/errors.js';
+import type { NotificationEventRepo } from '../../domain/ports.js';
+import type { NotificationEvent } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 export class InMemoryNotificationEventRepo implements NotificationEventRepo {
   private readonly events = new Map<string, NotificationEvent>();

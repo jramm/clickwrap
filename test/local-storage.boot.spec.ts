@@ -32,7 +32,7 @@ describe('AppModule boot with FILE_STORAGE=local', () => {
     process.env.FILE_STORAGE_LOCAL_SECRET = 'local-boot-secret';
     delete process.env.PUBLIC_BASE_URL; // relative /files URLs
 
-    const { AppModule } = await import('../src/app.module');
+    const { AppModule } = await import('../src/app.module.js');
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
     await app.init();

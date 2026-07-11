@@ -1,7 +1,7 @@
-import { aCustomer, aState, aVersion } from '../../../domain/testing/fixtures';
-import type { AgreementVersion, Customer } from '../../../domain/types';
-import type { AgreementEmailService } from './agreement-email.service';
-import { AgreementRolloutNotifier } from './agreement-rollout-notifier';
+import { aCustomer, aState, aVersion } from '../../../domain/testing/fixtures.js';
+import type { AgreementVersion, Customer } from '../../../domain/types.js';
+import type { AgreementEmailService } from './agreement-email.service.js';
+import { AgreementRolloutNotifier } from './agreement-rollout-notifier.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const DEADLINE_AT = new Date('2026-07-21T09:00:00Z');

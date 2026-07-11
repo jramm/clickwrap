@@ -1,14 +1,14 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import type { Clock } from '../domain/clock';
-import { consentTextHashFor } from '../domain/consent-rules';
-import type { AcceptanceRepo, AgreementVersionRepo, CustomerVersionStateRepo } from '../domain/ports';
-import { sweep } from '../domain/state-machine';
-import type { Acceptance, CustomerVersionState } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
-import { EventRecorder } from '../events/event-recorder';
-import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service';
-import { SWEEPER_SYSTEM_ACTOR } from './system-actor';
+import type { Clock } from '../domain/clock.js';
+import { consentTextHashFor } from '../domain/consent-rules.js';
+import type { AcceptanceRepo, AgreementVersionRepo, CustomerVersionStateRepo } from '../domain/ports.js';
+import { sweep } from '../domain/state-machine.js';
+import type { Acceptance, CustomerVersionState } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { AcceptanceConfirmationService } from '../plugins/email/core/acceptance-confirmation.service.js';
+import { SWEEPER_SYSTEM_ACTOR } from './system-actor.js';
 
 /** Kill switch: SWEEPER_ENABLED=false disables the sweeper entirely (a full no-op). */
 const isSweeperEnabled = (): boolean => process.env.SWEEPER_ENABLED !== 'false';

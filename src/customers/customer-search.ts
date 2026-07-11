@@ -1,4 +1,4 @@
-import type { Customer } from '../domain/types';
+import type { Customer } from '../domain/types.js';
 
 /**
  * Case-insensitive substring match used by the admin customer list `search` query param. A customer

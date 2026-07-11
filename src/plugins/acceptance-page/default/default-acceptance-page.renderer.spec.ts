@@ -3,11 +3,11 @@
  * selectable via ACCEPTANCE_PAGE, and byte-for-byte delegates to the existing accept-page view
  * (so the current server-rendered page is unchanged).
  */
-import type { AcceptancePageView } from '../../../plugin-sdk';
-import { renderAcceptPage, renderLinkNotFoundPage } from '../../../accept/accept-page.view';
-import { builtinPlugins } from '../../builtins';
-import { PluginRegistry } from '../../registry/plugin-registry';
-import { DefaultAcceptancePageRenderer } from './default-acceptance-page.renderer';
+import type { AcceptancePageView } from '../../../plugin-sdk/index.js';
+import { renderAcceptPage, renderLinkNotFoundPage } from '../../../accept/accept-page.view.js';
+import { builtinPlugins } from '../../builtins/index.js';
+import { PluginRegistry } from '../../registry/plugin-registry.js';
+import { DefaultAcceptancePageRenderer } from './default-acceptance-page.renderer.js';
 
 const aView = (): AcceptancePageView => ({
   linkId: 'al-1',

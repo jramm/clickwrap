@@ -22,12 +22,12 @@
  * fallback (see docs/PERSISTENCE.md and the note in `append` below).
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import type { AcceptanceRepo } from '../../domain/ports';
-import type { Acceptance } from '../../domain/types';
-import { toCreateData, toDomain } from './mappers/acceptance.mapper';
-import { isRecordNotFoundError, isUniqueConstraintError, uniqueConstraintTargets } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { AcceptanceRepo } from '../../domain/ports.js';
+import type { Acceptance } from '../../domain/types.js';
+import { toCreateData, toDomain } from './mappers/acceptance.mapper.js';
+import { isRecordNotFoundError, isUniqueConstraintError, uniqueConstraintTargets } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 /** Name of the partial unique index from prisma/partial-indexes.sql. */
 const PARTIAL_EFFECTIVE_INDEX_NAME = 'Acceptance_customerId_versionId_effective_key';

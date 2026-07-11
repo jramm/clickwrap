@@ -1,7 +1,7 @@
 import type { Objection as PrismaObjection, Prisma } from '@prisma/client';
-import type { Objection } from '../../../domain/types';
-import { embedActor, extractActor } from './actor.mapper';
-import { nullToUndefined } from './null';
+import type { Objection } from '../../../domain/types.js';
+import { embedActor, extractActor } from './actor.mapper.js';
+import { nullToUndefined } from './null.js';
 
 /** Prisma row → domain type (createdAt is an infrastructure-only field). */
 export const toDomain = (row: PrismaObjection): Objection => ({

@@ -4,19 +4,19 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
-} from '../persistence/inmemory';
-import { aCustomer, aDocument, aState, anActiveVersion, anAudience } from '../domain/testing/fixtures';
-import { PendingAgreementsController } from './pending-agreements.controller';
-import { PendingAgreementsService } from './pending-agreements.service';
-import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider';
+} from '../persistence/inmemory/index.js';
+import { aCustomer, aDocument, aState, anActiveVersion, anAudience } from '../domain/testing/fixtures.js';
+import { PendingAgreementsController } from './pending-agreements.controller.js';
+import { PendingAgreementsService } from './pending-agreements.service.js';
+import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider.js';
 
 const SERVICE_TOKEN = 'test-service-token';
 const T0 = new Date('2026-07-07T09:00:00Z');

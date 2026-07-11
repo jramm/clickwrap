@@ -1,6 +1,6 @@
-import type { SignedDocumentRepo } from '../../domain/ports';
-import type { SignedDocument } from '../../domain/types';
-import { deepCopy } from './clone';
+import type { SignedDocumentRepo } from '../../domain/ports.js';
+import type { SignedDocument } from '../../domain/types.js';
+import { deepCopy } from './clone.js';
 
 /**
  * In-memory fake of SignedDocumentRepo — mirrors src/persistence/prisma/signed-document.repo.ts.

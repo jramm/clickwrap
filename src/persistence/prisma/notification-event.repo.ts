@@ -7,12 +7,12 @@
  * theoretically carry the same message ID), hence `findFirst` instead of `findUnique`.
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import type { NotificationEventRepo } from '../../domain/ports';
-import type { NotificationEvent } from '../../domain/types';
-import { toCreateData, toDomain } from './mappers/notification-event.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import type { NotificationEventRepo } from '../../domain/ports.js';
+import type { NotificationEvent } from '../../domain/types.js';
+import { toCreateData, toDomain } from './mappers/notification-event.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaNotificationEventRepo implements NotificationEventRepo {

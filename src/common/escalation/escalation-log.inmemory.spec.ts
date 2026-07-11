@@ -1,5 +1,5 @@
-import { InMemoryEscalationLog } from './escalation-log.inmemory';
-import type { EscalationEntry } from './escalation-log';
+import { InMemoryEscalationLog } from './escalation-log.inmemory.js';
+import type { EscalationEntry } from './escalation-log.js';
 
 const anEntry = (overrides: Partial<EscalationEntry> = {}): EscalationEntry => ({
   id: 'esc-1',

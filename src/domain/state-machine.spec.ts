@@ -1,8 +1,8 @@
-import { DomainError } from '../common/errors';
-import { FixedClock } from './clock';
-import { accept, isBlocking, object, recordAccess, supersede, sweep } from './state-machine';
-import { aState, aVersion, anActiveVersion } from './testing/fixtures';
-import type { CustomerVersionStateValue } from './types';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from './clock.js';
+import { accept, isBlocking, object, recordAccess, supersede, sweep } from './state-machine.js';
+import { aState, aVersion, anActiveVersion } from './testing/fixtures.js';
+import type { CustomerVersionStateValue } from './types.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const clockAt = (date: Date | string): FixedClock => new FixedClock(new Date(date));

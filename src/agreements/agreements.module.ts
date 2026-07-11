@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PLUGIN_DI_TOKENS, type FileStorage } from '../plugin-sdk';
-import { AgreementRolloutNotifier } from '../plugins/email/core/agreement-rollout-notifier';
-import { AgreementsAdminController } from './agreements-admin.controller';
-import { DocumentService } from './document.service';
-import { FileStoragePdfAdapter } from './file-storage-pdf.adapter';
-import { AGREEMENTS_TOKENS } from './ports';
-import { PublishService } from './publish.service';
-import { VersionService } from './version.service';
+import { PLUGIN_DI_TOKENS, type FileStorage } from '../plugin-sdk/index.js';
+import { AgreementRolloutNotifier } from '../plugins/email/core/agreement-rollout-notifier.js';
+import { AgreementsAdminController } from './agreements-admin.controller.js';
+import { DocumentService } from './document.service.js';
+import { FileStoragePdfAdapter } from './file-storage-pdf.adapter.js';
+import { AGREEMENTS_TOKENS } from './ports.js';
+import { PublishService } from './publish.service.js';
+import { VersionService } from './version.service.js';
 
 /**
  * Agreements module: documents & versions, publish/rollout.

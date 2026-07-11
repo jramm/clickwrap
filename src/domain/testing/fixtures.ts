@@ -1,5 +1,5 @@
 /** Test builders for domain specs (import from *.spec.ts only). */
-import type { Actor } from '../../common/auth/actor';
+import type { Actor } from '../../common/auth/actor.js';
 import type {
   Acceptance,
   AcceptanceLink,
@@ -13,7 +13,7 @@ import type {
   NotificationEvent,
   Objection,
   SignedDocument,
-} from '../types';
+} from '../types.js';
 
 export const testActor = (overrides: Partial<Actor> = {}): Actor => ({
   userId: 'u-42',

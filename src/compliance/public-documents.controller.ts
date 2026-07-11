@@ -8,7 +8,7 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { PublicDocumentsService } from './public-documents.service';
+import { PublicDocumentsService } from './public-documents.service.js';
 
 @ApiTags('Public documents')
 @Controller('documents')

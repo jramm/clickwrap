@@ -6,18 +6,18 @@
  * revocable; a revoked link stays dead (deterministic token → same, revoked row).
  */
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import { newId } from '../../../agreements/ids';
-import { EventRecorder } from '../../../events/event-recorder';
-import { DomainError } from '../../../common/errors';
+import { newId } from '../../../agreements/ids.js';
+import { EventRecorder } from '../../../events/event-recorder.js';
+import { DomainError } from '../../../common/errors.js';
 import {
   acceptanceLinkTokenHash,
   permanentAcceptanceLinkToken,
-} from '../../../domain/acceptance-links';
-import type { Clock } from '../../../domain/clock';
-import type { AcceptanceLinkRepo } from '../../../domain/ports';
-import type { AcceptanceLink } from '../../../domain/types';
-import { TOKENS } from '../../../persistence/tokens';
-import { EMAIL_TOKENS, type NotificationConfig } from './email-delivery-provider';
+} from '../../../domain/acceptance-links.js';
+import type { Clock } from '../../../domain/clock.js';
+import type { AcceptanceLinkRepo } from '../../../domain/ports.js';
+import type { AcceptanceLink } from '../../../domain/types.js';
+import { TOKENS } from '../../../persistence/tokens.js';
+import { EMAIL_TOKENS, type NotificationConfig } from './email-delivery-provider.js';
 
 @Injectable()
 export class PermanentAcceptanceLinkService {

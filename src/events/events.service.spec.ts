@@ -1,6 +1,6 @@
-import { anEvent } from '../domain/testing/fixtures';
-import { InMemoryEventRepo } from '../persistence/inmemory';
-import { EventsService } from './events.service';
+import { anEvent } from '../domain/testing/fixtures.js';
+import { InMemoryEventRepo } from '../persistence/inmemory/index.js';
+import { EventsService } from './events.service.js';
 
 const setup = () => {
   const events = new InMemoryEventRepo();

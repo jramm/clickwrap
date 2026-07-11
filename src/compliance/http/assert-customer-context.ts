@@ -3,8 +3,8 @@
  * (the actor/customer comes exclusively from the auth context, never from the body or path).
  */
 import type { Request } from 'express';
-import { DomainError } from '../../common/errors';
-import type { CustomerContext } from '../../common/auth/actor';
+import { DomainError } from '../../common/errors.js';
+import type { CustomerContext } from '../../common/auth/actor.js';
 
 export const assertCustomerMatchesContext = (req: Request, customerId: string): CustomerContext => {
   const context = (req as Request & { customerContext?: CustomerContext }).customerContext;

@@ -1,10 +1,10 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { AdminAuth } from '../common/openapi/security.decorators';
-import { EventsService, type EventCategory } from './events.service';
-import { EventListResponseModel } from './openapi.models';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { AdminAuth } from '../common/openapi/security.decorators.js';
+import { EventsService, type EventCategory } from './events.service.js';
+import { EventListResponseModel } from './openapi.models.js';
 
 /**
  * Legal event / audit log endpoint (admin). One normalized, chronological (newest-first),

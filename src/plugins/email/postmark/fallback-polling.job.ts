@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import type { Clock } from '../../../domain/clock';
-import { TOKENS } from '../../../persistence/tokens';
-import { DeliveryEventService } from '../core/delivery-event.service';
+import type { Clock } from '../../../domain/clock.js';
+import { TOKENS } from '../../../persistence/tokens.js';
+import { DeliveryEventService } from '../core/delivery-event.service.js';
 
 /** Sends only count as "open" for fallback polling once they are at least this old. */
 const FALLBACK_STALE_AFTER_MINUTES = 10;

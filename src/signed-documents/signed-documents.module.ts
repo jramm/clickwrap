@@ -12,8 +12,8 @@
  * RepositoryModule.
  */
 import { Module } from '@nestjs/common';
-import { AgreementsModule } from '../agreements/agreements.module';
-import { SignedDocumentService } from './signed-document.service';
+import { AgreementsModule } from '../agreements/agreements.module.js';
+import { SignedDocumentService } from './signed-document.service.js';
 
 @Module({
   imports: [AgreementsModule],

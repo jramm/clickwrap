@@ -1,10 +1,10 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Post, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ApiErrorResponses } from '../../../common/openapi/api-error-responses.decorator';
-import { WebhookAuth } from '../../../common/openapi/security.decorators';
-import { PLUGIN_DI_TOKENS, type InboundDeliveryEventSink } from '../../../plugin-sdk';
-import type { InboundDeliveryEvent } from '../core/inbound-delivery-event';
-import { PostmarkWebhookGuard } from './postmark-webhook.guard';
+import { ApiErrorResponses } from '../../../common/openapi/api-error-responses.decorator.js';
+import { WebhookAuth } from '../../../common/openapi/security.decorators.js';
+import { PLUGIN_DI_TOKENS, type InboundDeliveryEventSink } from '../../../plugin-sdk/index.js';
+import type { InboundDeliveryEvent } from '../core/inbound-delivery-event.js';
+import { PostmarkWebhookGuard } from './postmark-webhook.guard.js';
 
 const RECORD_TYPE_DELIVERY = 'Delivery';
 const RECORD_TYPE_BOUNCE = 'Bounce';

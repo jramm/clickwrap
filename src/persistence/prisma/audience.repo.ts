@@ -9,13 +9,13 @@
  * referencing row can race it. Acceptable for an admin-only, low-frequency operation.
  */
 import { Injectable } from '@nestjs/common';
-import { DomainError } from '../../common/errors';
-import { assertValidEntityKey } from '../../domain/keys';
-import type { AudienceRepo } from '../../domain/ports';
-import type { Audience } from '../../domain/types';
-import { toDomain, toUpsertData } from './mappers/audience.mapper';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import { DomainError } from '../../common/errors.js';
+import { assertValidEntityKey } from '../../domain/keys.js';
+import type { AudienceRepo } from '../../domain/ports.js';
+import type { Audience } from '../../domain/types.js';
+import { toDomain, toUpsertData } from './mappers/audience.mapper.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaAudienceRepo implements AudienceRepo {

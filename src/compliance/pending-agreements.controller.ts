@@ -2,12 +2,12 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { ServiceGuard } from '../common/auth/service.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { ServiceContextHeaders } from '../common/openapi/security.decorators';
-import { PendingAgreementsService, type PendingAgreementItem } from './pending-agreements.service';
-import { assertCustomerMatchesContext } from './http/assert-customer-context';
-import { PendingAgreementItemModel } from './openapi.models';
+import { ServiceGuard } from '../common/auth/service.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { ServiceContextHeaders } from '../common/openapi/security.decorators.js';
+import { PendingAgreementsService, type PendingAgreementItem } from './pending-agreements.service.js';
+import { assertCustomerMatchesContext } from './http/assert-customer-context.js';
+import { PendingAgreementItemModel } from './openapi.models.js';
 
 @ApiTags('integration-consent')
 @ServiceContextHeaders()

@@ -8,9 +8,9 @@
  * provider-agnostic `providerRef` field.
  */
 import { Injectable } from '@nestjs/common';
-import type { OutboundEmail, OutboundEmailRepo } from '../../plugins/email/core/outbound-email';
-import { toDomain, toUpsertData } from './mappers/outbound-email.mapper';
-import { PrismaService } from './prisma.service';
+import type { OutboundEmail, OutboundEmailRepo } from '../../plugins/email/core/outbound-email.js';
+import { toDomain, toUpsertData } from './mappers/outbound-email.mapper.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaOutboundEmailRepo implements OutboundEmailRepo {

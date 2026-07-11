@@ -1,13 +1,13 @@
-import { InMemoryAdminAuditRepo } from '../agreements/audit';
-import { FixedClock } from '../domain/clock';
+import { InMemoryAdminAuditRepo } from '../agreements/audit.js';
+import { FixedClock } from '../domain/clock.js';
 import {
   DEFAULT_NOTIFICATION_TEMPLATE_ID,
   defaultEmailTemplates,
-} from '../domain/email-template';
-import { InMemoryAgreementDocumentRepo } from '../persistence/inmemory/agreement-document.repo';
-import { InMemoryDocumentTypeRepo } from '../persistence/inmemory/document-type.repo';
-import { InMemoryEmailTemplateRepo } from '../persistence/inmemory/email-template.repo';
-import { EmailTemplateAdminService } from './email-template-admin.service';
+} from '../domain/email-template.js';
+import { InMemoryAgreementDocumentRepo } from '../persistence/inmemory/agreement-document.repo.js';
+import { InMemoryDocumentTypeRepo } from '../persistence/inmemory/document-type.repo.js';
+import { InMemoryEmailTemplateRepo } from '../persistence/inmemory/email-template.repo.js';
+import { EmailTemplateAdminService } from './email-template-admin.service.js';
 
 const build = async () => {
   const clock = new FixedClock(new Date('2026-07-08T09:00:00Z'));

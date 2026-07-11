@@ -1,13 +1,13 @@
-import { NoopEmailProvider } from './noop/noop.provider';
-import { PostmarkEmailProvider } from './postmark/postmark.provider';
-import { PostmarkWebhookController } from './postmark/postmark-webhook.controller';
-import { FallbackPollingJob } from './postmark/fallback-polling.job';
-import { SmtpEmailProvider } from './smtp/smtp.provider';
+import { NoopEmailProvider } from './noop/noop.provider.js';
+import { PostmarkEmailProvider } from './postmark/postmark.provider.js';
+import { PostmarkWebhookController } from './postmark/postmark-webhook.controller.js';
+import { FallbackPollingJob } from './postmark/fallback-polling.job.js';
+import { SmtpEmailProvider } from './smtp/smtp.provider.js';
 import {
   EmailModule,
   emailDeliveryProviderFactory,
   emailProvider,
-} from './email.module';
+} from './email.module.js';
 
 /** Restores the relevant env after each test so cases do not leak into each other. */
 const withEnv = (env: Record<string, string | undefined>, run: () => void): void => {

@@ -6,8 +6,8 @@
  * substitutes `{{placeholder}}` values into the subject (plain) and the html (values HTML-escaped;
  * the authored markup is trusted) and derives the plain-text part from the substituted html.
  */
-import type { Clock } from './clock';
-import type { EmailTemplate, EmailTemplateKind } from './types';
+import type { Clock } from './clock.js';
+import type { EmailTemplate, EmailTemplateKind } from './types.js';
 
 /**
  * Supported template variables (documented in docs/API.md and surfaced as Unlayer merge tags in

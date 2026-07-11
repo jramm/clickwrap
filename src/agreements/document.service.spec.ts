@@ -1,6 +1,6 @@
-import { DomainError } from '../common/errors';
-import { FixedClock } from '../domain/clock';
-import { aDocumentTypeDef, anAudience, aVersion } from '../domain/testing/fixtures';
+import { DomainError } from '../common/errors.js';
+import { FixedClock } from '../domain/clock.js';
+import { aDocumentTypeDef, anAudience, aVersion } from '../domain/testing/fixtures.js';
 import {
   InMemoryAgreementDocumentRepo,
   InMemoryAgreementVersionRepo,
@@ -8,10 +8,10 @@ import {
   InMemoryCustomerRepo,
   InMemoryDocumentTypeRepo,
   InMemoryEventRepo,
-} from '../persistence/inmemory';
-import { EventRecorder } from '../events/event-recorder';
-import { DocumentService } from './document.service';
-import { InMemoryPdfStorage } from './pdf-storage.inmemory';
+} from '../persistence/inmemory/index.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { DocumentService } from './document.service.js';
+import { InMemoryPdfStorage } from './pdf-storage.inmemory.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 

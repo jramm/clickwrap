@@ -14,9 +14,9 @@
  */
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import type { IdempotencyStore } from '../../consent/ports';
-import { isUniqueConstraintError } from './prisma-errors';
-import { PrismaService } from './prisma.service';
+import type { IdempotencyStore } from '../../consent/ports.js';
+import { isUniqueConstraintError } from './prisma-errors.js';
+import { PrismaService } from './prisma.service.js';
 
 const PENDING_MARKER = { __idempotencyPending: true } as const;
 

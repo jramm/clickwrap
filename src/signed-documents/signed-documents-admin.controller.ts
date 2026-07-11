@@ -27,13 +27,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import type { Actor } from '../common/auth/actor';
-import { AdminGuard } from '../common/auth/admin.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { AdminAuth } from '../common/openapi/security.decorators';
-import { buildUploadInput, MAX_SIGNED_PDF_BYTES, type SignedDocumentUploadBody } from './multipart';
-import { SignedDocumentListResponseModel, SignedDocumentModel, SignedDocumentUploadBodyModel } from './openapi.models';
-import { SignedDocumentService } from './signed-document.service';
+import type { Actor } from '../common/auth/actor.js';
+import { AdminGuard } from '../common/auth/admin.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { AdminAuth } from '../common/openapi/security.decorators.js';
+import { buildUploadInput, MAX_SIGNED_PDF_BYTES, type SignedDocumentUploadBody } from './multipart.js';
+import { SignedDocumentListResponseModel, SignedDocumentModel, SignedDocumentUploadBodyModel } from './openapi.models.js';
+import { SignedDocumentService } from './signed-document.service.js';
 
 type AdminRequest = Request & { adminActor?: { userId: string } };
 

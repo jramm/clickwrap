@@ -1,11 +1,11 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import type { Clock } from '../domain/clock';
-import type { AgreementDocumentRepo, AgreementVersionRepo, CustomerVersionStateRepo } from '../domain/ports';
-import { rolloutDeadlineFor, supersede } from '../domain/state-machine';
-import type { AgreementDocument, AgreementVersion } from '../domain/types';
-import { EventRecorder } from '../events/event-recorder';
-import { TOKENS } from '../persistence/tokens';
-import { newId } from '../agreements/ids';
+import type { Clock } from '../domain/clock.js';
+import type { AgreementDocumentRepo, AgreementVersionRepo, CustomerVersionStateRepo } from '../domain/ports.js';
+import { rolloutDeadlineFor, supersede } from '../domain/state-machine.js';
+import type { AgreementDocument, AgreementVersion } from '../domain/types.js';
+import { EventRecorder } from '../events/event-recorder.js';
+import { TOKENS } from '../persistence/tokens.js';
+import { newId } from '../agreements/ids.js';
 
 /** Actor id for automatic (cron) activation-sweeper transitions. */
 const ACTIVATION_SWEEPER_ACTOR = 'system:activation-sweeper';

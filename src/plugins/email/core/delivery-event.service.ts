@@ -1,14 +1,14 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import type { Clock } from '../../../domain/clock';
-import type { AgreementVersionRepo, CustomerVersionStateRepo, NotificationEventRepo } from '../../../domain/ports';
-import { EventRecorder } from '../../../events/event-recorder';
-import { recordAccess } from '../../../domain/state-machine';
-import { ESCALATION_LOG, type EscalationLog } from '../../../common/escalation/escalation-log';
-import { TOKENS } from '../../../persistence/tokens';
-import { EMAIL_TOKENS, type EmailDeliveryProvider } from './email-delivery-provider';
-import type { InboundDeliveryEvent } from './inbound-delivery-event';
-import type { OutboundEmailRepo } from './outbound-email';
+import type { Clock } from '../../../domain/clock.js';
+import type { AgreementVersionRepo, CustomerVersionStateRepo, NotificationEventRepo } from '../../../domain/ports.js';
+import { EventRecorder } from '../../../events/event-recorder.js';
+import { recordAccess } from '../../../domain/state-machine.js';
+import { ESCALATION_LOG, type EscalationLog } from '../../../common/escalation/escalation-log.js';
+import { TOKENS } from '../../../persistence/tokens.js';
+import { EMAIL_TOKENS, type EmailDeliveryProvider } from './email-delivery-provider.js';
+import type { InboundDeliveryEvent } from './inbound-delivery-event.js';
+import type { OutboundEmailRepo } from './outbound-email.js';
 
 /**
  * Provider-agnostic processing of inbound delivery/bounce events — fed by any provider's webhook

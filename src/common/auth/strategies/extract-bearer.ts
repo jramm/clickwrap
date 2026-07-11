@@ -1,4 +1,4 @@
-import type { AdminAuthRequest } from '../../../plugin-sdk';
+import type { AdminAuthRequest } from '../../../plugin-sdk/index.js';
 
 /** Extracts the `Authorization: Bearer <token>` credential, if present. */
 export const extractBearer = (req: AdminAuthRequest): string | undefined => {

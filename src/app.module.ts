@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { AcceptModule } from './accept/accept.module';
-import { AdminModule } from './admin/admin.module';
-import { AgreementsModule } from './agreements/agreements.module';
-import { AdminAuthModule } from './common/auth/admin-auth.module';
-import { DomainErrorFilter } from './common/http/domain-error.filter';
-import { ComplianceModule } from './compliance/compliance.module';
-import { ConsentModule } from './consent/consent.module';
-import { EventsModule } from './events/events.module';
-import { LegalEntitiesModule } from './legal-entities/legal-entities.module';
-import { RepositoryModule } from './persistence/repository.module';
-import { EmailModule } from './plugins/email/email.module';
-import { FileStorageModule } from './plugins/file-storage/file-storage.module';
-import { SweeperModule } from './sweeper/sweeper.module';
+import { AcceptModule } from './accept/accept.module.js';
+import { AdminModule } from './admin/admin.module.js';
+import { AgreementsModule } from './agreements/agreements.module.js';
+import { AdminAuthModule } from './common/auth/admin-auth.module.js';
+import { DomainErrorFilter } from './common/http/domain-error.filter.js';
+import { ComplianceModule } from './compliance/compliance.module.js';
+import { ConsentModule } from './consent/consent.module.js';
+import { EventsModule } from './events/events.module.js';
+import { LegalEntitiesModule } from './legal-entities/legal-entities.module.js';
+import { RepositoryModule } from './persistence/repository.module.js';
+import { EmailModule } from './plugins/email/email.module.js';
+import { FileStorageModule } from './plugins/file-storage/file-storage.module.js';
+import { SweeperModule } from './sweeper/sweeper.module.js';
 
 /**
  * Composition root of the service.

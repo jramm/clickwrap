@@ -1,4 +1,4 @@
-import { FixedClock, SystemClock } from './clock';
+import { FixedClock, SystemClock } from './clock.js';
 
 describe('FixedClock', () => {
   it('returns exactly the fixed time', () => {

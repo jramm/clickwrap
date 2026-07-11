@@ -7,10 +7,10 @@
  * admin-only operation.
  */
 import { Injectable } from '@nestjs/common';
-import type { EmailTemplateRepo } from '../../domain/ports';
-import type { EmailTemplate } from '../../domain/types';
-import { toDomain, toUpsertData } from './mappers/email-template.mapper';
-import { PrismaService } from './prisma.service';
+import type { EmailTemplateRepo } from '../../domain/ports.js';
+import type { EmailTemplate } from '../../domain/types.js';
+import { toDomain, toUpsertData } from './mappers/email-template.mapper.js';
+import { PrismaService } from './prisma.service.js';
 
 @Injectable()
 export class PrismaEmailTemplateRepo implements EmailTemplateRepo {

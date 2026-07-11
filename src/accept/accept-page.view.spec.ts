@@ -1,6 +1,6 @@
-import type { AcceptPageItem, AcceptPageView } from './accept-page.service';
-import { escapeHtml, renderAcceptPage, renderLinkNotFoundPage } from './accept-page.view';
-import { resolveAcceptPageLang } from './i18n';
+import type { AcceptPageItem, AcceptPageView } from './accept-page.service.js';
+import { escapeHtml, renderAcceptPage, renderLinkNotFoundPage } from './accept-page.view.js';
+import { resolveAcceptPageLang } from './i18n.js';
 
 const anItem = (overrides: Partial<AcceptPageItem> = {}): AcceptPageItem => ({
   versionId: 'v-1',

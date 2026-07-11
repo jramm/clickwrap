@@ -17,16 +17,16 @@
  * propagates — recording the acceptance must not fail because a confirmation mail could not be sent.
  */
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import { PLUGIN_DI_TOKENS, type FileStorage } from '../../../plugin-sdk';
-import type { Clock } from '../../../domain/clock';
-import { customerDisplayName } from '../../../domain/customer';
-import type { CustomerRepo } from '../../../domain/ports';
-import type { Acceptance, AgreementVersion, Customer } from '../../../domain/types';
-import { EventRecorder } from '../../../events/event-recorder';
-import { TOKENS } from '../../../persistence/tokens';
-import { EmailContentService } from './email-content.service';
-import { EMAIL_TOKENS, type EmailDeliveryProvider } from './email-delivery-provider';
-import type { OutboundEmailRepo } from './outbound-email';
+import { PLUGIN_DI_TOKENS, type FileStorage } from '../../../plugin-sdk/index.js';
+import type { Clock } from '../../../domain/clock.js';
+import { customerDisplayName } from '../../../domain/customer.js';
+import type { CustomerRepo } from '../../../domain/ports.js';
+import type { Acceptance, AgreementVersion, Customer } from '../../../domain/types.js';
+import { EventRecorder } from '../../../events/event-recorder.js';
+import { TOKENS } from '../../../persistence/tokens.js';
+import { EmailContentService } from './email-content.service.js';
+import { EMAIL_TOKENS, type EmailDeliveryProvider } from './email-delivery-provider.js';
+import type { OutboundEmailRepo } from './outbound-email.js';
 
 const PDF_CONTENT_TYPE = 'application/pdf';
 

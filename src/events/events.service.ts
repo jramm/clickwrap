@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { EventRepo } from '../domain/ports';
-import type { DomainEvent, EventActorKind, EventCategory, EventType } from '../domain/types';
-import { TOKENS } from '../persistence/tokens';
+import type { EventRepo } from '../domain/ports.js';
+import type { DomainEvent, EventActorKind, EventCategory, EventType } from '../domain/types.js';
+import { TOKENS } from '../persistence/tokens.js';
 
-export type { EventActorKind, EventCategory, EventType } from '../domain/types';
-export { EVENTS_PAGE_SIZE } from '../domain/types';
+export type { EventActorKind, EventCategory, EventType } from '../domain/types.js';
+export { EVENTS_PAGE_SIZE } from '../domain/types.js';
 
 /** A single normalized legal event as returned by GET /admin/events (DomainEvent with an ISO date). */
 export interface EventView {

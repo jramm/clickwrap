@@ -20,13 +20,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import type { Actor } from '../common/auth/actor';
-import { ServiceTokenGuard } from '../common/auth/service-token.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { ServiceApiKey } from '../common/openapi/security.decorators';
-import { buildUploadInput, MAX_SIGNED_PDF_BYTES, type SignedDocumentUploadBody } from './multipart';
-import { SignedDocumentListResponseModel, SignedDocumentModel, SignedDocumentUploadBodyModel } from './openapi.models';
-import { SignedDocumentService } from './signed-document.service';
+import type { Actor } from '../common/auth/actor.js';
+import { ServiceTokenGuard } from '../common/auth/service-token.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { ServiceApiKey } from '../common/openapi/security.decorators.js';
+import { buildUploadInput, MAX_SIGNED_PDF_BYTES, type SignedDocumentUploadBody } from './multipart.js';
+import { SignedDocumentListResponseModel, SignedDocumentModel, SignedDocumentUploadBodyModel } from './openapi.models.js';
+import { SignedDocumentService } from './signed-document.service.js';
 
 type RequestWithServiceActor = Request & { serviceActor?: Actor };
 

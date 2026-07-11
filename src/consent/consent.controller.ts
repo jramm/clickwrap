@@ -15,12 +15,12 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiCreatedResponse, ApiHeader, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import type { CustomerContext } from '../common/auth/actor';
-import { ServiceGuard } from '../common/auth/service.guard';
-import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator';
-import { ServiceContextHeaders } from '../common/openapi/security.decorators';
-import { DomainError } from '../common/errors';
-import { AcceptanceService, type AcceptanceResponse } from './acceptance.service';
+import type { CustomerContext } from '../common/auth/actor.js';
+import { ServiceGuard } from '../common/auth/service.guard.js';
+import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
+import { ServiceContextHeaders } from '../common/openapi/security.decorators.js';
+import { DomainError } from '../common/errors.js';
+import { AcceptanceService, type AcceptanceResponse } from './acceptance.service.js';
 import {
   acceptanceBodySchema,
   notificationBodySchema,
@@ -29,9 +29,9 @@ import {
   type AcceptanceBody,
   type NotificationBody,
   type ObjectionBody,
-} from './dto';
-import { NotificationService, type NotificationResponse } from './notification.service';
-import { ObjectionService, type ObjectionResponse } from './objection.service';
+} from './dto.js';
+import { NotificationService, type NotificationResponse } from './notification.service.js';
+import { ObjectionService, type ObjectionResponse } from './objection.service.js';
 import {
   AcceptanceBodyModel,
   AcceptanceResponseModel,
@@ -39,7 +39,7 @@ import {
   NotificationResponseModel,
   ObjectionBodyModel,
   ObjectionResponseModel,
-} from './openapi.models';
+} from './openapi.models.js';
 
 type RequestWithContext = Request & { customerContext?: CustomerContext };
 

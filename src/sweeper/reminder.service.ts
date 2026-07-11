@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Clock } from '../domain/clock';
-import type { CustomerVersionStateRepo } from '../domain/ports';
-import { TOKENS } from '../persistence/tokens';
-import type { ReminderCandidate, ReminderCandidateRepo, ReminderMailer } from './ports';
-import { SWEEPER_TOKENS } from './ports';
+import type { Clock } from '../domain/clock.js';
+import type { CustomerVersionStateRepo } from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { ReminderCandidate, ReminderCandidateRepo, ReminderMailer } from './ports.js';
+import { SWEEPER_TOKENS } from './ports.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 /** Reminder thresholds before deadlineAt, in days, sorted ascending. */

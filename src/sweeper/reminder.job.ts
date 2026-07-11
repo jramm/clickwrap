@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ReminderService } from './reminder.service';
+import { ReminderService } from './reminder.service.js';
 
 /** Thin cron registration (daily) — the actual logic, testable without Nest, lives in ReminderService.run(). */
 @Injectable()

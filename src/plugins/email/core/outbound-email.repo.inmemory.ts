@@ -1,5 +1,5 @@
-import { deepCopy } from '../../../persistence/inmemory/clone';
-import type { OutboundEmail, OutboundEmailRepo } from './outbound-email';
+import { deepCopy } from '../../../persistence/inmemory/clone.js';
+import type { OutboundEmail, OutboundEmailRepo } from './outbound-email.js';
 
 /** In-memory implementation for tests (analogous to src/persistence/inmemory/*). */
 export class InMemoryOutboundEmailRepo implements OutboundEmailRepo {

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import type { FileStorage } from '../plugin-sdk';
-import type { PdfStorage, PdfUpload, StoredPdf } from './ports';
+import type { FileStorage } from '../plugin-sdk/index.js';
+import type { PdfStorage, PdfUpload, StoredPdf } from './ports.js';
 
 /**
  * Bridges the module-local {@link PdfStorage} port onto the registry-selected SDK

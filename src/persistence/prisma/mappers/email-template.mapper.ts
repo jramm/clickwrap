@@ -1,5 +1,5 @@
 import type { EmailTemplate as PrismaEmailTemplate } from '@prisma/client';
-import type { EmailTemplate } from '../../../domain/types';
+import type { EmailTemplate } from '../../../domain/types.js';
 
 /** Prisma row → domain type. */
 export const toDomain = (row: PrismaEmailTemplate): EmailTemplate => ({

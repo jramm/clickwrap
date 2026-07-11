@@ -5,7 +5,7 @@
  * via `prisma/partial-indexes.sql` (the test DB typically runs locally with a combined
  * migration/runtime role, see docs/PERSISTENCE.md, so this is uncritical here).
  */
-import type { PrismaService } from '../prisma.service';
+import type { PrismaService } from '../prisma.service.js';
 
 export const resetDatabase = async (prisma: PrismaService): Promise<void> => {
   await prisma.notificationEvent.deleteMany();

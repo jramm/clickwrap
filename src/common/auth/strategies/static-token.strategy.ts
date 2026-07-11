@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
-import type { AdminAuthRequest, AdminAuthStrategy, AdminIdentity, LoginMethodDescriptor } from '../../../plugin-sdk';
+import type { AdminAuthRequest, AdminAuthStrategy, AdminIdentity, LoginMethodDescriptor } from '../../../plugin-sdk/index.js';
 
 const safeEqual = (a: string, b: string): boolean => {
   const ab = Buffer.from(a);

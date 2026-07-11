@@ -1,13 +1,13 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { InMemoryAdminAuditRepo, ADMIN_AUDIT_TOKEN } from '../agreements/audit';
-import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports';
-import { DomainErrorFilter } from '../common/http/domain-error.filter';
-import { FixedClock } from '../domain/clock';
-import { anAudience, aVersion } from '../domain/testing/fixtures';
-import { CustomerAdminService } from '../customers/customer-admin.service';
-import { TOKENS } from '../persistence/tokens';
+import { InMemoryAdminAuditRepo, ADMIN_AUDIT_TOKEN } from '../agreements/audit.js';
+import { AGREEMENTS_TOKENS, type RolloutNotifier } from '../agreements/ports.js';
+import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
+import { FixedClock } from '../domain/clock.js';
+import { anAudience, aVersion } from '../domain/testing/fixtures.js';
+import { CustomerAdminService } from '../customers/customer-admin.service.js';
+import { TOKENS } from '../persistence/tokens.js';
 import {
   InMemoryAcceptanceRepo,
   InMemoryAgreementDocumentRepo,
@@ -15,8 +15,8 @@ import {
   InMemoryAudienceRepo,
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
-} from '../persistence/inmemory';
-import { CustomerOnboardingController } from './customer-onboarding.controller';
+} from '../persistence/inmemory/index.js';
+import { CustomerOnboardingController } from './customer-onboarding.controller.js';
 
 const T0 = new Date('2026-07-07T09:00:00Z');
 const SERVICE_TOKEN = 'onboarding-service-token';

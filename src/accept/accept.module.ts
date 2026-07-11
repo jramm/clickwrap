@@ -9,15 +9,15 @@
  * and injected into AcceptPageController — see docs/PLUGINS.md.
  */
 import { Module } from '@nestjs/common';
-import { ComplianceModule } from '../compliance/compliance.module';
-import { ConsentModule } from '../consent/consent.module';
-import { TOKENS } from '../persistence/tokens';
-import type { Clock } from '../domain/clock';
-import { AcceptancePageModule } from './acceptance-page.module';
-import { AcceptanceLinkAdminService } from './acceptance-link-admin.service';
-import { AcceptPageService } from './accept-page.service';
-import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.controller';
-import { SlidingWindowRateLimiter } from './rate-limiter';
+import { ComplianceModule } from '../compliance/compliance.module.js';
+import { ConsentModule } from '../consent/consent.module.js';
+import { TOKENS } from '../persistence/tokens.js';
+import type { Clock } from '../domain/clock.js';
+import { AcceptancePageModule } from './acceptance-page.module.js';
+import { AcceptanceLinkAdminService } from './acceptance-link-admin.service.js';
+import { AcceptPageService } from './accept-page.service.js';
+import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.controller.js';
+import { SlidingWindowRateLimiter } from './rate-limiter.js';
 
 @Module({
   imports: [ComplianceModule, ConsentModule, AcceptancePageModule.forRoot()],
