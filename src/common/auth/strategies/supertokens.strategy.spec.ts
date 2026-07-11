@@ -1,6 +1,6 @@
 import type { ExecutionContext } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common';
-import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWTVerifyGetKey, type KeyLike } from 'jose';
+import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWTVerifyGetKey } from 'jose';
 import { AdminGuard } from '../admin.guard.js';
 import { StaticTokenAdminAuthStrategy } from './static-token.strategy.js';
 import { SupertokensAdminAuthStrategy } from './supertokens.strategy.js';
@@ -17,8 +17,8 @@ interface SignOptions {
 describe('SupertokensAdminAuthStrategy', () => {
   const env = { ...process.env };
   let keySource: JWTVerifyGetKey;
-  let signKey: KeyLike;
-  let wrongKey: KeyLike;
+  let signKey: CryptoKey;
+  let wrongKey: CryptoKey;
 
   const signToken = async (options: SignOptions = {}): Promise<string> => {
     const jwt = new SignJWT({
