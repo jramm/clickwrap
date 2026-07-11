@@ -449,7 +449,7 @@ Environment caveats that remain **documented, not test-enforced**:
 - **`Customer.source String?` + `Customer.deletedAt DateTime?` (+ `@@index([source])`)**: provenance
   and soft-delete for the inbound integration API (`CustomerAdminService`). `source` records the
   record's origin as reported by the pushing system (`null`/`'manual'` = admin-created; otherwise the
-  caller's namespace, e.g. `'mainportal'`); `deletedAt` marks a customer deactivated via
+  caller's namespace, e.g. `'crm'`); `deletedAt` marks a customer deactivated via
   `deactivateByExternalRef`. Soft-delete **preserves the row and its evidence chain** — the customer
   is excluded from the admin list / dashboard / compliance ("never blocking/pending") but its
   detail/history stays viewable, and it is reactivated (deletedAt cleared) on a subsequent upsert of

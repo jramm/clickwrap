@@ -69,8 +69,8 @@ describeIfDb('PrismaCustomerRepo (against real Postgres)', () => {
   });
 
   it('softDelete stamps deletedAt, preserving the row (evidence chain)', async () => {
-    await repo.save(aCustomer({ id: 'c-crm-1', externalRef: 'e1', source: 'mainportal' }));
-    await repo.save(aCustomer({ id: 'c-crm-2', externalRef: 'e2', source: 'mainportal' }));
+    await repo.save(aCustomer({ id: 'c-crm-1', externalRef: 'e1', source: 'crm' }));
+    await repo.save(aCustomer({ id: 'c-crm-2', externalRef: 'e2', source: 'crm' }));
 
     const at = new Date('2026-07-09T10:00:00Z');
     await repo.softDelete('c-crm-2', at);

@@ -56,7 +56,7 @@ export const upsertByExternalRefBodySchema = z
     companyName: z.string().optional(),
     contactEmails: z.array(z.string()),
     roles: z.array(z.string()),
-    /** Caller's system namespace (e.g. the main portal passes `mainportal`); defaults to `external`. */
+    /** Caller's system namespace (e.g. a CRM passes `crm`); defaults to `external`. */
     source: z.string().optional(),
   })
   .strict();

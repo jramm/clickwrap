@@ -3,7 +3,7 @@
  *
  * `AcceptancePageModule.forRoot()` selects the acceptance-page plugin from env ACCEPTANCE_PAGE
  * (default `default` → the current server-rendered page) via the plugin REGISTRY — the built-in
- * `default` renderer and installed third-party packages (e.g. an org's mg-ui renderer) go through
+ * `default` renderer and installed third-party packages (e.g. an org's custom renderer) go through
  * the exact same mechanism as the e-mail provider (see docs/PLUGINS.md). The selected plugin's
  * `create(ctx)` result is bound to PLUGIN_DI_TOKENS.AcceptancePageRenderer; an unknown key is a boot
  * error listing the available keys.

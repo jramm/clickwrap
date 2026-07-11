@@ -73,7 +73,7 @@ Versions the customer already accepted on paper are recorded in the same call:
   audience space** (or `GET` first) so a retry maps to exactly one record; adding a role via
   `PATCH` is likewise rejected if it would overlap another record sharing the ref.
 
-## 2a. Push a provider-group customer — `PUT` / `DELETE /customers/by-external-ref/:externalRef`
+## 2a. Push a customer from an upstream system — `PUT` / `DELETE /customers/by-external-ref/:externalRef`
 
 For an upstream system that owns a set of customers and wants to keep clickwrap in sync by
 **pushing** changes (clickwrap is DOWNSTREAM — it never pulls), use the two idempotent endpoints
@@ -94,7 +94,7 @@ part of the lookup.
 Body:
 ```json
 { "firstName": "Jane", "lastName": "Doe", "companyName": "Acme GmbH",
-  "contactEmails": ["legal@acme.example"], "roles": ["customer"], "source": "mainportal" }
+  "contactEmails": ["legal@acme.example"], "roles": ["customer"], "source": "crm" }
 ```
 - `contactEmails` and `roles` are required; `firstName`/`lastName`/`companyName` are optional; a PUT
   is a full representation of the identity fields (an omitted `firstName`/`lastName` normalises to
@@ -114,15 +114,15 @@ Body:
 
 ### `DELETE /customers/by-external-ref/:externalRef?audience=…` → 204 (idempotent deactivate)
 
-Used when an upstream provider group is merged away. The **required `?audience=`** query param names
+Used when an upstream account is merged away. The **required `?audience=`** query param names
 the audience whose record is deactivated (the resolution discriminator). **Soft-deletes** the active
 customer carrying `externalRef` whose `roles` include `audience` (`deletedAt` set →
 `CUSTOMER_DELETED`) — the evidence chain is preserved (never a hard delete). A different-audience
 customer sharing the same `externalRef` is left untouched. Not found or already deactivated →
 idempotent no-op (no event). Always returns **204 No Content**. Missing `audience` → `400`.
 
-These two endpoints REPLACE the pull-based customer sync as the integration mechanism for the main
-portal.
+These two endpoints REPLACE the pull-based customer sync as the integration mechanism for the
+upstream system.
 
 ## Addressing customer-scoped endpoints
 
@@ -140,8 +140,8 @@ same result as [§3](#3-gate-access--get-customersidcomplianceaudience) is retur
 - Errors: `404 CUSTOMER_NOT_FOUND` when no active customer matches (unknown/soft-deleted
   `externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
   UNKNOWN_AUDIENCE`; `400` if `audience` is missing; `401` without the service token.
-- **Fail-open contract.** The metergrid Main Portal queries this endpoint **live per request (no
-  cache)** and **FAILS OPEN**: any clickwrap error/timeout **OR a `404`** is treated as *compliant*
+- **Fail-open contract.** Callers should query this endpoint **live per request (no
+  cache)** and **FAIL OPEN**: any clickwrap error/timeout **OR a `404`** is treated as *compliant*
   (access is never blocked on it). clickwrap returns the real compliance result or a `404` — it
   never guesses. Only an explicit `compliant: false` blocks.
 
@@ -156,9 +156,8 @@ result as [§4](#4-show-the-popup--get-customersidpending-agreementsaudience) is
 presigned `pdfUrl`, `mode`, `deadlineAt?`, `blocking`, `upcoming`, `validFrom`; `[]` = nothing to
 show).
 
-This is what backs the metergrid Main Portal (**Betreiberportal**) **native accept overlay**: the
-portal renders the outstanding AGBs itself with `mg-ui` from this response instead of embedding the
-hosted page.
+This is what backs a **native accept overlay** in the calling application: it renders the
+outstanding terms itself from this response instead of embedding the hosted page.
 
 - Errors: `404 CUSTOMER_NOT_FOUND` when no active customer matches (unknown/soft-deleted
   `externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
@@ -179,7 +178,7 @@ rules.
   "displayedConsentText": "I have read the new revision and agree." }
 ```
 
-- The **actor/identity** is the Betreiberportal user the Main Portal passes: `signerName`/
+- The **actor/identity** is the portal user the calling application passes: `signerName`/
   `signerEmail` in the body take precedence, falling back to the forwarded `x-actor-*` headers; the
   recorded `channel` is `PORTAL`.
 - ACTIVE versions **require** `displayedConsentText` (cross-checked against the server-side text →

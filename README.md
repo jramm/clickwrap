@@ -423,4 +423,4 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for dev setup, the TDD workflow and con
 ## License
 
 Apache License 2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
-Copyright 2026 metergrid GmbH.
+Copyright 2026 jramm.

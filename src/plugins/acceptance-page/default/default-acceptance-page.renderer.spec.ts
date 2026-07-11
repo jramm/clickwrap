@@ -41,8 +41,8 @@ describe('acceptance-page built-in registration', () => {
 
   it('an unknown ACCEPTANCE_PAGE key is a boot error listing the available keys', () => {
     const registry = PluginRegistry.bootstrap({ pluginPaths: [] });
-    expect(() => registry.select('acceptance-page', 'mg-ui', 'ACCEPTANCE_PAGE')).toThrow(
-      /Unknown ACCEPTANCE_PAGE "mg-ui".*default/,
+    expect(() => registry.select('acceptance-page', 'custom-ui', 'ACCEPTANCE_PAGE')).toThrow(
+      /Unknown ACCEPTANCE_PAGE "custom-ui".*default/,
     );
   });
 });

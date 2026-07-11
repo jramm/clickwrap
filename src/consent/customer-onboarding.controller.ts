@@ -69,8 +69,8 @@ export class CustomerOnboardingController {
   @ApiOperation({
     summary: 'Upsert a customer by external reference (inbound integration)',
     description:
-      'Idempotent inbound upsert through which an upstream system (the metergrid Main Portal) PUSHES ' +
-      'a provider-group customer into clickwrap (clickwrap never pulls). Resolved by (`externalRef`, ' +
+      'Idempotent inbound upsert through which an upstream system PUSHES ' +
+      'a customer into clickwrap (clickwrap never pulls). Resolved by (`externalRef`, ' +
       '`audience`) — the target is the record carrying `externalRef` whose `roles` OVERLAP the body ' +
       "`roles` (an `externalRef` is only unique per audience), INCLUDING soft-deleted records: no " +
       'overlapping match → CREATE → CUSTOMER_CREATED; a soft-deleted match → REACTIVATE + apply ' +
@@ -101,7 +101,7 @@ export class CustomerOnboardingController {
   @ApiOperation({
     summary: 'Deactivate a customer by external reference (inbound integration)',
     description:
-      'Idempotent inbound soft-delete used when an upstream provider group is merged away. Resolved ' +
+      'Idempotent inbound soft-delete used when an upstream account is merged away. Resolved ' +
       'by (`externalRef`, `audience`) — the required `?audience=` query param names the audience ' +
       'whose record is deactivated (an `externalRef` is only unique per audience). Soft-deletes the ' +
       'matching active customer (evidence chain preserved) → CUSTOMER_DELETED; a different-audience ' +

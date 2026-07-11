@@ -150,7 +150,7 @@ describe('CustomerOnboardingController (integration surface)', () => {
   });
 
   describe('PUT /customers/by-external-ref/:externalRef (inbound upsert)', () => {
-    const body = { companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'], source: 'mainportal' };
+    const body = { companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'], source: 'crm' };
 
     it('401 without a service token', async () => {
       await request(app.getHttpServer()).put('/customers/by-external-ref/crm-1').send(body).expect(401);
@@ -196,12 +196,12 @@ describe('CustomerOnboardingController (integration surface)', () => {
       const asCustomer = await request(app.getHttpServer())
         .put('/customers/by-external-ref/crm-1')
         .set('x-service-token', SERVICE_TOKEN)
-        .send({ roles: ['customer'], contactEmails: [], source: 'mainportal' })
+        .send({ roles: ['customer'], contactEmails: [], source: 'crm' })
         .expect(200);
       const asPartner = await request(app.getHttpServer())
         .put('/customers/by-external-ref/crm-1')
         .set('x-service-token', SERVICE_TOKEN)
-        .send({ roles: ['partner'], contactEmails: [], source: 'mainportal' })
+        .send({ roles: ['partner'], contactEmails: [], source: 'crm' })
         .expect(200);
       expect(asPartner.body.id).not.toBe(asCustomer.body.id);
       expect(await customers.findAllByExternalRef('crm-1')).toHaveLength(2);
@@ -217,7 +217,7 @@ describe('CustomerOnboardingController (integration surface)', () => {
       await request(app.getHttpServer())
         .put('/customers/by-external-ref/crm-1')
         .set('x-service-token', SERVICE_TOKEN)
-        .send({ roles: ['customer'], contactEmails: [], source: 'mainportal' })
+        .send({ roles: ['customer'], contactEmails: [], source: 'crm' })
         .expect(200);
 
       await request(app.getHttpServer())
@@ -252,12 +252,12 @@ describe('CustomerOnboardingController (integration surface)', () => {
       const asCustomer = await request(app.getHttpServer())
         .put('/customers/by-external-ref/crm-1')
         .set('x-service-token', SERVICE_TOKEN)
-        .send({ roles: ['customer'], contactEmails: [], source: 'mainportal' })
+        .send({ roles: ['customer'], contactEmails: [], source: 'crm' })
         .expect(200);
       const asPartner = await request(app.getHttpServer())
         .put('/customers/by-external-ref/crm-1')
         .set('x-service-token', SERVICE_TOKEN)
-        .send({ roles: ['partner'], contactEmails: [], source: 'mainportal' })
+        .send({ roles: ['partner'], contactEmails: [], source: 'crm' })
         .expect(200);
 
       await request(app.getHttpServer())

@@ -338,7 +338,7 @@ describe('CustomerAdminService', () => {
 
     it('still returns a soft-deleted customer (with deletedAt) so its history stays viewable', async () => {
       const deletedAt = new Date('2026-07-08T00:00:00Z');
-      await customers.save({ id: 'c-del', externalRef: 'crm-9', firstName: 'Jo', lastName: 'Doe', roles: ['customer'], contactEmails: [], source: 'metergrid', deletedAt });
+      await customers.save({ id: 'c-del', externalRef: 'crm-9', firstName: 'Jo', lastName: 'Doe', roles: ['customer'], contactEmails: [], source: 'crm', deletedAt });
       const row = await service.get('c-del');
       expect(row.id).toBe('c-del');
       expect(row.deletedAt).toEqual(deletedAt);
@@ -348,7 +348,7 @@ describe('CustomerAdminService', () => {
   describe('soft-delete handling', () => {
     it('list EXCLUDES soft-deleted customers', async () => {
       await customers.save({ id: 'c-active', externalRef: 'a', firstName: '', lastName: '', companyName: 'Active', roles: ['customer'], contactEmails: [] });
-      await customers.save({ id: 'c-deleted', externalRef: 'd', firstName: '', lastName: '', companyName: 'Deleted', roles: ['customer'], contactEmails: [], source: 'metergrid', deletedAt: new Date('2026-07-08T00:00:00Z') });
+      await customers.save({ id: 'c-deleted', externalRef: 'd', firstName: '', lastName: '', companyName: 'Deleted', roles: ['customer'], contactEmails: [], source: 'crm', deletedAt: new Date('2026-07-08T00:00:00Z') });
 
       const result = await service.list();
       expect(result.total).toBe(1);
@@ -356,7 +356,7 @@ describe('CustomerAdminService', () => {
     });
 
     it('update() rejects a soft-deleted customer (it must not silently reappear as active)', async () => {
-      await customers.save({ id: 'c-del', externalRef: 'crm-9', firstName: 'Jo', lastName: 'Doe', roles: ['customer'], contactEmails: [], source: 'metergrid', deletedAt: new Date('2026-07-08T00:00:00Z') });
+      await customers.save({ id: 'c-del', externalRef: 'crm-9', firstName: 'Jo', lastName: 'Doe', roles: ['customer'], contactEmails: [], source: 'crm', deletedAt: new Date('2026-07-08T00:00:00Z') });
       await expect(service.update('c-del', { firstName: 'X' }, ADMIN)).rejects.toMatchObject({ code: 'INVALID_STATE' });
     });
   });
@@ -1024,21 +1024,21 @@ describe('CustomerAdminService', () => {
   });
 
   describe('inbound upsert/deactivate by externalRef (integration push)', () => {
-    const SYSTEM = { userId: 'mainportal-svc' };
+    const SYSTEM = { userId: 'crm-svc' };
     const eventsOfType = async (type: string): Promise<number> =>
       (await events.query({})).items.filter((e) => e.type === type).length;
 
     describe('upsertByExternalRef', () => {
       it('creates a source-tagged customer and records CUSTOMER_CREATED (SYSTEM) when no match exists', async () => {
         const row = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'], source: 'crm' },
           SYSTEM,
         );
         expect(row).toMatchObject({ externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: ['legal@acme.io'] });
         expect(row).not.toHaveProperty('importedAcceptances');
 
-        const stored = (await customers.findAllByExternalRef('crm-1')).find((c) => c.source === 'mainportal');
-        expect(stored?.source).toBe('mainportal');
+        const stored = (await customers.findAllByExternalRef('crm-1')).find((c) => c.source === 'crm');
+        expect(stored?.source).toBe('crm');
 
         const created = (await events.query({ customerId: row.id })).items.filter((e) => e.type === 'CUSTOMER_CREATED');
         expect(created).toHaveLength(1);
@@ -1056,11 +1056,11 @@ describe('CustomerAdminService', () => {
 
       it('updates only the changed fields on an active match and records CUSTOMER_UPDATED', async () => {
         const created = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'Old', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'Old', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         const updated = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'New', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'New', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         expect(updated.id).toBe(created.id);
@@ -1070,11 +1070,11 @@ describe('CustomerAdminService', () => {
 
       it('is idempotent: re-sending an identical payload does NOT write and records NO event', async () => {
         await service.upsertByExternalRef(
-          { externalRef: 'crm-1', firstName: 'Jane', companyName: 'Acme', roles: ['customer'], contactEmails: ['a@x.io'], source: 'mainportal' },
+          { externalRef: 'crm-1', firstName: 'Jane', companyName: 'Acme', roles: ['customer'], contactEmails: ['a@x.io'], source: 'crm' },
           SYSTEM,
         );
         await service.upsertByExternalRef(
-          { externalRef: 'crm-1', firstName: 'Jane', companyName: 'Acme', roles: ['customer'], contactEmails: ['a@x.io'], source: 'mainportal' },
+          { externalRef: 'crm-1', firstName: 'Jane', companyName: 'Acme', roles: ['customer'], contactEmails: ['a@x.io'], source: 'crm' },
           SYSTEM,
         );
         expect(await eventsOfType('CUSTOMER_UPDATED')).toBe(0);
@@ -1083,11 +1083,11 @@ describe('CustomerAdminService', () => {
 
       it('ignores a mere reordering of roles/contactEmails (no update)', async () => {
         await service.upsertByExternalRef(
-          { externalRef: 'crm-1', roles: ['customer', 'partner'], contactEmails: ['a@x.io', 'b@x.io'], source: 'mainportal' },
+          { externalRef: 'crm-1', roles: ['customer', 'partner'], contactEmails: ['a@x.io', 'b@x.io'], source: 'crm' },
           SYSTEM,
         );
         await service.upsertByExternalRef(
-          { externalRef: 'crm-1', roles: ['partner', 'customer'], contactEmails: ['b@x.io', 'a@x.io'], source: 'mainportal' },
+          { externalRef: 'crm-1', roles: ['partner', 'customer'], contactEmails: ['b@x.io', 'a@x.io'], source: 'crm' },
           SYSTEM,
         );
         expect(await eventsOfType('CUSTOMER_UPDATED')).toBe(0);
@@ -1095,14 +1095,14 @@ describe('CustomerAdminService', () => {
 
       it('reactivates a soft-deleted match (clears deletedAt, applies fields) and records CUSTOMER_UPDATED', async () => {
         const created = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
         expect((await customers.findById(created.id))?.deletedAt).toBeDefined();
 
         const reactivated = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'Acme Reborn', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'Acme Reborn', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         expect(reactivated.id).toBe(created.id);
@@ -1122,7 +1122,7 @@ describe('CustomerAdminService', () => {
           'integration',
         );
         const pushed = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'Portal', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'Portal', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         expect(pushed.id).not.toBe(partner.id);
@@ -1141,7 +1141,7 @@ describe('CustomerAdminService', () => {
           'integration',
         );
         const upserted = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'New', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'New', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         expect(upserted.id).toBe(existing.id);
@@ -1152,7 +1152,7 @@ describe('CustomerAdminService', () => {
 
       it('rejects an unknown role with UNKNOWN_AUDIENCE (no write)', async () => {
         await expect(
-          service.upsertByExternalRef({ externalRef: 'crm-1', roles: ['ghost'], contactEmails: [], source: 'mainportal' }, SYSTEM),
+          service.upsertByExternalRef({ externalRef: 'crm-1', roles: ['ghost'], contactEmails: [], source: 'crm' }, SYSTEM),
         ).rejects.toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
         expect((await events.query({})).total).toBe(0);
       });
@@ -1160,7 +1160,7 @@ describe('CustomerAdminService', () => {
       it('rejects an invalid contact e-mail with INVALID_STATE (no write)', async () => {
         await expect(
           service.upsertByExternalRef(
-            { externalRef: 'crm-1', roles: ['customer'], contactEmails: ['not-an-email'], source: 'mainportal' },
+            { externalRef: 'crm-1', roles: ['customer'], contactEmails: ['not-an-email'], source: 'crm' },
             SYSTEM,
           ),
         ).rejects.toMatchObject({ code: 'INVALID_STATE' });
@@ -1168,7 +1168,7 @@ describe('CustomerAdminService', () => {
 
       it('rejects a blank externalRef with INVALID_STATE', async () => {
         await expect(
-          service.upsertByExternalRef({ externalRef: '  ', roles: ['customer'], contactEmails: [], source: 'mainportal' }, SYSTEM),
+          service.upsertByExternalRef({ externalRef: '  ', roles: ['customer'], contactEmails: [], source: 'crm' }, SYSTEM),
         ).rejects.toMatchObject({ code: 'INVALID_STATE' });
       });
     });
@@ -1176,7 +1176,7 @@ describe('CustomerAdminService', () => {
     describe('deactivateByExternalRef', () => {
       it('soft-deletes the matching customer and records CUSTOMER_DELETED (SYSTEM)', async () => {
         const created = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', companyName: 'Acme', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
@@ -1189,7 +1189,7 @@ describe('CustomerAdminService', () => {
 
       it('is idempotent: a second deactivate (already soft-deleted) records NO event', async () => {
         await service.upsertByExternalRef(
-          { externalRef: 'crm-1', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         await service.deactivateByExternalRef('crm-1', 'customer', SYSTEM);
@@ -1215,11 +1215,11 @@ describe('CustomerAdminService', () => {
 
       it('scopes by audience: soft-deletes only the record of the given audience, leaving a different-audience sibling active', async () => {
         const customer = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', roles: ['customer'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', roles: ['customer'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         const partner = await service.upsertByExternalRef(
-          { externalRef: 'crm-1', roles: ['partner'], contactEmails: [], source: 'mainportal' },
+          { externalRef: 'crm-1', roles: ['partner'], contactEmails: [], source: 'crm' },
           SYSTEM,
         );
         // Deactivate the partner audience only.

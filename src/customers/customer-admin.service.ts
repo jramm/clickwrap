@@ -68,7 +68,7 @@ export interface CreateCustomerInput {
 /**
  * Default provenance tag for customers PUSHED in through the inbound integration API
  * ({@link CustomerAdminService.upsertByExternalRef}) when the caller omits `source`. `source` is
- * the caller's own system namespace — e.g. the metergrid Main Portal passes `'mainportal'` — and is
+ * the caller's own system namespace — e.g. a CRM passes `'crm'` — and is
  * stored purely as a provenance label ON CREATE. It is NOT the resolution key: an inbound record is
  * resolved by (`externalRef`, `audience`), because in clickwrap an `externalRef` is only unique in
  * combination with an audience (overlap-aware uniqueness — see
@@ -77,7 +77,7 @@ export interface CreateCustomerInput {
 export const DEFAULT_INBOUND_SOURCE = 'external';
 
 /**
- * Inbound push of a provider-group customer (see {@link CustomerAdminService.upsertByExternalRef}).
+ * Inbound push of a customer from an upstream system (see {@link CustomerAdminService.upsertByExternalRef}).
  * The resolution key is (`externalRef`, `audience`): among the customers carrying `externalRef`, the
  * one whose `roles` OVERLAP the pushed `roles` is the target (at most one by the overlap-aware
  * uniqueness rule). `source` is a create-only provenance tag, never part of the lookup. This is a
@@ -474,8 +474,8 @@ export class CustomerAdminService {
 
   /**
    * Idempotent inbound upsert keyed by (`externalRef`, `audience`) — the write side of the inbound
-   * integration API through which an upstream system (the metergrid Main Portal) PUSHES its
-   * provider-group customers into clickwrap (clickwrap never pulls). An `externalRef` is only unique
+   * integration API through which an upstream system PUSHES its
+   * customers into clickwrap (clickwrap never pulls). An `externalRef` is only unique
    * in combination with an audience, so the target is resolved by ROLE OVERLAP, never by `source`:
    *  - no overlapping match (INCLUDING soft-deleted) → CREATE (source-tagged) via {@link create} → CUSTOMER_CREATED
    *  - overlapping match, soft-deleted → REACTIVATE (clear deletedAt) + apply the identity fields → CUSTOMER_UPDATED
@@ -531,7 +531,7 @@ export class CustomerAdminService {
 
   /**
    * Idempotent inbound deactivate keyed by (`externalRef`, `audience`) — used when an upstream
-   * provider group is merged away. Resolves the ACTIVE customer carrying `externalRef` whose roles
+   * account is merged away. Resolves the ACTIVE customer carrying `externalRef` whose roles
    * include `audience`, then soft-deletes it (preserving its evidence chain) → CUSTOMER_DELETED.
    * A different-audience customer sharing the same
    * `externalRef` is left untouched. Not found (unknown externalRef/audience) or already

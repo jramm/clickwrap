@@ -1,7 +1,7 @@
 # Local full-stack clickwrap-server: Postgres + backend (:3000, public/integration surface incl.
 # the hosted acceptance page) + nginx serving the admin-ui SPA and reverse-proxying the admin API
 # same-origin (:8080). Mirrors the intended two-surface topology (public host = backend,
-# admin host = nginx) used for the tier2/k8s deployment.
+# admin host = nginx) used for a Kubernetes deployment.
 #
 # Quick start:  docker compose up --build
 #   Admin UI:   http://localhost:8080         (login with ADMIN_API_TOKEN below)

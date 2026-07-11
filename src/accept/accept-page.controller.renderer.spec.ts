@@ -12,8 +12,8 @@ import { ACCEPT_PAGE_RATE_LIMITER, AcceptPageController } from './accept-page.co
 import { AcceptPageService } from './accept-page.service.js';
 
 const KNOWN_TOKEN = 'known-token';
-const PAGE_SENTINEL = '<!doctype html><title>MG-UI SENTINEL PAGE</title>';
-const NOT_FOUND_SENTINEL = '<!doctype html><title>MG-UI SENTINEL NOT FOUND</title>';
+const PAGE_SENTINEL = '<!doctype html><title>CUSTOM SENTINEL PAGE</title>';
+const NOT_FOUND_SENTINEL = '<!doctype html><title>CUSTOM SENTINEL NOT FOUND</title>';
 
 class FakeRenderer implements AcceptancePageRenderer {
   renderAcceptPage(view: AcceptancePageView, lang: AcceptancePageLang): string {
@@ -60,12 +60,12 @@ describe('AcceptPageController — output comes from the active renderer plugin'
 
   it('GET renders the resolved link via the plugin renderer (200)', async () => {
     const res = await request(app.getHttpServer()).get(`/accept/${KNOWN_TOKEN}`).expect(200);
-    expect(res.text).toContain('MG-UI SENTINEL PAGE');
+    expect(res.text).toContain('CUSTOM SENTINEL PAGE');
     expect(res.text).toContain('al-1:en');
   });
 
   it('GET renders the not-found page via the plugin renderer (404)', async () => {
     const res = await request(app.getHttpServer()).get('/accept/unknown').expect(404);
-    expect(res.text).toContain('MG-UI SENTINEL NOT FOUND');
+    expect(res.text).toContain('CUSTOM SENTINEL NOT FOUND');
   });
 });

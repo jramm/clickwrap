@@ -406,7 +406,7 @@
     },
     "/customers/by-external-ref/{externalRef}": {
       "put": {
-        "description": "Idempotent inbound upsert through which an upstream system (the metergrid Main Portal) PUSHES a provider-group customer into clickwrap (clickwrap never pulls). Resolved by (`externalRef`, `audience`) — the target is the record carrying `externalRef` whose `roles` OVERLAP the body `roles` (an `externalRef` is only unique per audience), INCLUDING soft-deleted records: no overlapping match → CREATE → CUSTOMER_CREATED; a soft-deleted match → REACTIVATE + apply fields → CUSTOMER_UPDATED; an active match with a real change → UPDATE the changed fields → CUSTOMER_UPDATED; an active match with no change → no write and no event (idempotent). A different-audience customer sharing the same `externalRef` is never touched. `source` (default `external`) is stored as a provenance tag on create only — it is NOT the resolution key.",
+        "description": "Idempotent inbound upsert through which an upstream system PUSHES a customer into clickwrap (clickwrap never pulls). Resolved by (`externalRef`, `audience`) — the target is the record carrying `externalRef` whose `roles` OVERLAP the body `roles` (an `externalRef` is only unique per audience), INCLUDING soft-deleted records: no overlapping match → CREATE → CUSTOMER_CREATED; a soft-deleted match → REACTIVATE + apply fields → CUSTOMER_UPDATED; an active match with a real change → UPDATE the changed fields → CUSTOMER_UPDATED; an active match with no change → no write and no event (idempotent). A different-audience customer sharing the same `externalRef` is never touched. `source` (default `external`) is stored as a provenance tag on create only — it is NOT the resolution key.",
         "operationId": "CustomerOnboardingController_upsertByExternalRef",
         "parameters": [
           {
@@ -482,7 +482,7 @@
         ]
       },
       "delete": {
-        "description": "Idempotent inbound soft-delete used when an upstream provider group is merged away. Resolved by (`externalRef`, `audience`) — the required `?audience=` query param names the audience whose record is deactivated (an `externalRef` is only unique per audience). Soft-deletes the matching active customer (evidence chain preserved) → CUSTOMER_DELETED; a different-audience customer sharing the `externalRef` is left untouched. Not found or already deactivated → idempotent no-op (no event). Returns 204. Missing `audience` → 400.",
+        "description": "Idempotent inbound soft-delete used when an upstream account is merged away. Resolved by (`externalRef`, `audience`) — the required `?audience=` query param names the audience whose record is deactivated (an `externalRef` is only unique per audience). Soft-deletes the matching active customer (evidence chain preserved) → CUSTOMER_DELETED; a different-audience customer sharing the `externalRef` is left untouched. Not found or already deactivated → idempotent no-op (no event). Returns 204. Missing `audience` → 400.",
         "operationId": "CustomerOnboardingController_deactivateByExternalRef",
         "parameters": [
           {
@@ -1699,7 +1699,7 @@
           },
           "source": {
             "type": "string",
-            "example": "mainportal",
+            "example": "crm",
             "description": "Caller's system namespace scoping the (source, externalRef) key. Defaults to 'external'."
           }
         },

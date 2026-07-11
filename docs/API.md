@@ -627,12 +627,12 @@ refs per audience space, or GET first, to avoid ambiguity.
 
 ### PUT /customers/by-external-ref/:externalRef — inbound upsert (integration) → 200
 Auth: `x-service-token` only; optional `x-actor-*` name the acting user (writes are SYSTEM-attributed).
-Idempotent upsert through which an upstream system PUSHES a provider-group customer into clickwrap
+Idempotent upsert through which an upstream system PUSHES a customer into clickwrap
 (clickwrap never pulls). Resolved by (`externalRef`, `audience`) — the record whose `roles` OVERLAP
 the body `roles` (an `externalRef` is only unique per audience) — **including soft-deleted** records.
 ```json
 { "firstName": "Jane", "lastName": "Doe", "companyName": "Acme GmbH",
-  "contactEmails": ["legal@acme.example"], "roles": ["customer"], "source": "mainportal" }
+  "contactEmails": ["legal@acme.example"], "roles": ["customer"], "source": "crm" }
 ```
 - `contactEmails` + `roles` required; `firstName`/`lastName`/`companyName` optional; `source`
   defaults to `external` and is stored as a **provenance tag on create only** (not the resolution
@@ -647,7 +647,7 @@ the body `roles` (an `externalRef` is only unique per audience) — **including 
   externalRef / overlapping duplicate → `422 INVALID_STATE`.
 
 ### DELETE /customers/by-external-ref/:externalRef?audience=… — inbound deactivate (integration) → 204
-Auth: `x-service-token` only. Used on provider-group merge. Resolved by (`externalRef`, `audience`)
+Auth: `x-service-token` only. Used when an upstream account is merged away. Resolved by (`externalRef`, `audience`)
 via the **required `?audience=`** query param. **Soft-deletes** the active customer carrying
 `externalRef` whose `roles` include `audience` (`deletedAt` set → `CUSTOMER_DELETED`; evidence chain
 preserved); a different-audience customer sharing the `externalRef` is left untouched. Not found or
@@ -666,7 +666,7 @@ unchanged. Errors: `404 CUSTOMER_NOT_FOUND` (no active match — unknown/soft-de
 `externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
 UNKNOWN_AUDIENCE`; `400` if `audience` missing; `401` without the token.
 
-> **Fail-open.** The metergrid Main Portal queries this **live per request (no cache)** and **FAILS
+> **Fail-open.** Callers should query this **live per request (no cache)** and **FAIL
 > OPEN**: any clickwrap error/timeout **OR a `404`** is treated as *compliant* (access is never
 > blocked on it). clickwrap returns the real result or a `404` — it never guesses. Only an explicit
 > `compliant: false` blocks.
@@ -676,8 +676,8 @@ Auth: `x-service-token` only (no `x-customer-id` — the customer is resolved fr
 reference). The **required `?audience=`** query param is the resolution discriminator: the ACTIVE
 customer carrying `externalRef` whose `roles` include `audience` is resolved, then the same body as
 `GET /customers/:customerId/pending-agreements` (below) is returned unchanged (the outstanding
-items, `[]` = nothing to show). Backs the metergrid Betreiberportal **native accept overlay**
-(rendered with mg-ui) — the portal fetches the open AGBs for its logged-in user without knowing
+items, `[]` = nothing to show). Backs a **native accept overlay** in the calling application — it
+fetches the open terms for its logged-in user without knowing
 clickwrap's internal id. Errors: `404 CUSTOMER_NOT_FOUND` (no active match — unknown/soft-deleted
 `externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
 UNKNOWN_AUDIENCE`; `400` if `audience` missing; `401` without the token.
@@ -688,12 +688,12 @@ reference). The **required `?audience=`** query param is the resolution discrimi
 customer carrying `externalRef` whose `roles` include `audience` is resolved, then the acceptance is
 recorded through the **same** flow as `POST /customers/:customerId/acceptances` (idempotency via
 `Idempotency-Key`, version-current check, ACTIVE consent-text cross-check). Records the
-Betreiberportal user's acceptance from the native overlay with **that user's identity**.
+portal user's acceptance from the native overlay with **that user's identity**.
 ```json
 { "versionId": "v-9", "signerName": "Bob Portal", "signerEmail": "bob@operator.example",
   "displayedConsentText": "I have read the new version and agree." }
 ```
-The acting identity is the portal user the Main Portal passes: `signerName`/`signerEmail` in the
+The acting identity is the portal user the calling application passes: `signerName`/`signerEmail` in the
 body take precedence, falling back to the forwarded `x-actor-*` headers; the recorded `channel` is
 `PORTAL`. As with the per-customerId route the server-side `consentText` is authoritative and
 `displayedConsentText` is only cross-checked; ACTIVE versions **require** it, PASSIVE early

@@ -145,7 +145,7 @@ export class UpsertByExternalRefBodyModel {
   roles!: string[];
 
   @ApiPropertyOptional({
-    example: 'mainportal',
+    example: 'crm',
     description: "Caller's system namespace scoping the (source, externalRef) key. Defaults to 'external'.",
   })
   source?: string;

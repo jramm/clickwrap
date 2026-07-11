@@ -228,19 +228,19 @@ The **`default` built-in** (`src/plugins/builtins/default-acceptance-page.plugin
 `src/plugins/acceptance-page/default/`) is the current server-rendered page (inline CSS/JS,
 mobile-first, self-contained) and the selected default (`ACCEPTANCE_PAGE=default`).
 
-#### Writing an mg-ui (org-branded) renderer
+#### Writing a custom (org-branded) renderer
 
-To render the page with your own client UI (e.g. metergrid's `mg-ui`), ship an `acceptance-page`
+To render the page with your own client UI (e.g. your own component library), ship an `acceptance-page`
 plugin whose `renderAcceptPage` returns a **shell that hands the view-model to your client app** —
 the capability-token flow stays server-side, so no new API is needed:
 
 1. **Embed the view-model as JSON** in a `<script type="application/json">` tag (escape `</` to
    `<\/` so it can't terminate the block or inject markup). This is the single source of truth for
    your UI — including the exact `consentText` per item.
-2. **Load your client assets** from your own host (`<script src="https://mg-ui.example/…">`,
+2. **Load your client assets** from your own host (`<script src="https://your-ui.example/…">`,
    `<link rel="stylesheet" …>`). The default page is fully self-contained, but an org renderer is
    free to reference external assets.
-3. **Mount mg-ui**, which reads the embedded `AcceptancePageView` and renders the cards, the signer
+3. **Mount your client app**, which reads the embedded `AcceptancePageView` and renders the cards, the signer
    block and the accept controls in your design system.
 4. **POST the acceptance to the existing endpoint** `POST /accept/:token/acceptances` (same origin,
    same body the default page sends: `{ versionId, displayedConsentText, signerName, signerEmail }`
@@ -253,16 +253,16 @@ Activate it with `ACCEPTANCE_PAGE=<key>`. A minimal skeleton:
 ```ts
 export default definePlugin({
   kind: 'acceptance-page',
-  key: 'mg-ui',
+  key: 'custom-ui',
   create() {
     return {
       renderAcceptPage(view, lang) {
         const json = JSON.stringify(view).replace(/</g, '\\u003c');
         return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
-          <link rel="stylesheet" href="https://mg-ui.example/accept.css"></head><body>
-          <div id="mg-accept-root"></div>
+          <link rel="stylesheet" href="https://your-ui.example/accept.css"></head><body>
+          <div id="accept-root"></div>
           <script type="application/json" id="accept-view">${json}</script>
-          <script src="https://mg-ui.example/accept.js"></script></body></html>`;
+          <script src="https://your-ui.example/accept.js"></script></body></html>`;
       },
       renderNotFoundPage(lang) {
         return `<!doctype html><html lang="${lang}"><body>…link not available…</body></html>`;

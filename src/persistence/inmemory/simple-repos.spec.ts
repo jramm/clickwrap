@@ -79,7 +79,7 @@ describe('InMemoryCustomerRepo', () => {
   });
 
   it('softDelete stamps deletedAt (preserving the row); unknown id is a no-op', async () => {
-    await repo.save(aCustomer({ id: 'c-1', externalRef: 'crm-1', source: 'mainportal' }));
+    await repo.save(aCustomer({ id: 'c-1', externalRef: 'crm-1', source: 'crm' }));
     const at = new Date('2026-07-09T10:00:00Z');
 
     await repo.softDelete('c-1', at);
