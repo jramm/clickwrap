@@ -6,6 +6,8 @@
 import type { AnyClickwrapPlugin } from '../../plugin-sdk/index.js';
 import { defaultAcceptancePagePlugin } from './default-acceptance-page.plugin.js';
 import { googleSsoAdminAuthPlugin } from './google-sso-admin-auth.plugin.js';
+import { hubspotAdminNotificationPlugin } from './hubspot-admin-notification.plugin.js';
+import { slackAdminNotificationPlugin } from './slack-admin-notification.plugin.js';
 import { localFileStoragePlugin } from './local-file-storage.plugin.js';
 import { memoryFileStoragePlugin } from './memory-file-storage.plugin.js';
 import { noopEmailPlugin } from './noop-email.plugin.js';
@@ -26,4 +28,6 @@ export const builtinPlugins: AnyClickwrapPlugin[] = [
   staticTokenAdminAuthPlugin,
   supertokensAdminAuthPlugin,
   defaultAcceptancePagePlugin,
+  slackAdminNotificationPlugin,
+  hubspotAdminNotificationPlugin,
 ];

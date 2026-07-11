@@ -10,6 +10,7 @@ import type { AgreementVersionRepo, CustomerVersionStateRepo, ObjectionRepo } fr
 import { object as objectState } from '../domain/state-machine.js';
 import type { Objection } from '../domain/types.js';
 import { EventRecorder } from '../events/event-recorder.js';
+import { AdminNotificationService } from '../plugins/email/core/admin-notification.service.js';
 import { ESCALATION_LOG, type EscalationLog } from '../common/escalation/escalation-log.js';
 import { TOKENS } from '../persistence/tokens.js';
 import { CONSENT_TOKENS, type IdempotencyStore, type IdGenerator } from './ports.js';
@@ -38,6 +39,7 @@ export class ObjectionService {
     @Inject(CONSENT_TOKENS.IdGenerator) private readonly ids: IdGenerator,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     @Optional() private readonly recorder?: EventRecorder,
+    @Optional() private readonly adminNotifications?: AdminNotificationService,
   ) {}
 
   async object(input: ObjectionInput): Promise<ObjectionResponse> {
@@ -110,6 +112,28 @@ export class ObjectionService {
       channel: 'PORTAL',
       summary: `Objection raised against version ${version.versionLabel}${input.reason ? `: ${input.reason}` : ''}`,
       metadata: { ...(input.reason !== undefined ? { reason: input.reason } : {}) },
+    });
+
+    // Notify admins about the objection (Widerspruch) via the active admin-notification plugins
+    // (e-mail/Slack/HubSpot). Best-effort and failure-isolated in the service — never blocks the
+    // objection. Only fires on the first (non-replay) success, since replays return early above.
+    await this.adminNotifications?.notify({
+      event: 'OBJECTION_RAISED',
+      title: `Objection raised against ${version.versionLabel}`,
+      body: [
+        'A customer raised an objection (Widerspruch).',
+        `Customer: ${input.customerId}`,
+        `Version: ${version.versionLabel} (${input.versionId})`,
+        `Raised by: ${input.context.actor.name ?? input.context.actor.email ?? 'unknown'}`,
+        `Reason: ${input.reason ?? '—'}`,
+        `At: ${objection.objectedAt.toISOString()}`,
+      ].join('\n'),
+      customerId: input.customerId,
+      customerName: input.context.actor.name,
+      versionId: input.versionId,
+      versionLabel: version.versionLabel,
+      reason: input.reason,
+      occurredAt: objection.objectedAt.toISOString(),
     });
 
     const response: ObjectionResponse = { objectionId: objection.id, state: 'OBJECTED' };

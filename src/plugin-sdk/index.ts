@@ -7,3 +7,4 @@ export * from './kinds/email.js';
 export * from './kinds/file-storage.js';
 export * from './kinds/admin-auth.js';
 export * from './kinds/acceptance-page.js';
+export * from './kinds/admin-notification.js';

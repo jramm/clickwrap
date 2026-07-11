@@ -3,16 +3,18 @@
  *
  * A plugin is an npm package whose package.json carries the manifest field
  *
- *   "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "acceptance-page", "key": "<slug>" }
+ *   "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "acceptance-page"
+ *                          | "admin-notification", "key": "<slug>" }
  *
  * and whose main entry default-exports the result of {@link definePlugin} (or a plain object of
  * the same shape — the SDK is not required at runtime). The host discovers manifests in the app's
  * installed dependencies (plus `CLICKWRAP_PLUGIN_PATHS`) and activates plugins per kind via env
- * (`EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`, `ACCEPTANCE_PAGE`).
+ * (`EMAIL_PROVIDER`, `FILE_STORAGE`, `ADMIN_AUTH`, `ACCEPTANCE_PAGE`, `ADMIN_NOTIFICATIONS`).
  */
 import type { DynamicModule } from '@nestjs/common';
 import type { AcceptancePageRenderer } from './kinds/acceptance-page.js';
 import type { AdminAuthStrategy } from './kinds/admin-auth.js';
+import type { AdminNotifier } from './kinds/admin-notification.js';
 import type { EmailDeliveryProvider } from './kinds/email.js';
 import type { FileStorage } from './kinds/file-storage.js';
 
@@ -22,6 +24,7 @@ export interface PluginKindImplementations {
   'file-storage': FileStorage;
   'admin-auth': AdminAuthStrategy;
   'acceptance-page': AcceptancePageRenderer;
+  'admin-notification': AdminNotifier;
 }
 
 export type ClickwrapPluginKind = keyof PluginKindImplementations;
@@ -31,6 +34,7 @@ export const CLICKWRAP_PLUGIN_KINDS: readonly ClickwrapPluginKind[] = [
   'file-storage',
   'admin-auth',
   'acceptance-page',
+  'admin-notification',
 ];
 
 /** The `"clickwrap"` field of a plugin package's package.json. */

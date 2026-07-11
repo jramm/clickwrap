@@ -20,7 +20,7 @@ At boot the host builds a **plugin registry** from three sources (all validated 
    `devDependencies` whose own package.json carries the manifest field:
 
    ```json
-   { "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "acceptance-page", "key": "<slug>" } }
+   { "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "acceptance-page" | "admin-notification", "key": "<slug>" } }
    ```
 
 3. **`CLICKWRAP_PLUGIN_PATHS`** — comma-separated local directories (each a package with a
@@ -40,6 +40,7 @@ Rules:
   | `FILE_STORAGE` | `memory` | ONE active file-storage key |
   | `ADMIN_AUTH` | `google-sso,static-token` | ORDERED comma list of admin-auth keys |
   | `ACCEPTANCE_PAGE` | `default` | ONE active acceptance-page renderer key |
+  | `ADMIN_NOTIFICATIONS` | `email` | ORDERED comma list of admin-notification keys |
 
   An unknown key fails the boot with the list of available keys.
 
@@ -270,6 +271,31 @@ export default definePlugin({
   },
 });
 ```
+
+### `admin-notification` — `AdminNotifier`
+
+Notifies admins/operators about noteworthy events — the first trigger is a customer **objection
+(Widerspruch)**. Several notifiers can be ACTIVE at once (`ADMIN_NOTIFICATIONS`, ordered); the host
+fans one `AdminNotification` out to all of them and **isolates failures per notifier**, so a broken
+Slack/HubSpot/e-mail call never blocks the objection.
+
+```ts
+interface AdminNotifier {
+  notify(notification: AdminNotification): Promise<void>; // best-effort; catch your own transport errors
+}
+// AdminNotification: { event: 'OBJECTION_RAISED', title, body, customerId, customerName?, versionId,
+//                      versionLabel?, documentType?, audience?, reason?, occurredAt }
+```
+
+Built-ins:
+- **`email`** — sends `title`/`body` to `ADMIN_NOTIFICATION_EMAIL` through the active e-mail provider
+  (reuses the `email-provider` plugin; skipped with a warning when the recipient is unset). Because
+  it depends on that host-provided provider it is wired host-side, not via `create(ctx)`.
+- **`slack`** / **`hubspot`** — self-contained transports (see their env config).
+
+An external notifier package is a normal plugin: `definePlugin({ kind: 'admin-notification', key,
+create(ctx) })`, returning an object with `notify()`. Read transport config (webhook URLs, tokens)
+from `ctx.env`.
 
 ## Local development, publishing, activating
 

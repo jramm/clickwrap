@@ -28,6 +28,7 @@ import { createPluginContext } from '../registry/plugin-context.js';
 import { getPluginRegistry } from '../registry/plugin-registry.js';
 import { selectedEmailProviderKey } from '../registry/selection.js';
 import { AcceptanceConfirmationService } from './core/acceptance-confirmation.service.js';
+import { ADMIN_NOTIFIERS, AdminNotificationService, createSelectedAdminNotifiers } from './core/admin-notification.service.js';
 import { AgreementEmailService } from './core/agreement-email.service.js';
 import { AgreementRolloutNotifier } from './core/agreement-rollout-notifier.js';
 import { DeliveryEventService } from './core/delivery-event.service.js';
@@ -76,6 +77,10 @@ export class EmailModule {
       AcceptanceConfirmationService,
       DeliveryEventService,
       AgreementRolloutNotifier,
+      // Admin-notification fan-out (kind `admin-notification`): the ordered active notifiers +
+      // the service that dispatches to them. `email` reuses the EmailDeliveryProvider above.
+      { provide: ADMIN_NOTIFIERS, useFactory: createSelectedAdminNotifiers, inject: [EMAIL_TOKENS.EmailDeliveryProvider] },
+      AdminNotificationService,
       ...((fragment?.providers ?? []) as Provider[]),
     ];
     return {
@@ -91,6 +96,7 @@ export class EmailModule {
         AgreementRolloutNotifier,
         EmailContentService,
         PermanentAcceptanceLinkService,
+        AdminNotificationService,
       ],
     };
   }

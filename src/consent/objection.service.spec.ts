@@ -10,6 +10,7 @@ import {
 } from '../persistence/inmemory/index.js';
 import { InMemoryEscalationLog } from '../common/escalation/escalation-log.inmemory.js';
 import { EventRecorder } from '../events/event-recorder.js';
+import type { AdminNotificationService } from '../plugins/email/core/admin-notification.service.js';
 import { InMemoryIdempotencyStore, SequentialIdGenerator } from './inmemory.js';
 import { ObjectionService } from './objection.service.js';
 
@@ -33,6 +34,7 @@ describe('ObjectionService', () => {
   let eventRepo: InMemoryEventRepo;
   let clock: FixedClock;
   let service: ObjectionService;
+  let adminNotifications: { notify: jest.Mock };
 
   const input = (overrides: Partial<Parameters<ObjectionService['object']>[0]> = {}) => ({
     customerId: 'c-123',
@@ -52,6 +54,7 @@ describe('ObjectionService', () => {
     idempotency = new InMemoryIdempotencyStore();
     eventRepo = new InMemoryEventRepo();
     clock = new FixedClock(BEFORE_DEADLINE);
+    adminNotifications = { notify: jest.fn().mockResolvedValue(undefined) };
     service = new ObjectionService(
       versions,
       states,
@@ -61,6 +64,7 @@ describe('ObjectionService', () => {
       new SequentialIdGenerator(),
       clock,
       new EventRecorder(eventRepo, clock),
+      adminNotifications as unknown as AdminNotificationService,
     );
     // PASSIVE version + NOTIFIED state within the period.
     await documents.save(aDocument());
@@ -84,6 +88,28 @@ describe('ObjectionService', () => {
     expect(response).toEqual({ objectionId: 'o-1', state: 'OBJECTED' });
     const { items } = await eventRepo.query({});
     expect(items[0]).toMatchObject({ type: 'OBJECTION_RAISED', category: 'CONSENT', actorKind: 'CUSTOMER' });
+  });
+
+  it('notifies admins about the objection (OBJECTION_RAISED)', async () => {
+    await service.object(input());
+
+    expect(adminNotifications.notify).toHaveBeenCalledTimes(1);
+    expect(adminNotifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'OBJECTION_RAISED',
+        customerId: 'c-123',
+        versionId: 'v-1',
+        reason: 'Sub-processor XY is not accepted.',
+        occurredAt: BEFORE_DEADLINE.toISOString(),
+      }),
+    );
+  });
+
+  it('does not notify admins again on an idempotent replay', async () => {
+    await service.object(input({ idempotencyKey: 'key-x' }));
+    await service.object(input({ idempotencyKey: 'key-x' }));
+
+    expect(adminNotifications.notify).toHaveBeenCalledTimes(1);
   });
 
   it('idempotency replay: same key → identical response, only one objection', async () => {
