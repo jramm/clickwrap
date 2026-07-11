@@ -168,7 +168,8 @@ for the schema and database details.
 
 ## Quickstart
 
-Requirements: Node.js 20+, [pnpm](https://pnpm.io/). Commands below assume `pnpm` on your PATH.
+Requirements: Node.js 26+, [pnpm](https://pnpm.io/) (for the non-Docker paths). Commands below
+assume `pnpm` on your PATH. Or skip the toolchain entirely and use Docker — see step 2.
 
 ### 1. Run with the in-memory driver (no database)
 
@@ -189,10 +190,33 @@ Load a small example dataset (a few documents, versions and customers). The audi
 pnpm seed-example
 ```
 
-### 2. Run with PostgreSQL (Prisma driver)
+### 2. Run the full stack with Docker (Postgres + backend + admin UI)
+
+The simplest way to run everything locally — needs Docker:
 
 ```bash
-docker compose up -d          # local Postgres (user/password/db: clickwrap)
+docker compose up --build
+```
+
+This starts four services: Postgres, a one-shot `migrate` step (`prisma db push` + the partial
+unique index), the **backend**, and an **nginx** container serving the admin UI. Two entry points:
+
+- **Admin UI** → http://localhost:8080 — log in with the `ADMIN_API_TOKEN` (default `dev-admin-token`).
+- **Public API + hosted acceptance page** → http://localhost:3000 (= `PUBLIC_BASE_URL`); Swagger at
+  `/docs/admin` and `/docs/integration`.
+
+> **What's in the container?** The Dockerfile's default (backend) image bundles *both* build outputs
+> — the compiled backend (`dist`, served on :3000) and the admin-ui production build
+> (`/app/admin-ui-dist`) — but the backend process serves **only** the API. The admin UI is served
+> by a **separate** image (Dockerfile target `adminui-nginx`: an nginx that serves the SPA and
+> reverse-proxies `/api/*` → backend). So compose runs the backend and the admin UI as **two
+> containers**, not one — see [Deployment](#deployment) for the reasoning. The tokens/secrets in
+> `docker-compose.yml` are dev-only throwaways; never reuse them.
+
+### 3. Run against PostgreSQL for local development (hot reload)
+
+```bash
+docker compose up -d postgres   # only the Postgres service (user/password/db: clickwrap)
 
 DATABASE_URL=postgresql://clickwrap:clickwrap@localhost:5432/clickwrap \
   pnpm prisma migrate dev --name init
