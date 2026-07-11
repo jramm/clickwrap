@@ -46,6 +46,10 @@ describe('DocumentsPage — publish flow', () => {
     expect(within(dialog).getByText(/currently published version .* is retired/i)).toBeInTheDocument();
     expect(within(dialog).queryByText(/will become effective on/i)).not.toBeInTheDocument();
 
+    // #27: the affected-customer count (from GET /admin/versions/:id/affected-customers) is shown
+    // before publishing, next to the Publish now button.
+    await waitFor(() => expect(within(dialog).getByText(/roll out to 921 customer/i)).toBeInTheDocument());
+
     await user.click(within(dialog).getByRole('button', { name: 'Publish now' }));
 
     // Result: rolloutCustomers from the response (921)

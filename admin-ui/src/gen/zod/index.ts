@@ -154,6 +154,7 @@ export {
   adminControllerVersionStatsPathParamsSchema,
   adminControllerVersionStatsQueryResponseSchema,
 } from './adminControllerVersionStatsSchema.ts';
+export { affectedCustomersModelSchema } from './affectedCustomersModelSchema.ts';
 export {
   agreementsAdminControllerCreateDocument201Schema,
   agreementsAdminControllerCreateDocument401Schema,
@@ -178,6 +179,13 @@ export {
   agreementsAdminControllerDeleteVersionMutationResponseSchema,
   agreementsAdminControllerDeleteVersionPathParamsSchema,
 } from './agreementsAdminControllerDeleteVersionSchema.ts';
+export {
+  agreementsAdminControllerGetAffectedCustomers200Schema,
+  agreementsAdminControllerGetAffectedCustomers401Schema,
+  agreementsAdminControllerGetAffectedCustomers404Schema,
+  agreementsAdminControllerGetAffectedCustomersPathParamsSchema,
+  agreementsAdminControllerGetAffectedCustomersQueryResponseSchema,
+} from './agreementsAdminControllerGetAffectedCustomersSchema.ts';
 export {
   agreementsAdminControllerGetVersion200Schema,
   agreementsAdminControllerGetVersion401Schema,

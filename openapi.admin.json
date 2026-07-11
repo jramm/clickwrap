@@ -447,6 +447,66 @@
         ]
       }
     },
+    "/admin/versions/{id}/affected-customers": {
+      "get": {
+        "description": "Number of customers the publish rollout would target (customers whose roles include the document audience). Lets the admin UI show the impact next to the publish button before a DRAFT is published (issue #27).",
+        "operationId": "AgreementsAdminController_getAffectedCustomers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffectedCustomersModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid admin authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VERSION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "google-sso": []
+          },
+          {
+            "admin-token": []
+          }
+        ],
+        "summary": "How many customers publishing this version would affect",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/customers": {
       "get": {
         "description": "Every row carries a compliance indicator (compliant + complianceStatus) computed over the customer's states and the current published versions. `audience`/`documentType` NARROW the list to the customers who actually have a matching role/document assigned (and also scope the per-row indicator); an unknown key matches nothing → empty list. `compliance` additionally filters the rows. search + narrowing + compliance filter run before pagination, so `total` is the filtered count.",
@@ -2526,6 +2586,25 @@
           "status",
           "contentHash",
           "fileName"
+        ]
+      },
+      "AffectedCustomersModel": {
+        "type": "object",
+        "properties": {
+          "audience": {
+            "type": "string",
+            "example": "customer",
+            "description": "Document audience whose members would be rolled out to."
+          },
+          "count": {
+            "type": "number",
+            "example": 42,
+            "description": "Number of customers that publishing this version would roll out to — customers whose roles include the document audience (the same set the publish rollout targets). Lets an admin see the impact before publishing a draft."
+          }
+        },
+        "required": [
+          "audience",
+          "count"
         ]
       },
       "PatchVersionBodyModel": {

@@ -30,6 +30,8 @@ export type { AdminControllerVersionStatsSuspenseQueryKey } from './hooks/useAdm
 export type { AgreementsAdminControllerCreateDocumentMutationKey } from './hooks/useAgreementsAdminControllerCreateDocument.ts';
 export type { AgreementsAdminControllerCreateVersionMutationKey } from './hooks/useAgreementsAdminControllerCreateVersion.ts';
 export type { AgreementsAdminControllerDeleteVersionMutationKey } from './hooks/useAgreementsAdminControllerDeleteVersion.ts';
+export type { AgreementsAdminControllerGetAffectedCustomersQueryKey } from './hooks/useAgreementsAdminControllerGetAffectedCustomers.ts';
+export type { AgreementsAdminControllerGetAffectedCustomersSuspenseQueryKey } from './hooks/useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
 export type { AgreementsAdminControllerGetVersionQueryKey } from './hooks/useAgreementsAdminControllerGetVersion.ts';
 export type { AgreementsAdminControllerGetVersionSuspenseQueryKey } from './hooks/useAgreementsAdminControllerGetVersionSuspense.ts';
 export type { AgreementsAdminControllerListDocumentsQueryKey } from './hooks/useAgreementsAdminControllerListDocuments.ts';
@@ -224,6 +226,7 @@ export type {
   AdminControllerVersionStatsQuery,
   AdminControllerVersionStatsQueryResponse,
 } from './types/AdminControllerVersionStats.ts';
+export type { AffectedCustomersModel } from './types/AffectedCustomersModel.ts';
 export type {
   AgreementsAdminControllerCreateDocument201,
   AgreementsAdminControllerCreateDocument401,
@@ -251,6 +254,14 @@ export type {
   AgreementsAdminControllerDeleteVersionMutationResponse,
   AgreementsAdminControllerDeleteVersionPathParams,
 } from './types/AgreementsAdminControllerDeleteVersion.ts';
+export type {
+  AgreementsAdminControllerGetAffectedCustomers200,
+  AgreementsAdminControllerGetAffectedCustomers401,
+  AgreementsAdminControllerGetAffectedCustomers404,
+  AgreementsAdminControllerGetAffectedCustomersPathParams,
+  AgreementsAdminControllerGetAffectedCustomersQuery,
+  AgreementsAdminControllerGetAffectedCustomersQueryResponse,
+} from './types/AgreementsAdminControllerGetAffectedCustomers.ts';
 export type {
   AgreementsAdminControllerGetVersion200,
   AgreementsAdminControllerGetVersion401,
@@ -559,6 +570,14 @@ export { agreementsAdminControllerDeleteVersion } from './hooks/useAgreementsAdm
 export { agreementsAdminControllerDeleteVersionMutationKey } from './hooks/useAgreementsAdminControllerDeleteVersion.ts';
 export { agreementsAdminControllerDeleteVersionMutationOptions } from './hooks/useAgreementsAdminControllerDeleteVersion.ts';
 export { useAgreementsAdminControllerDeleteVersion } from './hooks/useAgreementsAdminControllerDeleteVersion.ts';
+export { agreementsAdminControllerGetAffectedCustomers } from './hooks/useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { agreementsAdminControllerGetAffectedCustomersQueryKey } from './hooks/useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { agreementsAdminControllerGetAffectedCustomersQueryOptions } from './hooks/useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { useAgreementsAdminControllerGetAffectedCustomers } from './hooks/useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { agreementsAdminControllerGetAffectedCustomersSuspense } from './hooks/useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
+export { agreementsAdminControllerGetAffectedCustomersSuspenseQueryKey } from './hooks/useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
+export { agreementsAdminControllerGetAffectedCustomersSuspenseQueryOptions } from './hooks/useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
+export { useAgreementsAdminControllerGetAffectedCustomersSuspense } from './hooks/useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
 export { agreementsAdminControllerGetVersion } from './hooks/useAgreementsAdminControllerGetVersion.ts';
 export { agreementsAdminControllerGetVersionQueryKey } from './hooks/useAgreementsAdminControllerGetVersion.ts';
 export { agreementsAdminControllerGetVersionQueryOptions } from './hooks/useAgreementsAdminControllerGetVersion.ts';
@@ -779,6 +798,7 @@ export {
   adminControllerVersionStatsPathParamsSchema,
   adminControllerVersionStatsQueryResponseSchema,
 } from './zod/adminControllerVersionStatsSchema.ts';
+export { affectedCustomersModelSchema } from './zod/affectedCustomersModelSchema.ts';
 export {
   agreementsAdminControllerCreateDocument201Schema,
   agreementsAdminControllerCreateDocument401Schema,
@@ -803,6 +823,13 @@ export {
   agreementsAdminControllerDeleteVersionMutationResponseSchema,
   agreementsAdminControllerDeleteVersionPathParamsSchema,
 } from './zod/agreementsAdminControllerDeleteVersionSchema.ts';
+export {
+  agreementsAdminControllerGetAffectedCustomers200Schema,
+  agreementsAdminControllerGetAffectedCustomers401Schema,
+  agreementsAdminControllerGetAffectedCustomers404Schema,
+  agreementsAdminControllerGetAffectedCustomersPathParamsSchema,
+  agreementsAdminControllerGetAffectedCustomersQueryResponseSchema,
+} from './zod/agreementsAdminControllerGetAffectedCustomersSchema.ts';
 export {
   agreementsAdminControllerGetVersion200Schema,
   agreementsAdminControllerGetVersion401Schema,

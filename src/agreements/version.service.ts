@@ -3,7 +3,7 @@ import { DomainError } from '../common/errors.js';
 import { assertDraftMutable } from '../domain/consent-rules.js';
 import { EventRecorder } from '../events/event-recorder.js';
 import { TOKENS } from '../persistence/tokens.js';
-import type { AgreementDocumentRepo, AgreementVersionRepo } from '../domain/ports.js';
+import type { AgreementDocumentRepo, AgreementVersionRepo, CustomerRepo } from '../domain/ports.js';
 import type { AcceptanceMode, AgreementVersion } from '../domain/types.js';
 import { AGREEMENTS_TOKENS, type PdfStorage, type PdfUpload } from './ports.js';
 import { toVersionDto, type VersionDto } from './version.dto.js';
@@ -44,9 +44,29 @@ export class VersionService {
   constructor(
     @Inject(TOKENS.AgreementVersionRepo) private readonly versions: AgreementVersionRepo,
     @Inject(TOKENS.AgreementDocumentRepo) private readonly documents: AgreementDocumentRepo,
+    @Inject(TOKENS.CustomerRepo) private readonly customers: CustomerRepo,
     @Inject(AGREEMENTS_TOKENS.PdfStorage) private readonly pdf: PdfStorage,
     @Optional() private readonly recorder?: EventRecorder,
   ) {}
+
+  /**
+   * How many customers publishing this version would roll out to: customers whose roles include
+   * the document audience — exactly the set PublishService targets via `customers.findByRole`
+   * (src/agreements/publish.service.ts). Read-only preview so an admin can gauge the impact of a
+   * DRAFT before publishing (issue #27). Works for any status, but is meaningful for DRAFTs.
+   */
+  async getAffectedCustomerCount(versionId: string): Promise<{ audience: string; count: number }> {
+    const version = await this.versions.findById(versionId);
+    if (!version) {
+      throw new DomainError('VERSION_NOT_FOUND');
+    }
+    const document = await this.documents.findById(version.documentId);
+    if (!document) {
+      throw new DomainError('INVALID_STATE', `Document ${version.documentId} does not exist`);
+    }
+    const targets = await this.customers.findByRole(document.audience);
+    return { audience: document.audience, count: targets.length };
+  }
 
   async createDraft(input: CreateDraftInput, adminUserId = 'admin'): Promise<AgreementVersion> {
     const document = await this.documents.findById(input.documentId);

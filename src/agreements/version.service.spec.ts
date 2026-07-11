@@ -1,6 +1,12 @@
 import { DomainError } from '../common/errors.js';
 import { FixedClock } from '../domain/clock.js';
-import { InMemoryAgreementDocumentRepo, InMemoryAgreementVersionRepo, InMemoryEventRepo } from '../persistence/inmemory/index.js';
+import { aCustomer } from '../domain/testing/fixtures.js';
+import {
+  InMemoryAgreementDocumentRepo,
+  InMemoryAgreementVersionRepo,
+  InMemoryCustomerRepo,
+  InMemoryEventRepo,
+} from '../persistence/inmemory/index.js';
 import { EventRecorder } from '../events/event-recorder.js';
 import { InMemoryPdfStorage } from './pdf-storage.inmemory.js';
 import { VersionService, type CreateDraftInput } from './version.service.js';
@@ -25,6 +31,7 @@ const draftInput = (overrides: Partial<CreateDraftInput> = {}): CreateDraftInput
 describe('VersionService', () => {
   let documents: InMemoryAgreementDocumentRepo;
   let versions: InMemoryAgreementVersionRepo;
+  let customers: InMemoryCustomerRepo;
   let pdf: InMemoryPdfStorage;
   let events: InMemoryEventRepo;
   let service: VersionService;
@@ -32,10 +39,33 @@ describe('VersionService', () => {
   beforeEach(async () => {
     documents = new InMemoryAgreementDocumentRepo();
     versions = new InMemoryAgreementVersionRepo(documents);
+    customers = new InMemoryCustomerRepo();
     pdf = new InMemoryPdfStorage();
     events = new InMemoryEventRepo();
-    service = new VersionService(versions, documents, pdf, new EventRecorder(events, new FixedClock(new Date('2026-07-07T09:00:00Z')), versions, documents));
+    service = new VersionService(versions, documents, customers, pdf, new EventRecorder(events, new FixedClock(new Date('2026-07-07T09:00:00Z')), versions, documents));
     await documents.save({ id: 'doc-1', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
+  });
+
+  describe('getAffectedCustomerCount', () => {
+    it('counts customers whose roles include the document audience (the publish-rollout target set)', async () => {
+      await customers.save(aCustomer({ id: 'c-1', roles: ['customer'] }));
+      await customers.save(aCustomer({ id: 'c-2', roles: ['customer', 'partner'] }));
+      await customers.save(aCustomer({ id: 'c-3', roles: ['partner'] })); // different audience → not affected
+      const draft = await service.createDraft(draftInput());
+
+      await expect(service.getAffectedCustomerCount(draft.id)).resolves.toEqual({ audience: 'customer', count: 2 });
+    });
+
+    it('returns count 0 when no customer has the audience role', async () => {
+      await customers.save(aCustomer({ id: 'c-9', roles: ['partner'] }));
+      const draft = await service.createDraft(draftInput());
+
+      await expect(service.getAffectedCustomerCount(draft.id)).resolves.toEqual({ audience: 'customer', count: 0 });
+    });
+
+    it('throws VERSION_NOT_FOUND for an unknown version', async () => {
+      await expectCode(service.getAffectedCustomerCount('missing'), 'VERSION_NOT_FOUND');
+    });
   });
 
   describe('createDraft', () => {

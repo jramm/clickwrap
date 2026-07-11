@@ -4,7 +4,7 @@ import request from 'supertest';
 import { AdminGuard } from '../common/auth/admin.guard.js';
 import { DomainErrorFilter } from '../common/http/domain-error.filter.js';
 import { FixedClock } from '../domain/clock.js';
-import { aDocumentTypeDef, anAudience, aVersion } from '../domain/testing/fixtures.js';
+import { aCustomer, aDocumentTypeDef, anAudience, aVersion } from '../domain/testing/fixtures.js';
 import { TOKENS } from '../persistence/tokens.js';
 import {
   InMemoryAgreementDocumentRepo,
@@ -35,13 +35,15 @@ describe('AgreementsAdminController', () => {
   let versions: InMemoryAgreementVersionRepo;
   let documentTypes: InMemoryDocumentTypeRepo;
   let audiences: InMemoryAudienceRepo;
+  let customers: InMemoryCustomerRepo;
   let pdf: InMemoryPdfStorage;
 
   beforeEach(async () => {
     documents = new InMemoryAgreementDocumentRepo();
     versions = new InMemoryAgreementVersionRepo(documents);
     documentTypes = new InMemoryDocumentTypeRepo(documents);
-    audiences = new InMemoryAudienceRepo(documents, new InMemoryCustomerRepo());
+    customers = new InMemoryCustomerRepo();
+    audiences = new InMemoryAudienceRepo(documents, customers);
     pdf = new InMemoryPdfStorage();
     await documentTypes.save(aDocumentTypeDef());
     await audiences.save(anAudience());
@@ -55,6 +57,7 @@ describe('AgreementsAdminController', () => {
         { provide: TOKENS.AgreementVersionRepo, useValue: versions },
         { provide: TOKENS.DocumentTypeRepo, useValue: documentTypes },
         { provide: TOKENS.AudienceRepo, useValue: audiences },
+        { provide: TOKENS.CustomerRepo, useValue: customers },
         { provide: TOKENS.Clock, useValue: new FixedClock(T0) },
         { provide: AGREEMENTS_TOKENS.PdfStorage, useValue: pdf },
       ],
@@ -152,6 +155,22 @@ describe('AgreementsAdminController', () => {
 
   it('GET /admin/versions/:id unknown → 404 VERSION_NOT_FOUND', async () => {
     const res = await request(app.getHttpServer()).get('/admin/versions/v-unknown').expect(404);
+    expect(res.body).toMatchObject({ code: 'VERSION_NOT_FOUND' });
+  });
+
+  it('GET /admin/versions/:id/affected-customers counts customers with the document audience role', async () => {
+    await documents.save({ id: 'doc-1', type: 'dpa', audience: 'customer', name: 'DPA' });
+    await versions.save(aVersion({ id: 'v-1', documentId: 'doc-1', status: 'DRAFT' }));
+    await customers.save(aCustomer({ id: 'c-1', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-2', roles: ['customer', 'partner'] }));
+    await customers.save(aCustomer({ id: 'c-3', roles: ['partner'] })); // not affected
+
+    const res = await request(app.getHttpServer()).get('/admin/versions/v-1/affected-customers').expect(200);
+    expect(res.body).toEqual({ audience: 'customer', count: 2 });
+  });
+
+  it('GET /admin/versions/:id/affected-customers unknown → 404 VERSION_NOT_FOUND', async () => {
+    const res = await request(app.getHttpServer()).get('/admin/versions/v-unknown/affected-customers').expect(404);
     expect(res.body).toMatchObject({ code: 'VERSION_NOT_FOUND' });
   });
 

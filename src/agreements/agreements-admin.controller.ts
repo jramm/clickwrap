@@ -30,6 +30,7 @@ import { AdminAuth } from '../common/openapi/security.decorators.js';
 import type { AcceptanceMode } from '../domain/types.js';
 import { DocumentService } from './document.service.js';
 import {
+  AffectedCustomersModel,
   CreateDocumentBodyModel,
   CreateVersionBodyModel,
   CreateVersionResponseModel,
@@ -208,6 +209,20 @@ export class AgreementsAdminController {
   @ApiErrorResponses({ 404: 'VERSION_NOT_FOUND' })
   async getVersion(@Param('id') versionId: string) {
     return this.versionService.getVersionDto(versionId);
+  }
+
+  @Get('versions/:id/affected-customers')
+  @ApiOperation({
+    summary: 'How many customers publishing this version would affect',
+    description:
+      'Number of customers the publish rollout would target (customers whose roles include the ' +
+      'document audience). Lets the admin UI show the impact next to the publish button before a ' +
+      'DRAFT is published (issue #27).',
+  })
+  @ApiOkResponse({ type: AffectedCustomersModel })
+  @ApiErrorResponses({ 404: 'VERSION_NOT_FOUND' })
+  async getAffectedCustomers(@Param('id') versionId: string) {
+    return this.versionService.getAffectedCustomerCount(versionId);
   }
 
   @Patch('versions/:id')

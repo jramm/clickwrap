@@ -30,6 +30,8 @@ export type { AdminControllerVersionStatsSuspenseQueryKey } from './useAdminCont
 export type { AgreementsAdminControllerCreateDocumentMutationKey } from './useAgreementsAdminControllerCreateDocument.ts';
 export type { AgreementsAdminControllerCreateVersionMutationKey } from './useAgreementsAdminControllerCreateVersion.ts';
 export type { AgreementsAdminControllerDeleteVersionMutationKey } from './useAgreementsAdminControllerDeleteVersion.ts';
+export type { AgreementsAdminControllerGetAffectedCustomersQueryKey } from './useAgreementsAdminControllerGetAffectedCustomers.ts';
+export type { AgreementsAdminControllerGetAffectedCustomersSuspenseQueryKey } from './useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
 export type { AgreementsAdminControllerGetVersionQueryKey } from './useAgreementsAdminControllerGetVersion.ts';
 export type { AgreementsAdminControllerGetVersionSuspenseQueryKey } from './useAgreementsAdminControllerGetVersionSuspense.ts';
 export type { AgreementsAdminControllerListDocumentsQueryKey } from './useAgreementsAdminControllerListDocuments.ts';
@@ -174,6 +176,14 @@ export { agreementsAdminControllerDeleteVersion } from './useAgreementsAdminCont
 export { agreementsAdminControllerDeleteVersionMutationKey } from './useAgreementsAdminControllerDeleteVersion.ts';
 export { agreementsAdminControllerDeleteVersionMutationOptions } from './useAgreementsAdminControllerDeleteVersion.ts';
 export { useAgreementsAdminControllerDeleteVersion } from './useAgreementsAdminControllerDeleteVersion.ts';
+export { agreementsAdminControllerGetAffectedCustomers } from './useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { agreementsAdminControllerGetAffectedCustomersQueryKey } from './useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { agreementsAdminControllerGetAffectedCustomersQueryOptions } from './useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { useAgreementsAdminControllerGetAffectedCustomers } from './useAgreementsAdminControllerGetAffectedCustomers.ts';
+export { agreementsAdminControllerGetAffectedCustomersSuspense } from './useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
+export { agreementsAdminControllerGetAffectedCustomersSuspenseQueryKey } from './useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
+export { agreementsAdminControllerGetAffectedCustomersSuspenseQueryOptions } from './useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
+export { useAgreementsAdminControllerGetAffectedCustomersSuspense } from './useAgreementsAdminControllerGetAffectedCustomersSuspense.ts';
 export { agreementsAdminControllerGetVersion } from './useAgreementsAdminControllerGetVersion.ts';
 export { agreementsAdminControllerGetVersionQueryKey } from './useAgreementsAdminControllerGetVersion.ts';
 export { agreementsAdminControllerGetVersionQueryOptions } from './useAgreementsAdminControllerGetVersion.ts';

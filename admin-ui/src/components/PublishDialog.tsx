@@ -3,7 +3,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { ApiError, errorMessageKey } from '../api/errors';
-import { usePublishVersion } from '../api/hooks';
+import { useAffectedCustomers, usePublishVersion } from '../api/hooks';
 import type { PublishResult, Version } from '../api/hooks';
 import { useTranslation } from '../i18n';
 import { Button, Dialog, useToast } from '../ui';
@@ -25,6 +25,9 @@ export function PublishDialog({ documentId, version, open, onClose }: Props) {
   const toast = useToast();
   const publish = usePublishVersion(documentId);
   const [result, setResult] = useState<PublishResult | null>(null);
+  // Preview the rollout impact before publishing (issue #27). Fetched only while the confirmation
+  // is shown (dialog open, not yet published).
+  const affected = useAffectedCustomers(version.id, open && result === null);
 
   const label = version.versionLabel ?? version.id;
   const validFrom = version.validFrom ? new Date(version.validFrom) : null;
@@ -78,6 +81,13 @@ export function PublishDialog({ documentId, version, open, onClose }: Props) {
         </Alert>
       ) : (
         <Stack spacing={2}>
+          {affected.isLoading ? (
+            <Typography color="text.secondary">{t('publish.affectedLoading')}</Typography>
+          ) : affected.isError ? (
+            <Alert severity="warning">{t('publish.affectedError')}</Alert>
+          ) : affected.data ? (
+            <Alert severity="info">{t('publish.affected', { count: affected.data.count })}</Alert>
+          ) : null}
           <Typography>{t('publish.immutableWarning', { label })}</Typography>
           {isScheduled && validFrom ? (
             <Alert severity="info">

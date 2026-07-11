@@ -234,3 +234,17 @@ export class PublishResponseModel {
   @ApiProperty({ type: String, format: 'date-time' })
   publishedAt!: Date;
 }
+
+export class AffectedCustomersModel {
+  @ApiProperty({ example: 'customer', description: 'Document audience whose members would be rolled out to.' })
+  audience!: string;
+
+  @ApiProperty({
+    example: 42,
+    description:
+      'Number of customers that publishing this version would roll out to — customers whose roles ' +
+      'include the document audience (the same set the publish rollout targets). Lets an admin see ' +
+      'the impact before publishing a draft.',
+  })
+  count!: number;
+}

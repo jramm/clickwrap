@@ -530,6 +530,9 @@ export const handlers = [
   ),
   http.get(`${BASE}/admin/customers/:id`, () => HttpResponse.json(customerFixture)),
   http.post(`${BASE}/admin/customers`, () => HttpResponse.json(createdCustomerFixture, { status: 201 })),
+  http.get(`${BASE}/admin/versions/:id/affected-customers`, () =>
+    HttpResponse.json({ audience: 'operator', count: 921 }),
+  ),
   http.post(`${BASE}/admin/versions/:id/publish`, () => HttpResponse.json(publishFixture, { status: 201 })),
   http.post(`${BASE}/admin/customers/:id/acceptance-links`, () =>
     HttpResponse.json(acceptanceLinkFixture, { status: 201 }),

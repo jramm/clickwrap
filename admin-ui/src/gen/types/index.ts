@@ -176,6 +176,7 @@ export type {
   AdminControllerVersionStatsQuery,
   AdminControllerVersionStatsQueryResponse,
 } from './AdminControllerVersionStats.ts';
+export type { AffectedCustomersModel } from './AffectedCustomersModel.ts';
 export type {
   AgreementsAdminControllerCreateDocument201,
   AgreementsAdminControllerCreateDocument401,
@@ -203,6 +204,14 @@ export type {
   AgreementsAdminControllerDeleteVersionMutationResponse,
   AgreementsAdminControllerDeleteVersionPathParams,
 } from './AgreementsAdminControllerDeleteVersion.ts';
+export type {
+  AgreementsAdminControllerGetAffectedCustomers200,
+  AgreementsAdminControllerGetAffectedCustomers401,
+  AgreementsAdminControllerGetAffectedCustomers404,
+  AgreementsAdminControllerGetAffectedCustomersPathParams,
+  AgreementsAdminControllerGetAffectedCustomersQuery,
+  AgreementsAdminControllerGetAffectedCustomersQueryResponse,
+} from './AgreementsAdminControllerGetAffectedCustomers.ts';
 export type {
   AgreementsAdminControllerGetVersion200,
   AgreementsAdminControllerGetVersion401,

@@ -25,6 +25,7 @@ import {
   adminControllerRemind,
   adminControllerUpdateCustomer,
   adminControllerVersionCustomersQueryOptions,
+  agreementsAdminControllerGetAffectedCustomersQueryOptions,
   eventsControllerListEventsQueryOptions,
   agreementsAdminControllerCreateDocument,
   agreementsAdminControllerDeleteVersion,
@@ -149,6 +150,18 @@ export function useVersionCustomers(versionId: string, params: VersionCustomersP
     page: params.page !== undefined ? String(params.page) : undefined,
   };
   return useQuery(adminControllerVersionCustomersQueryOptions({ id: versionId, params: queryParams }));
+}
+
+/**
+ * How many customers publishing this version would roll out to (`GET
+ * /admin/versions/:id/affected-customers`). Used to preview the impact of a DRAFT before
+ * publishing (issue #27). `enabled` lets callers defer the request until it is actually shown.
+ */
+export function useAffectedCustomers(versionId: string, enabled = true) {
+  return useQuery({
+    ...agreementsAdminControllerGetAffectedCustomersQueryOptions({ id: versionId }),
+    enabled: enabled && Boolean(versionId),
+  });
 }
 
 // --- Hosted acceptance links ----------------------------------------------
