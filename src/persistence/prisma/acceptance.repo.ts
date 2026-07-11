@@ -43,12 +43,13 @@ export class PrismaAcceptanceRepo implements AcceptanceRepo {
     } catch (err) {
       if (isUniqueConstraintError(err)) {
         const targets = uniqueConstraintTargets(err);
-        // The query engine maps the raw partial index back to its COLUMN LIST
-        // (target: ["customerId","versionId"]) rather than reporting the index name —
-        // verified against real Postgres in the integration suite. No other unique
-        // constraint spans this column pair (the hard @@unique was deliberately dropped
-        // in favour of the partial index), so the pair identifies it unambiguously.
-        // The name checks stay as a fallback for engines that report the constraint name.
+        // For the raw partial index the violation surfaces as its COLUMN LIST
+        // (["customerId","versionId"]) — under the Prisma 7 pg adapter via
+        // driverAdapterError.cause.constraint.fields, under older engines via meta.target —
+        // plus the index NAME recovered from the DB message. See prisma-errors.ts. No other
+        // unique constraint spans this column pair (the hard @@unique was deliberately dropped
+        // in favour of the partial index), so the pair identifies it unambiguously; the name
+        // checks stay as a fallback. Verified against real Postgres in the integration suite.
         const isEffectivePairViolation = targets.includes('customerId') && targets.includes('versionId');
         if (
           isEffectivePairViolation ||

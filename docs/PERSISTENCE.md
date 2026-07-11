@@ -179,6 +179,11 @@ Standard NestJS recipe: `PrismaService extends PrismaClient`, `onModuleInit` cal
 so a process exit signal reliably triggers `app.close()` → `onModuleDestroy`. Wired in
 `main.ts` (`app.get(PrismaService).enableShutdownHooks(app)`).
 
+Since Prisma 7 the client connects through a **driver adapter** rather than a schema-level
+`url`: the constructor passes `new PrismaPg({ connectionString: process.env.DATABASE_URL })`
+(from `@prisma/adapter-pg`) to `super()`. The CLI (migrate / db push / studio) reads the URL
+from `prisma.config.ts` instead — see "Prisma 7 configuration" below.
+
 ### Mapping decisions
 
 - **`save()` is an upsert by `id` everywhere** (`Audience`, `DocumentTypeDef`,
@@ -196,13 +201,17 @@ so a process exit signal reliably triggers `app.close()` → `onModuleDestroy`. 
     (target `id`) → `DomainError('INVALID_STATE', …)`.
   - `Acceptance` partial unique index (`WHERE "isEffective"`, from `partial-indexes.sql`) →
     P2002 → `DomainError('ALREADY_ACCEPTED', …)`. This index is unknown to Prisma from its own
-    schema, so how the query engine surfaces it in `meta.target` had to be determined empirically.
-    The Prisma integration suite (`acceptance.repo.prisma.spec.ts`, run against real Postgres 16
-    in CI) showed the engine maps the partial index back to its **column list**
-    (`["customerId", "versionId"]`) rather than the raw constraint name — so `acceptance.repo.ts`
-    detects the violation primarily by that column pair (unambiguous: the hard `@@unique` was
-    dropped in favour of the partial index), keeping the constraint-name / `"effective"` fragment
-    checks as a fallback for engines that report the name instead.
+    schema, so how the query engine surfaces it had to be determined empirically. Under the
+    Prisma 7 pg driver adapter the violation is nested in
+    `meta.driverAdapterError.cause.constraint.fields` (the **column list**, with identifiers
+    double-quoted for the raw index, e.g. `["\"customerId\"", "\"versionId\""]`) plus the index
+    name in `cause.originalMessage`; older binary engines instead populated `meta.target`. Both
+    shapes are normalized in `prisma-errors.ts::uniqueConstraintTargets` (de-quoting fields and
+    recovering the constraint name from the DB message) and pinned by `prisma-errors.spec.ts`.
+    `acceptance.repo.ts` detects the violation primarily by the `(customerId, versionId)` column
+    pair (unambiguous: the hard `@@unique` was dropped in favour of the partial index), keeping
+    the constraint-name / `"effective"` fragment checks as a fallback. Verified end-to-end in
+    `acceptance.repo.prisma.spec.ts` against real Postgres in CI.
   - `supersede`/`resolve` on an unknown `id` → P2025 (record not found) →
     `DomainError('INVALID_STATE', …)`.
   - Slug validation for `Audience.key`/`DocumentTypeDef.key` happens in the application layer
@@ -290,6 +299,21 @@ state transition inside.
 (unique on `key`) — the first writer wins (P2002 → `false`, the second request waits for the
 replay). `get` treats the marker as "no response yet", `release` deletes marker rows only
 (error path), never finished responses.
+
+## Prisma 7 configuration
+
+Prisma 7 moved connection + generator settings out of `schema.prisma`:
+
+- **`prisma.config.ts`** (repo root) holds the CLI datasource `url` (read from `DATABASE_URL`
+  with a localhost fallback so `prisma generate` never needs a live DB) and the migrations path.
+  The `datasource` block in `schema.prisma` therefore only declares `provider = "postgresql"`.
+- **Runtime connection** uses the `@prisma/adapter-pg` driver adapter, wired in `PrismaService`
+  (see above) — not a schema `url`.
+- **Client generation is no longer automatic on install** (Prisma 7 dropped the `@prisma/client`
+  postinstall). A root `postinstall: prisma generate` script restores that, so a plain
+  `pnpm install` (locally, in CI, and in the Docker `backend-build` stage, which copies
+  `prisma/` + `prisma.config.ts` before installing) produces the client.
+- `prisma db push` no longer accepts `--skip-generate` (removed in v7).
 
 ## Applying migrations
 

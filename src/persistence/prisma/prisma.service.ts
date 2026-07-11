@@ -6,10 +6,20 @@
  * leads to a clean app.close()).
  */
 import { INestApplication, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  /**
+   * Prisma 7 connects through a driver adapter rather than a schema-level `url`.
+   * The pg adapter takes the connection string directly (DATABASE_URL, loaded from
+   * .env by main.ts / the scripts before the Nest container boots).
+   */
+  constructor() {
+    super({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
+  }
+
   /** Establishes the DB connection on Nest module start. */
   async onModuleInit(): Promise<void> {
     await this.$connect();

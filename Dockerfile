@@ -9,12 +9,13 @@ WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 COPY prisma ./prisma
+COPY prisma.config.ts ./
+# `pnpm install` runs the postinstall hook (prisma generate), which needs prisma/ and
+# prisma.config.ts present — hence they are copied before install.
 RUN pnpm install --frozen-lockfile
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
-RUN pnpm exec prisma generate \
-  && pnpm build \
-  && test -f dist/main.js
+RUN pnpm build && test -f dist/main.js
 
 # ---------- admin-ui build ----------
 FROM node:26-slim AS adminui-build
