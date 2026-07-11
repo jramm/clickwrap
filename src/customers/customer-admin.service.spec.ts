@@ -387,6 +387,102 @@ describe('CustomerAdminService', () => {
       ).rejects.toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
     });
 
+    describe('signedDocuments (#29): accept documents by type at a signing date', () => {
+      beforeEach(async () => {
+        await documents.save({ id: 'doc-terms-c', type: 'terms', audience: 'customer', name: 'Terms — Customers' });
+        // Two revisions of the same document: v-old effective 2026-01, superseded by v-new in 2026-06.
+        await versions.save(
+          aVersion({
+            id: 'v-terms-old',
+            documentId: 'doc-terms-c',
+            status: 'RETIRED',
+            validFrom: new Date('2026-01-01T00:00:00Z'),
+            publishedAt: new Date('2026-01-01T00:00:00Z'),
+          }),
+        );
+        await versions.save(
+          aVersion({
+            id: 'v-terms-new',
+            documentId: 'doc-terms-c',
+            status: 'PUBLISHED',
+            validFrom: new Date('2026-06-01T00:00:00Z'),
+            publishedAt: new Date('2026-06-01T00:00:00Z'),
+          }),
+        );
+      });
+
+      it('accepts the version effective at the signing date and records it as an IMPORT acceptance', async () => {
+        const created = await service.create(
+          {
+            externalRef: 'ext-s1',
+            roles: ['customer'],
+            contactEmails: [],
+            signedDocuments: { effectiveDate: '2026-06-15T00:00:00Z', documentTypes: ['terms'], reference: 'deal-9' },
+          },
+          ADMIN,
+        );
+        expect(created.importedAcceptances).toEqual([expect.objectContaining({ versionId: 'v-terms-new' })]);
+        const imported = await events.query({});
+        expect(imported.items.some((e) => e.type === 'VERSION_ACCEPTED' && e.versionId === 'v-terms-new')).toBe(true);
+      });
+
+      it('backdated signing resolves the historical (now-RETIRED) revision, not the current one', async () => {
+        const created = await service.create(
+          {
+            externalRef: 'ext-s2',
+            roles: ['customer'],
+            contactEmails: [],
+            signedDocuments: { effectiveDate: '2026-03-01T00:00:00Z', documentTypes: ['terms'] },
+          },
+          ADMIN,
+        );
+        expect(created.importedAcceptances).toEqual([expect.objectContaining({ versionId: 'v-terms-old' })]);
+      });
+
+      it('rejects an unknown document type with UNKNOWN_DOCUMENT_TYPE', async () => {
+        await expect(
+          service.create(
+            {
+              externalRef: 'ext-s3',
+              roles: ['customer'],
+              contactEmails: [],
+              signedDocuments: { effectiveDate: '2026-07-01T00:00:00Z', documentTypes: ['ghost'] },
+            },
+            ADMIN,
+          ),
+        ).rejects.toMatchObject({ code: 'UNKNOWN_DOCUMENT_TYPE' });
+      });
+
+      it('rejects when nothing was effective yet at the signing date (INVALID_STATE)', async () => {
+        await expect(
+          service.create(
+            {
+              externalRef: 'ext-s4',
+              roles: ['customer'],
+              contactEmails: [],
+              signedDocuments: { effectiveDate: '2025-01-01T00:00:00Z', documentTypes: ['terms'] },
+            },
+            ADMIN,
+          ),
+        ).rejects.toMatchObject({ code: 'INVALID_STATE' });
+      });
+
+      it('deduplicates a version passed both explicitly and via signedDocuments (imported once)', async () => {
+        const created = await service.create(
+          {
+            externalRef: 'ext-s5',
+            roles: ['customer'],
+            contactEmails: [],
+            acceptedVersions: [{ versionId: 'v-terms-new' }],
+            signedDocuments: { effectiveDate: '2026-07-01T00:00:00Z', documentTypes: ['terms'] },
+          },
+          ADMIN,
+        );
+        expect(created.importedAcceptances).toHaveLength(1);
+        expect(created.importedAcceptances[0]).toMatchObject({ versionId: 'v-terms-new' });
+      });
+    });
+
     it('rejects a duplicate externalRef with an OVERLAPPING role (INVALID_STATE)', async () => {
       await service.create({ externalRef: 'ext-1', companyName: 'x', roles: ['customer'], contactEmails: [] }, ADMIN);
       await expect(

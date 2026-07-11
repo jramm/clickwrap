@@ -49,6 +49,16 @@ export interface CreateCustomerInput {
   /** Optional: versions already accepted out-of-band, recorded as IMPORT acceptances. */
   acceptedVersions?: AcceptedVersionImport[];
   /**
+   * Optional (#29): accept documents by TYPE at a contract signing date. For each listed document
+   * type, across the audiences the customer's roles cover, the version effective at `effectiveDate`
+   * is recorded as an IMPORT acceptance (dated `effectiveDate`).
+   */
+  signedDocuments?: {
+    effectiveDate: string | Date;
+    documentTypes: string[];
+    reference?: string;
+  };
+  /**
    * Provenance of the record (see {@link Customer.source}). Defaults to `'manual'` — the customer
    * sync passes its source key so the reconcile engine can later find/update/soft-delete it.
    */
@@ -318,6 +328,16 @@ export class CustomerAdminService {
     await this.assertExternalRefUniqueForRoles(input.externalRef, input.roles);
     // Validate ALL imports before persisting anything (atomicity: no half-created customer).
     const validated = await this.validateImports(input.acceptedVersions ?? [], input.roles);
+    // #29: resolve documents accepted by type at the signing date, then merge (deduping by
+    // versionId against the explicit imports so a version is never imported twice).
+    const fromSigned = await this.resolveSignedDocuments(input.signedDocuments, input.roles);
+    const seenVersionIds = new Set(validated.map((item) => item.version.id));
+    for (const item of fromSigned) {
+      if (!seenVersionIds.has(item.version.id)) {
+        seenVersionIds.add(item.version.id);
+        validated.push(item);
+      }
+    }
 
     const saved = await this.customers.save({
       id: newId('c'),
@@ -763,6 +783,96 @@ export class CustomerAdminService {
       });
     }
     return validated;
+  }
+
+  /**
+   * #29: turn a `signedDocuments` block (signing date + document types) into ValidatedImports. For
+   * each requested type, across the audiences the customer's roles cover, resolve the version that
+   * was effective at the signing date. A type that resolves to no version for ANY of the roles is a
+   * caller error (UNKNOWN_DOCUMENT_TYPE / nothing effective yet) → surfaced, not silently skipped.
+   */
+  private async resolveSignedDocuments(
+    signed: CreateCustomerInput['signedDocuments'],
+    roles: string[],
+  ): Promise<ValidatedImport[]> {
+    if (!signed) {
+      return [];
+    }
+    const effectiveDate = new Date(signed.effectiveDate);
+    if (Number.isNaN(effectiveDate.getTime())) {
+      throw new DomainError('INVALID_STATE', `Invalid signedDocuments.effectiveDate: ${String(signed.effectiveDate)}`);
+    }
+    const resolved: ValidatedImport[] = [];
+    const seen = new Set<string>();
+    for (const rawType of signed.documentTypes) {
+      const type = rawType.trim();
+      let matchedAnyDocument = false;
+      let acceptedForType = false;
+      for (const audience of roles) {
+        const version = await this.resolveEffectiveVersionAt(type, audience, effectiveDate);
+        if (version === undefined) {
+          continue;
+        }
+        matchedAnyDocument = true;
+        if (version === null) {
+          continue; // document exists for this audience, but nothing was effective at the date
+        }
+        if (!seen.has(version.id)) {
+          seen.add(version.id);
+          resolved.push({ version, acceptedAt: effectiveDate, reference: signed.reference });
+        }
+        acceptedForType = true;
+      }
+      if (!matchedAnyDocument) {
+        throw new DomainError(
+          'UNKNOWN_DOCUMENT_TYPE',
+          `No document of type "${type}" exists for the customer's roles (${roles.join(', ')})`,
+        );
+      }
+      if (!acceptedForType) {
+        throw new DomainError(
+          'INVALID_STATE',
+          `No version of document type "${type}" was effective at ${effectiveDate.toISOString()} for the customer's roles`,
+        );
+      }
+    }
+    return resolved;
+  }
+
+  /**
+   * The version of (type, audience) that was in force at `date`: the newest PUBLISHED/RETIRED
+   * version whose validFrom AND publishedAt are <= date. Unlike AgreementVersionRepo.findCurrentPublished
+   * this also considers now-RETIRED versions, so a backdated signing date resolves to the revision
+   * that was actually current then. Returns `undefined` when no such document exists for the
+   * audience, `null` when the document exists but nothing was effective yet at `date`.
+   */
+  private async resolveEffectiveVersionAt(
+    type: string,
+    audience: string,
+    date: Date,
+  ): Promise<AgreementVersion | null | undefined> {
+    const document = await this.documents.findByTypeAndAudience(type, audience);
+    if (!document) {
+      return undefined;
+    }
+    const versions = await this.versions.findByDocument(document.id);
+    const eligible = versions.filter(
+      (v) =>
+        (v.status === 'PUBLISHED' || v.status === 'RETIRED') &&
+        v.publishedAt !== undefined &&
+        v.publishedAt.getTime() <= date.getTime() &&
+        v.validFrom.getTime() <= date.getTime(),
+    );
+    if (eligible.length === 0) {
+      return null;
+    }
+    // In force = greatest validFrom (tie-break: greatest publishedAt).
+    eligible.sort(
+      (a, b) =>
+        b.validFrom.getTime() - a.validFrom.getTime() ||
+        (b.publishedAt as Date).getTime() - (a.publishedAt as Date).getTime(),
+    );
+    return eligible[0];
   }
 
   private async importAcceptance(customerId: string, item: ValidatedImport, actor: Actor): Promise<ImportedAcceptance> {

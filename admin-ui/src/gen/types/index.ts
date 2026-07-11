@@ -366,6 +366,7 @@ export type {
   SignedDocumentsAdminControllerUploadMutationResponse,
   SignedDocumentsAdminControllerUploadPathParams,
 } from './SignedDocumentsAdminControllerUpload.ts';
+export type { SignedDocumentsModel } from './SignedDocumentsModel.ts';
 export type { UpdateCustomerBodyModel } from './UpdateCustomerBodyModel.ts';
 export type {
   UpdateEmailTemplateBodyModel,

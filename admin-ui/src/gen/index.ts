@@ -419,6 +419,7 @@ export type {
   SignedDocumentsAdminControllerUploadMutationResponse,
   SignedDocumentsAdminControllerUploadPathParams,
 } from './types/SignedDocumentsAdminControllerUpload.ts';
+export type { SignedDocumentsModel } from './types/SignedDocumentsModel.ts';
 export type { UpdateCustomerBodyModel } from './types/UpdateCustomerBodyModel.ts';
 export type {
   UpdateEmailTemplateBodyModel,
@@ -931,6 +932,7 @@ export {
   signedDocumentsAdminControllerUploadMutationResponseSchema,
   signedDocumentsAdminControllerUploadPathParamsSchema,
 } from './zod/signedDocumentsAdminControllerUploadSchema.ts';
+export { signedDocumentsModelSchema } from './zod/signedDocumentsModelSchema.ts';
 export { updateCustomerBodyModelSchema } from './zod/updateCustomerBodyModelSchema.ts';
 export { updateEmailTemplateBodyModelSchema } from './zod/updateEmailTemplateBodyModelSchema.ts';
 export { versionAcceptanceStatsModelSchema } from './zod/versionAcceptanceStatsModelSchema.ts';

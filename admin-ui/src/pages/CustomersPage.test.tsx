@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
@@ -17,12 +17,12 @@ describe('CustomersPage', () => {
     expect(screen.getByText(/1 total/)).toBeInTheDocument();
   });
 
-  it('creates a customer with an acceptedVersions (signed-offer) payload', async () => {
+  it('creates a customer with a signedDocuments payload (signing date + document types) (#29)', async () => {
     let posted: {
       externalRef?: string;
       roles?: string[];
       contactEmails?: string[];
-      acceptedVersions?: { versionId: string; reference?: string }[];
+      signedDocuments?: { effectiveDate: string; documentTypes: string[]; reference?: string };
     } | null = null;
     server.use(
       http.post(`${BASE}/admin/customers`, async ({ request }) => {
@@ -45,11 +45,9 @@ describe('CustomersPage', () => {
     await user.type(within(dialog).getByLabelText('Add e-mail'), 'ops@new.test');
     await user.click(within(dialog).getByRole('button', { name: 'Add' }));
 
-    // The signed-offer section lists the published operator documents; mark one.
-    const acceptedCheckbox = await within(dialog).findByLabelText(
-      /Data Processing Agreement — Operator — April 2026 edition/,
-    );
-    await user.click(acceptedCheckbox);
+    // #29 signed-contract section: set the signing date and mark a document type as signed.
+    fireEvent.change(within(dialog).getByLabelText('Contract signing date'), { target: { value: '2026-06-15' } });
+    await user.click(await within(dialog).findByLabelText('Data Processing Agreement'));
     await user.type(within(dialog).getByLabelText('Reference'), 'signed-2026');
 
     await user.click(within(dialog).getByRole('button', { name: 'Create customer' }));
@@ -59,7 +57,7 @@ describe('CustomersPage', () => {
       externalRef: 'crm-9000',
       roles: ['operator'],
       contactEmails: ['ops@new.test'],
-      acceptedVersions: [{ versionId: 'v-100', reference: 'signed-2026' }],
+      signedDocuments: { effectiveDate: '2026-06-15T00:00:00.000Z', documentTypes: ['dpa'], reference: 'signed-2026' },
     });
   });
 

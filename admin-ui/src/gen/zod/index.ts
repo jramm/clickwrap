@@ -287,6 +287,7 @@ export {
   signedDocumentsAdminControllerUploadMutationResponseSchema,
   signedDocumentsAdminControllerUploadPathParamsSchema,
 } from './signedDocumentsAdminControllerUploadSchema.ts';
+export { signedDocumentsModelSchema } from './signedDocumentsModelSchema.ts';
 export { updateCustomerBodyModelSchema } from './updateCustomerBodyModelSchema.ts';
 export { updateEmailTemplateBodyModelSchema } from './updateEmailTemplateBodyModelSchema.ts';
 export { versionAcceptanceStatsModelSchema } from './versionAcceptanceStatsModelSchema.ts';

@@ -8,19 +8,19 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useEffect, useMemo, useState } from 'react';
 import { ApiError, errorMessageKey } from '../api/errors';
-import { useAudiences, useCreateCustomer, useDocuments, useUpdateCustomer } from '../api/hooks';
+import { useAudiences, useCreateCustomer, useDocuments, useDocumentTypes, useUpdateCustomer } from '../api/hooks';
 import type { CustomerRow } from '../api/hooks';
-import type { AcceptedVersionImportModel } from '../gen';
 import { useTranslation } from '../i18n';
 import { Button, Dialog, TextField, useToast } from '../ui';
 
 /**
  * Create/edit dialog for a customer.
  *  - create: externalRef, firstName/lastName (contact person), companyName,
- *    roles (from audiences), contactEmails (chips) plus the signed-offer
- *    onboarding section — the current published versions matching the chosen
- *    roles can be marked as already accepted (IMPORT) with an optional
- *    signature date + reference, mapped to `acceptedVersions`.
+ *    roles (from audiences), contactEmails (chips) plus the signed-contract
+ *    onboarding section (#29): a single contract signing date + the document
+ *    types the contract covered. The backend records the customer as having
+ *    accepted, for each chosen type, the version that was effective at that
+ *    date — sent as `signedDocuments`.
  *  - edit: firstName/lastName, companyName, roles, contactEmails (externalRef is immutable).
  */
 interface Props {
@@ -30,17 +30,12 @@ interface Props {
   onClose: () => void;
 }
 
-interface AcceptedSelection {
-  checked: boolean;
-  acceptedAt: string;
-  reference: string;
-}
-
 export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
   const { t } = useTranslation();
   const toast = useToast();
   const { data: audiences = [] } = useAudiences();
   const { data: documents = [] } = useDocuments();
+  const { data: documentTypes = [] } = useDocumentTypes();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
 
@@ -51,7 +46,10 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
   const [roles, setRoles] = useState<string[]>([]);
   const [contactEmails, setContactEmails] = useState<string[]>([]);
   const [emailInput, setEmailInput] = useState('');
-  const [accepted, setAccepted] = useState<Record<string, AcceptedSelection>>({});
+  // #29 signed-contract onboarding: one signing date + the covered document types.
+  const [signingDate, setSigningDate] = useState('');
+  const [signedReference, setSignedReference] = useState('');
+  const [signedTypes, setSignedTypes] = useState<string[]>([]);
   const [fieldError, setFieldError] = useState<string | null>(null);
 
   // Initialize form state whenever the dialog opens (or the target customer changes).
@@ -64,24 +62,32 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
     setRoles(customer?.roles ?? []);
     setContactEmails(customer?.contactEmails ?? []);
     setEmailInput('');
-    setAccepted({});
+    setSigningDate('');
+    setSignedReference('');
+    setSignedTypes([]);
     setFieldError(null);
   }, [open, customer]);
 
-  // Published versions whose audience is one of the selected roles — the offer
-  // the customer signed as part of onboarding.
-  const acceptableDocuments = useMemo(
-    () =>
-      documents.filter(
-        (doc) => doc.currentVersion != null && roles.includes(doc.audience),
-      ),
-    [documents, roles],
-  );
+  const documentTypeName = (key: string): string => documentTypes.find((dt) => dt.key === key)?.name ?? key;
+
+  // Document types the customer's chosen roles cover — the contract can mark any of these as
+  // signed. The version effective at the signing date is resolved server-side, so a type is
+  // offered whenever a matching document exists (regardless of its current version).
+  const availableTypes = useMemo(() => {
+    const keys = new Set<string>();
+    for (const doc of documents) {
+      if (roles.includes(doc.audience)) keys.add(doc.type);
+    }
+    return [...keys].sort().map((key) => ({ key, name: documentTypeName(key) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documents, roles, documentTypes]);
 
   const toggleRole = (key: string) => {
-    setRoles((current) =>
-      current.includes(key) ? current.filter((role) => role !== key) : [...current, key],
-    );
+    setRoles((current) => (current.includes(key) ? current.filter((role) => role !== key) : [...current, key]));
+  };
+
+  const toggleType = (key: string) => {
+    setSignedTypes((current) => (current.includes(key) ? current.filter((type) => type !== key) : [...current, key]));
   };
 
   const addEmail = () => {
@@ -95,30 +101,17 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
     setContactEmails((current) => current.filter((email) => email !== value));
   };
 
-  const setAcceptedField = (versionId: string, patch: Partial<AcceptedSelection>) => {
-    setAccepted((current) => ({
-      ...current,
-      [versionId]: {
-        checked: current[versionId]?.checked ?? false,
-        acceptedAt: current[versionId]?.acceptedAt ?? '',
-        reference: current[versionId]?.reference ?? '',
-        ...patch,
-      },
-    }));
-  };
+  // Only offer types that are still available for the current roles.
+  const effectiveSignedTypes = signedTypes.filter((type) => availableTypes.some((available) => available.key === type));
 
-  const buildAcceptedVersions = (): AcceptedVersionImportModel[] =>
-    acceptableDocuments
-      .map((doc) => doc.currentVersion!)
-      .filter((version) => accepted[version.id]?.checked)
-      .map((version) => {
-        const selection = accepted[version.id];
-        return {
-          versionId: version.id,
-          acceptedAt: selection.acceptedAt ? new Date(selection.acceptedAt).toISOString() : undefined,
-          reference: selection.reference || undefined,
-        };
-      });
+  const buildSignedDocuments = () => {
+    if (effectiveSignedTypes.length === 0) return undefined;
+    return {
+      effectiveDate: new Date(signingDate).toISOString(),
+      documentTypes: effectiveSignedTypes,
+      reference: signedReference.trim() || undefined,
+    };
+  };
 
   const isPending = createCustomer.isPending || updateCustomer.isPending;
 
@@ -130,13 +123,14 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
   const handleSubmit = () => {
     setFieldError(null);
     // Fold a not-yet-added typed email into the list on submit.
-    const emails = emailInput.trim()
-      ? Array.from(new Set([...contactEmails, emailInput.trim()]))
-      : contactEmails;
+    const emails = emailInput.trim() ? Array.from(new Set([...contactEmails, emailInput.trim()])) : contactEmails;
 
     if (mode === 'create') {
       if (!externalRef.trim()) return setFieldError(t('customers.validationExternalRef'));
-      const acceptedVersions = buildAcceptedVersions();
+      // A signing date is required as soon as any document type is marked as signed.
+      if (effectiveSignedTypes.length > 0 && !signingDate) {
+        return setFieldError(t('customers.validationSigningDate'));
+      }
       createCustomer.mutate(
         {
           externalRef: externalRef.trim(),
@@ -145,15 +139,14 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
           companyName: companyName.trim() || undefined,
           roles,
           contactEmails: emails,
-          acceptedVersions: acceptedVersions.length > 0 ? acceptedVersions : undefined,
+          signedDocuments: buildSignedDocuments(),
         },
         {
           onSuccess: () => {
             toast.success(t('customers.created'));
             onClose();
           },
-          onError: (err) =>
-            toast.error(err instanceof ApiError ? t(errorMessageKey(err)) : t('customers.saveFailed')),
+          onError: (err) => toast.error(err instanceof ApiError ? t(errorMessageKey(err)) : t('customers.saveFailed')),
         },
       );
       return;
@@ -170,8 +163,7 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
           toast.success(t('customers.updated'));
           onClose();
         },
-        onError: (err) =>
-          toast.error(err instanceof ApiError ? t(errorMessageKey(err)) : t('customers.saveFailed')),
+        onError: (err) => toast.error(err instanceof ApiError ? t(errorMessageKey(err)) : t('customers.saveFailed')),
       },
     );
   };
@@ -234,12 +226,7 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
               {audiences.map((audience) => (
                 <FormControlLabel
                   key={audience.id}
-                  control={
-                    <Checkbox
-                      checked={roles.includes(audience.key)}
-                      onChange={() => toggleRole(audience.key)}
-                    />
-                  }
+                  control={<Checkbox checked={roles.includes(audience.key)} onChange={() => toggleRole(audience.key)} />}
                   label={audience.name}
                 />
               ))}
@@ -282,65 +269,48 @@ export function CustomerFormDialog({ mode, customer, open, onClose }: Props) {
             <Divider />
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {t('customers.acceptedTitle')}
+                {t('customers.signedTitle')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                {t('customers.acceptedHint')}
+                {t('customers.signedHint')}
               </Typography>
               {roles.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
-                  {t('customers.acceptedChooseRoles')}
+                  {t('customers.signedChooseRoles')}
                 </Typography>
-              ) : acceptableDocuments.length === 0 ? (
+              ) : availableTypes.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
-                  {t('customers.acceptedNone')}
+                  {t('customers.signedNone')}
                 </Typography>
               ) : (
                 <Stack spacing={1.5}>
-                  {acceptableDocuments.map((doc) => {
-                    const version = doc.currentVersion!;
-                    const selection = accepted[version.id];
-                    const checked = selection?.checked ?? false;
-                    return (
-                      <Box key={version.id}>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={checked}
-                              onChange={(event) =>
-                                setAcceptedField(version.id, { checked: event.target.checked })
-                              }
-                            />
-                          }
-                          label={`${doc.name} — ${version.versionLabel ?? version.id}`}
-                        />
-                        {checked && (
-                          <Stack
-                            direction={{ xs: 'column', sm: 'row' }}
-                            spacing={1}
-                            sx={{ pl: 4, pb: 1 }}
-                          >
-                            <TextField
-                              label={t('customers.acceptedAt')}
-                              type="date"
-                              value={selection?.acceptedAt ?? ''}
-                              onChange={(event) =>
-                                setAcceptedField(version.id, { acceptedAt: event.target.value })
-                              }
-                              InputLabelProps={{ shrink: true }}
-                            />
-                            <TextField
-                              label={t('customers.acceptedReference')}
-                              value={selection?.reference ?? ''}
-                              onChange={(event) =>
-                                setAcceptedField(version.id, { reference: event.target.value })
-                              }
-                            />
-                          </Stack>
-                        )}
-                      </Box>
-                    );
-                  })}
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    <TextField
+                      label={t('customers.signingDate')}
+                      type="date"
+                      value={signingDate}
+                      onChange={(event) => setSigningDate(event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      required={effectiveSignedTypes.length > 0}
+                    />
+                    <TextField
+                      label={t('customers.acceptedReference')}
+                      value={signedReference}
+                      onChange={(event) => setSignedReference(event.target.value)}
+                      fullWidth
+                    />
+                  </Stack>
+                  <FormGroup>
+                    {availableTypes.map((type) => (
+                      <FormControlLabel
+                        key={type.key}
+                        control={
+                          <Checkbox checked={signedTypes.includes(type.key)} onChange={() => toggleType(type.key)} />
+                        }
+                        label={type.name}
+                      />
+                    ))}
+                  </FormGroup>
                 </Stack>
               )}
             </Box>

@@ -4,6 +4,7 @@
  */
 
 import type { AcceptedVersionImportModel } from './AcceptedVersionImportModel.ts';
+import type { SignedDocumentsModel } from './SignedDocumentsModel.ts';
 
 export type CreateCustomerBodyModel = {
   /**
@@ -39,4 +40,8 @@ export type CreateCustomerBodyModel = {
    * @type array | undefined
    */
   acceptedVersions?: AcceptedVersionImportModel[];
+  /**
+   * @description Accept documents by type at a signing date: the version of each listed document type that was effective at effectiveDate is recorded as an IMPORT acceptance (#29).
+   */
+  signedDocuments?: SignedDocumentsModel;
 };

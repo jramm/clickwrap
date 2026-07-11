@@ -79,6 +79,21 @@ export class AcceptedVersionImportModel {
   reference?: string;
 }
 
+export class SignedDocumentsModel {
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    description: 'Contract signing date — the version of each listed type effective at this date is accepted.',
+  })
+  effectiveDate!: string;
+
+  @ApiProperty({ type: [String], example: ['terms', 'dpa'], description: 'Document type keys the contract covers.' })
+  documentTypes!: string[];
+
+  @ApiPropertyOptional({ example: 'Signed offer / CRM deal 12345', description: 'Evidence reference.' })
+  reference?: string;
+}
+
 export class CreateCustomerBodyModel {
   @ApiProperty({ example: 'crm-4711' })
   externalRef!: string;
@@ -103,6 +118,14 @@ export class CreateCustomerBodyModel {
     description: 'Versions already accepted out-of-band (signed offer) — recorded as IMPORT acceptances.',
   })
   acceptedVersions?: AcceptedVersionImportModel[];
+
+  @ApiPropertyOptional({
+    type: SignedDocumentsModel,
+    description:
+      'Accept documents by type at a signing date: the version of each listed document type that ' +
+      'was effective at effectiveDate is recorded as an IMPORT acceptance (#29).',
+  })
+  signedDocuments?: SignedDocumentsModel;
 }
 
 export class UpsertByExternalRefBodyModel {

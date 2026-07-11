@@ -14,6 +14,23 @@ const acceptedVersionSchema = z
   })
   .strict();
 
+/**
+ * Accept documents by type at a contract signing date (#29): instead of naming explicit versions,
+ * the caller passes the signing date + the document types the contract covers. The customer is
+ * recorded as having accepted, for each listed type (across the audiences its roles cover), the
+ * document version that was effective at `effectiveDate`.
+ */
+const signedDocumentsSchema = z
+  .object({
+    /** Contract signing date (ISO) — the point in time whose effective versions are accepted. */
+    effectiveDate: z.string().datetime(),
+    /** Document type keys the signed contract covers (e.g. ["terms", "dpa"]). */
+    documentTypes: z.array(z.string().min(1)).min(1),
+    /** Evidence reference (e.g. "Signed offer / CRM deal 12345"). */
+    reference: z.string().optional(),
+  })
+  .strict();
+
 export const createCustomerBodySchema = z
   .object({
     externalRef: z.string().min(1),
@@ -23,6 +40,7 @@ export const createCustomerBodySchema = z
     roles: z.array(z.string()),
     contactEmails: z.array(z.string()),
     acceptedVersions: z.array(acceptedVersionSchema).optional(),
+    signedDocuments: signedDocumentsSchema.optional(),
   })
   .strict();
 export type CreateCustomerBody = z.infer<typeof createCustomerBodySchema>;

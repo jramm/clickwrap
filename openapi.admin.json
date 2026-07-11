@@ -2770,6 +2770,36 @@
           "versionId"
         ]
       },
+      "SignedDocumentsModel": {
+        "type": "object",
+        "properties": {
+          "effectiveDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Contract signing date — the version of each listed type effective at this date is accepted."
+          },
+          "documentTypes": {
+            "example": [
+              "terms",
+              "dpa"
+            ],
+            "description": "Document type keys the contract covers.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reference": {
+            "type": "string",
+            "example": "Signed offer / CRM deal 12345",
+            "description": "Evidence reference."
+          }
+        },
+        "required": [
+          "effectiveDate",
+          "documentTypes"
+        ]
+      },
       "CreateCustomerBodyModel": {
         "type": "object",
         "properties": {
@@ -2817,6 +2847,14 @@
             "items": {
               "$ref": "#/components/schemas/AcceptedVersionImportModel"
             }
+          },
+          "signedDocuments": {
+            "description": "Accept documents by type at a signing date: the version of each listed document type that was effective at effectiveDate is recorded as an IMPORT acceptance (#29).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SignedDocumentsModel"
+              }
+            ]
           }
         },
         "required": [

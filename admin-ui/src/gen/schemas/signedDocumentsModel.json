@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "effectiveDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Contract signing date — the version of each listed type effective at this date is accepted."
+    },
+    "documentTypes": {
+      "example": ["terms", "dpa"],
+      "description": "Document type keys the contract covers.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "reference": {
+      "type": "string",
+      "example": "Signed offer / CRM deal 12345",
+      "description": "Evidence reference."
+    }
+  },
+  "required": ["effectiveDate", "documentTypes"],
+  "x-readme-ref-name": "SignedDocumentsModel"
+}

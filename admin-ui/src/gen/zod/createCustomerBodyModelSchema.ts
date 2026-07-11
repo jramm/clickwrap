@@ -5,6 +5,7 @@
 
 import type { CreateCustomerBodyModel } from '../types/CreateCustomerBodyModel.ts';
 import { acceptedVersionImportModelSchema } from './acceptedVersionImportModelSchema.ts';
+import { signedDocumentsModelSchema } from './signedDocumentsModelSchema.ts';
 import { z } from 'zod/v4';
 
 export const createCustomerBodyModelSchema = z.object({
@@ -19,6 +20,13 @@ export const createCustomerBodyModelSchema = z.object({
       .array(acceptedVersionImportModelSchema)
       .describe(
         'Versions already accepted out-of-band (signed offer) — recorded as IMPORT acceptances.',
+      )
+      .optional();
+  },
+  get signedDocuments() {
+    return signedDocumentsModelSchema
+      .describe(
+        'Accept documents by type at a signing date: the version of each listed document type that was effective at effectiveDate is recorded as an IMPORT acceptance (#29).',
       )
       .optional();
   },
