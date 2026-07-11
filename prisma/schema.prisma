@@ -274,6 +274,10 @@ model Customer {
 
   @@index([externalRef])
   @@index([source])
+  // `roles` is queried by array membership (findByRole → `roles has <audience>`) on hot paths
+  // (rollout targets, admin audience filter, affected-customer count). A GIN index turns that
+  // seq-scan into an index scan — essential at a large customer base.
+  @@index([roles], type: Gin)
 }
 
 /// Rollout state per customer x published version (domain state machine).
@@ -309,6 +313,11 @@ model CustomerVersionState {
   @@index([customerId, state])
   // Hot path deadline sweeper (daily).
   @@index([state, deadlineAt])
+  // Per-version lookups (findByVersion / findOpenByVersion at publish + version customer list):
+  // the (customerId, versionId) unique index can't serve a versionId-only predicate, so without
+  // this every such query seq-scans the whole table. Leading versionId + state also covers the
+  // open-state filter.
+  @@index([versionId, state])
 }
 
 /// Append-only evidence: customer accepted a version. Exactly one effective acceptance per
