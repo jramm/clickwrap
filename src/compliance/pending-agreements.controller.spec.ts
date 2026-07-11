@@ -14,6 +14,7 @@ import {
   InMemoryCustomerVersionStateRepo,
 } from '../persistence/inmemory/index.js';
 import { aCustomer, aDocument, aState, anActiveVersion, anAudience } from '../domain/testing/fixtures.js';
+import { TOKENS } from '../persistence/tokens.js';
 import { PendingAgreementsController } from './pending-agreements.controller.js';
 import { PendingAgreementsService } from './pending-agreements.service.js';
 import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider.js';
@@ -33,8 +34,10 @@ describe('PendingAgreementsController (e2e)', () => {
     delete process.env.SERVICE_API_TOKEN;
   });
 
+  let customers: InMemoryCustomerRepo;
+
   beforeEach(async () => {
-    const customers = new InMemoryCustomerRepo();
+    customers = new InMemoryCustomerRepo();
     const documentsRepo = new InMemoryAgreementDocumentRepo();
     const audiencesRepo = new InMemoryAudienceRepo(documentsRepo, customers);
     const versionsRepo = new InMemoryAgreementVersionRepo(documentsRepo);
@@ -51,7 +54,7 @@ describe('PendingAgreementsController (e2e)', () => {
     );
 
     await audiencesRepo.save(anAudience({ id: 'aud-customer', key: 'customer' }));
-    await customers.save(aCustomer({ id: 'c-123', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-123', externalRef: 'crm-123', roles: ['customer'] }));
     const document = aDocument({ id: 'doc-dpa-c', type: 'dpa', audience: 'customer' });
     await documentsRepo.save(document);
     const version = anActiveVersion({
@@ -67,7 +70,11 @@ describe('PendingAgreementsController (e2e)', () => {
 
     const moduleRef = await Test.createTestingModule({
       controllers: [PendingAgreementsController],
-      providers: [{ provide: PendingAgreementsService, useValue: service }],
+      providers: [
+        { provide: PendingAgreementsService, useValue: service },
+        { provide: TOKENS.CustomerRepo, useValue: customers },
+        { provide: TOKENS.AudienceRepo, useValue: audiencesRepo },
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -79,35 +86,49 @@ describe('PendingAgreementsController (e2e)', () => {
     await app.close();
   });
 
-  it('returns the open, blocking version as a popup item', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/customers/c-123/pending-agreements')
-      .query({ audience: 'customer' })
-      .set('x-service-token', SERVICE_TOKEN)
-      .set('x-customer-id', 'c-123')
-      .set('x-actor-user-id', 'u-1');
+  const get = () =>
+    request(app.getHttpServer()).get('/customers/pending-agreements').set('x-service-token', SERVICE_TOKEN);
 
+  const expectItem = {
+    versionId: 'v-dpa-c',
+    documentType: 'dpa',
+    audience: 'customer',
+    versionLabel: 'June 2026 edition',
+    mode: 'ACTIVE',
+    blocking: true,
+  };
+
+  it('resolves by customerId and returns the open, blocking version as a popup item', async () => {
+    const response = await get().query({ customerId: 'c-123', audience: 'customer' });
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([
-      expect.objectContaining({
-        versionId: 'v-dpa-c',
-        documentType: 'dpa',
-        audience: 'customer',
-        versionLabel: 'June 2026 edition',
-        mode: 'ACTIVE',
-        blocking: true,
-      }),
-    ]);
+    expect(response.body).toEqual([expect.objectContaining(expectItem)]);
   });
 
-  it('FORBIDDEN (403) when the path customerId differs from the auth context', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/customers/c-123/pending-agreements')
-      .set('x-service-token', SERVICE_TOKEN)
-      .set('x-customer-id', 'c-other')
-      .set('x-actor-user-id', 'u-1');
+  it('resolves by externalRef + audience', async () => {
+    const response = await get().query({ externalRef: 'crm-123', audience: 'customer' });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([expect.objectContaining(expectItem)]);
+  });
 
-    expect(response.status).toBe(403);
-    expect(response.body).toMatchObject({ code: 'FORBIDDEN' });
+  it('400 when neither customerId nor externalRef is provided', async () => {
+    expect((await get()).status).toBe(400);
+  });
+
+  it('400 when externalRef is given without audience', async () => {
+    expect((await get().query({ externalRef: 'crm-123' })).status).toBe(400);
+  });
+
+  it('401 when the service token is missing/wrong', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/customers/pending-agreements')
+      .query({ customerId: 'c-123' })
+      .set('x-service-token', 'wrong-token');
+    expect(response.status).toBe(401);
+  });
+
+  it('404 CUSTOMER_NOT_FOUND for an unknown customerId', async () => {
+    const response = await get().query({ customerId: 'c-ghost' });
+    expect(response.status).toBe(404);
+    expect(response.body).toMatchObject({ code: 'CUSTOMER_NOT_FOUND' });
   });
 });

@@ -1,6 +1,6 @@
 /**
- * ComplianceController — @nestjs/testing + supertest, with a real ServiceGuard context
- * (x-service-token/x-customer-id headers, as used for the tools' service-to-service auth).
+ * ComplianceController — @nestjs/testing + supertest. The customer is addressed by query parameter
+ * (customerId | externalRef+audience); auth is the shared x-service-token (ServiceTokenGuard).
  */
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -16,6 +16,7 @@ import {
   InMemoryCustomerVersionStateRepo,
 } from '../persistence/inmemory/index.js';
 import { aCustomer, aDocument, aState, aVersion, anAudience } from '../domain/testing/fixtures.js';
+import { TOKENS } from '../persistence/tokens.js';
 import { ComplianceController } from './compliance.controller.js';
 import { ComplianceService } from './compliance.service.js';
 
@@ -53,7 +54,7 @@ describe('ComplianceController (e2e)', () => {
     );
 
     await audiencesRepo.save(anAudience({ id: 'aud-customer', key: 'customer' }));
-    await customers.save(aCustomer({ id: 'c-123', roles: ['customer'] }));
+    await customers.save(aCustomer({ id: 'c-123', externalRef: 'crm-123', roles: ['customer'] }));
     const document = aDocument({ id: 'doc-dpa-c', type: 'dpa', audience: 'customer' });
     await documentsRepo.save(document);
     const version = aVersion({ id: 'v-dpa-c', documentId: 'doc-dpa-c', versionLabel: 'June 2026 edition' });
@@ -62,7 +63,11 @@ describe('ComplianceController (e2e)', () => {
 
     const moduleRef = await Test.createTestingModule({
       controllers: [ComplianceController],
-      providers: [{ provide: ComplianceService, useValue: complianceService }],
+      providers: [
+        { provide: ComplianceService, useValue: complianceService },
+        { provide: TOKENS.CustomerRepo, useValue: customers },
+        { provide: TOKENS.AudienceRepo, useValue: audiencesRepo },
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -74,69 +79,60 @@ describe('ComplianceController (e2e)', () => {
     await app.close();
   });
 
-  it('returns the compliance response when path customerId and auth context match', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/customers/c-123/compliance')
-      .query({ audience: 'customer' })
-      .set('x-service-token', SERVICE_TOKEN)
-      .set('x-customer-id', 'c-123')
-      .set('x-actor-user-id', 'u-1');
+  const get = () => request(app.getHttpServer()).get('/customers/compliance').set('x-service-token', SERVICE_TOKEN);
 
+  it('resolves by customerId (audience optional scope)', async () => {
+    const response = await get().query({ customerId: 'c-123', audience: 'customer' });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
       customerId: 'c-123',
       audience: 'customer',
       roles: ['customer'],
       compliant: true,
-      details: {
-        DPA_CUSTOMER: {
-          requiredVersionId: 'v-dpa-c',
-          requiredVersionLabel: 'June 2026 edition',
-          state: 'ACCEPTED',
-        },
-      },
+      details: { DPA_CUSTOMER: { requiredVersionId: 'v-dpa-c', state: 'ACCEPTED' } },
     });
   });
 
-  it('FORBIDDEN (403) when the path customerId differs from the auth context', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/customers/c-123/compliance')
-      .set('x-service-token', SERVICE_TOKEN)
-      .set('x-customer-id', 'c-999')
-      .set('x-actor-user-id', 'u-1');
-
-    expect(response.status).toBe(403);
-    expect(response.body).toMatchObject({ code: 'FORBIDDEN' });
+  it('resolves by externalRef + audience', async () => {
+    const response = await get().query({ externalRef: 'crm-123', audience: 'customer' });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ customerId: 'c-123', compliant: true });
   });
 
-  it('401 when the service token is missing/wrong (ServiceGuard)', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/customers/c-123/compliance')
-      .set('x-service-token', 'wrong-token')
-      .set('x-customer-id', 'c-123');
+  it('400 when neither customerId nor externalRef is provided', async () => {
+    expect((await get()).status).toBe(400);
+  });
 
+  it('400 when both customerId and externalRef are provided', async () => {
+    expect((await get().query({ customerId: 'c-123', externalRef: 'crm-123', audience: 'customer' })).status).toBe(400);
+  });
+
+  it('400 when externalRef is given without audience', async () => {
+    expect((await get().query({ externalRef: 'crm-123' })).status).toBe(400);
+  });
+
+  it('401 when the service token is missing/wrong', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/customers/compliance')
+      .query({ customerId: 'c-123' })
+      .set('x-service-token', 'wrong-token');
     expect(response.status).toBe(401);
   });
 
-  it('422 UNKNOWN_AUDIENCE for an audience key that does not exist in the repo', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/customers/c-123/compliance')
-      .query({ audience: 'admin' })
-      .set('x-service-token', SERVICE_TOKEN)
-      .set('x-customer-id', 'c-123')
-      .set('x-actor-user-id', 'u-1');
-
+  it('422 UNKNOWN_AUDIENCE for an audience key that does not exist', async () => {
+    const response = await get().query({ externalRef: 'crm-123', audience: 'admin' });
     expect(response.status).toBe(422);
     expect(response.body).toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
   });
 
-  it('404 CUSTOMER_NOT_FOUND for an unknown customer', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/customers/c-ghost/compliance')
-      .set('x-service-token', SERVICE_TOKEN)
-      .set('x-customer-id', 'c-ghost')
-      .set('x-actor-user-id', 'u-1');
+  it('404 CUSTOMER_NOT_FOUND for an unknown customerId', async () => {
+    const response = await get().query({ customerId: 'c-ghost' });
+    expect(response.status).toBe(404);
+    expect(response.body).toMatchObject({ code: 'CUSTOMER_NOT_FOUND' });
+  });
 
+  it('404 CUSTOMER_NOT_FOUND for an unknown externalRef', async () => {
+    const response = await get().query({ externalRef: 'crm-ghost', audience: 'customer' });
     expect(response.status).toBe(404);
     expect(response.body).toMatchObject({ code: 'CUSTOMER_NOT_FOUND' });
   });

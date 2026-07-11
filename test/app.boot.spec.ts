@@ -59,7 +59,7 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
 
     // 0) Auth is effective: 401 without a token.
     await http().get('/admin/documents').expect(401);
-    await http().get(`/customers/${CUSTOMER_ID}/compliance`).expect(401);
+    await http().get(`/customers/compliance?customerId=${CUSTOMER_ID}`).expect(401);
 
     // 1) Dynamic entities exist — created at boot by the LegalEntitiesReconciler from the demo
     //    config (config/legal-entities.json): audiences customer+partner, document types terms+dpa.
@@ -115,7 +115,7 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
 
     // 4) Portal popup: pending-agreements shows exactly this item.
     const pendingRes = await http()
-      .get(`/customers/${CUSTOMER_ID}/pending-agreements?audience=customer`)
+      .get(`/customers/pending-agreements?customerId=${CUSTOMER_ID}&audience=customer`)
       .set(portalHeaders)
       .expect(200);
     expect(pendingRes.body).toHaveLength(1);
@@ -131,14 +131,14 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
 
     // An unknown audience key on the portal endpoints → 422 UNKNOWN_AUDIENCE.
     const unknownPendingRes = await http()
-      .get(`/customers/${CUSTOMER_ID}/pending-agreements?audience=ghost`)
+      .get(`/customers/pending-agreements?customerId=${CUSTOMER_ID}&audience=ghost`)
       .set(portalHeaders)
       .expect(422);
     expect(unknownPendingRes.body).toMatchObject({ code: 'UNKNOWN_AUDIENCE' });
 
     // 5) Delivery evidence (popup shown) → NOTIFIED, deadline running (deadlineAt set).
     const notifyRes = await http()
-      .post(`/customers/${CUSTOMER_ID}/notifications`)
+      .post(`/customers/notifications?customerId=${CUSTOMER_ID}`)
       .set(portalHeaders)
       .send({ versionId, channel: 'PORTAL' })
       .expect(200);
@@ -148,7 +148,7 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
 
     // 6) Active consent from the popup (Idempotency-Key required).
     const acceptRes = await http()
-      .post(`/customers/${CUSTOMER_ID}/acceptances`)
+      .post(`/customers/acceptances?customerId=${CUSTOMER_ID}`)
       .set(portalHeaders)
       .set('Idempotency-Key', 'boot-key-1')
       .send({ versionId, displayedConsentText: CONSENT_TEXT })
@@ -157,7 +157,7 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
 
     // Replay with the same key → identical response (no error).
     const replayRes = await http()
-      .post(`/customers/${CUSTOMER_ID}/acceptances`)
+      .post(`/customers/acceptances?customerId=${CUSTOMER_ID}`)
       .set(portalHeaders)
       .set('Idempotency-Key', 'boot-key-1')
       .send({ versionId, displayedConsentText: CONSENT_TEXT })
@@ -166,13 +166,13 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
 
     // 7) Nothing pending anymore: popup empty, compliance gate green.
     const pendingAfter = await http()
-      .get(`/customers/${CUSTOMER_ID}/pending-agreements?audience=customer`)
+      .get(`/customers/pending-agreements?customerId=${CUSTOMER_ID}&audience=customer`)
       .set(portalHeaders)
       .expect(200);
     expect(pendingAfter.body).toEqual([]);
 
     const complianceRes = await http()
-      .get(`/customers/${CUSTOMER_ID}/compliance?audience=customer`)
+      .get(`/customers/compliance?customerId=${CUSTOMER_ID}&audience=customer`)
       .set(portalHeaders)
       .expect(200);
     expect(complianceRes.body).toMatchObject({
@@ -226,7 +226,7 @@ describe('AppModule boot (REPOSITORY_DRIVER=inmemory)', () => {
 
     const onboardedId: string = onboardRes.body.id;
     const onboardedCompliance = await http()
-      .get(`/customers/${onboardedId}/compliance?audience=customer`)
+      .get(`/customers/compliance?customerId=${onboardedId}&audience=customer`)
       .set({ ...portalHeaders, 'x-customer-id': onboardedId })
       .expect(200);
     expect(onboardedCompliance.body).toMatchObject({ compliant: true });

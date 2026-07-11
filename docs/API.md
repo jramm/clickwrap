@@ -653,7 +653,11 @@ via the **required `?audience=`** query param. **Soft-deletes** the active custo
 preserved); a different-audience customer sharing the `externalRef` is left untouched. Not found or
 already deactivated → idempotent no-op (no event). Always **204 No Content**. Missing `audience` → `400`.
 
-### GET /customers/by-external-ref/:externalRef/compliance?audience=… — compliance by external ref (integration) → 200
+### Addressing customer-scoped endpoints
+
+Every customer-scoped integration endpoint (compliance, pending-agreements, acceptances, objections, notifications, signed-documents) takes the customer as a **query parameter** — either `?customerId=<id>` **or** `?externalRef=<ref>&audience=<key>` (exactly one). `audience` is required only with `externalRef` (the disambiguator, since an externalRef is unique only per audience); with `customerId` it is an optional scope where the endpoint supports one. Auth is the shared `x-service-token`; the acting identity comes from the `x-actor-*` headers. Wrong/both/neither selector → `400`; unknown audience → `422 UNKNOWN_AUDIENCE`; no active match → `404 CUSTOMER_NOT_FOUND`. (The identity/sync endpoints `PUT`/`DELETE /customers/by-external-ref/:externalRef` keep their external-ref path form.)
+
+### GET /customers/compliance?externalRef=…&audience=… — compliance by external ref (integration) → 200
 Auth: `x-service-token` only (no `x-customer-id` — the customer is resolved from the external
 reference). The **required `?audience=`** query param is both the resolution discriminator and the
 compliance scope: the ACTIVE customer carrying `externalRef` whose `roles` include `audience` is
@@ -667,7 +671,7 @@ UNKNOWN_AUDIENCE`; `400` if `audience` missing; `401` without the token.
 > blocked on it). clickwrap returns the real result or a `404` — it never guesses. Only an explicit
 > `compliant: false` blocks.
 
-### GET /customers/by-external-ref/:externalRef/pending-agreements?audience=… — outstanding agreements by external ref (integration) → 200
+### GET /customers/pending-agreements?externalRef=…&audience=… — outstanding agreements by external ref (integration) → 200
 Auth: `x-service-token` only (no `x-customer-id` — the customer is resolved from the external
 reference). The **required `?audience=`** query param is the resolution discriminator: the ACTIVE
 customer carrying `externalRef` whose `roles` include `audience` is resolved, then the same body as
@@ -678,7 +682,7 @@ clickwrap's internal id. Errors: `404 CUSTOMER_NOT_FOUND` (no active match — u
 `externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
 UNKNOWN_AUDIENCE`; `400` if `audience` missing; `401` without the token.
 
-### POST /customers/by-external-ref/:externalRef/acceptances?audience=…   (Idempotency-Key required) → 201
+### POST /customers/acceptances?externalRef=…&audience=…   (Idempotency-Key required) → 201
 Auth: `x-service-token` only (no `x-customer-id` — the customer is resolved from the external
 reference). The **required `?audience=`** query param is the resolution discriminator: the ACTIVE
 customer carrying `externalRef` whose `roles` include `audience` is resolved, then the acceptance is
@@ -699,7 +703,7 @@ response. Errors: `404 CUSTOMER_NOT_FOUND` (no active match) / `404 VERSION_NOT_
 VERSION_NOT_CURRENT` · `422 CONSENT_TEXT_MISMATCH` · `422 ROLE_MISMATCH` · `422 UNKNOWN_AUDIENCE` ·
 `400` if `audience`/`Idempotency-Key` missing · `409 ALREADY_ACCEPTED` · `401` without the token.
 
-### GET /customers/:customerId/compliance?audience=customer|partner
+### GET /customers/compliance?customerId=…&audience=customer|partner
 The compliance gate. Each tool queries with **its** audience; without the parameter the result is
 aggregated over all of the customer's roles. `compliant=false` **only** for `EXPIRED_BLOCKING` or a
 not-yet-accepted carry-over state. A customer without any role: `compliant=true`, `roles: []`.
@@ -719,7 +723,7 @@ Recommendation for callers: query on login **and** periodically per session (≤
 invalidate the cache immediately after an acceptance. On service outage: fail-open with the last
 cached result.
 
-### GET /customers/:customerId/pending-agreements?audience=…
+### GET /customers/pending-agreements?customerId=…&audience=…
 Popup content (empty = nothing to show). Current PUBLISHED versions with an open state
 (`PENDING_NOTIFICATION` | `NOTIFIED` | `EXPIRED_BLOCKING`) — plus **every upcoming** published
 version (scheduled publish, `validFrom` in the future) with an open state, each marked
@@ -743,7 +747,7 @@ valid (`POST /acceptances` allows the current **or** an upcoming version), the c
 stays required until the flip at `validFrom`. Deadlines of upcoming items are anchored at
 `max(notifiedAt + period, validFrom)` — they can never expire before `validFrom`.
 
-### POST /customers/:customerId/acceptances   (Idempotency-Key required) → 201
+### POST /customers/acceptances?customerId=…   (Idempotency-Key required) → 201
 ```json
 { "versionId": "v-9", "displayedConsentText": "I have read the new version and agree." }
 ```
@@ -756,7 +760,7 @@ adds IP, user-agent, timestamp and `contentHash`. Body fields like `actorUserId`
 `422 VERSION_NOT_CURRENT` (a newer version exists → reload pending) · `422 ROLE_MISMATCH` ·
 `409 ALREADY_ACCEPTED`.
 
-### POST /customers/:customerId/objections   (Idempotency-Key required) → 201
+### POST /customers/objections?customerId=…   (Idempotency-Key required) → 201
 Only for **PASSIVE** versions within the objection period.
 ```json
 { "versionId": "v-9", "reason": "Sub-processor XY is not accepted." }
@@ -765,7 +769,7 @@ Only for **PASSIVE** versions within the objection period.
 (ACTIVE version — there is no right of objection, not even from the block screen) ·
 `422 OBJECTION_PERIOD_EXPIRED` (after the deadline; recorded only as an escalation note).
 
-### POST /customers/:customerId/notifications → 200
+### POST /customers/notifications?customerId=… → 200
 Proof of access ("the popup was displayed"):
 ```json
 { "versionId": "v-9", "channel": "PORTAL", "displayedAt": "2026-07-08T08:00:12Z" }

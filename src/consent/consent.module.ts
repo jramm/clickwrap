@@ -11,7 +11,6 @@ import { SignedDocumentsIntegrationController } from '../signed-documents/signed
 import { AcceptanceService } from './acceptance.service.js';
 import { ConsentController } from './consent.controller.js';
 import { CustomerOnboardingController } from './customer-onboarding.controller.js';
-import { IntegrationAcceptanceController } from './integration-acceptance.controller.js';
 import { UuidIdGenerator } from './inmemory.js';
 import { NotificationService } from './notification.service.js';
 import { ObjectionService } from './objection.service.js';
@@ -22,7 +21,6 @@ import { CONSENT_TOKENS } from './ports.js';
   controllers: [
     ConsentController,
     CustomerOnboardingController,
-    IntegrationAcceptanceController,
     SignedDocumentsIntegrationController,
   ],
   providers: [

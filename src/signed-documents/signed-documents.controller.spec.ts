@@ -174,7 +174,7 @@ describe('Signed documents controllers', () => {
   describe('integration surface', () => {
     it('rejects a request without a service token with 401', async () => {
       await request(app.getHttpServer())
-        .post('/customers/c-123/signed-documents')
+        .post('/customers/signed-documents?customerId=c-123')
         .field('documentTypeKey', 'signed-offer')
         .field('signedAt', '2026-06-15T00:00:00Z')
         .attach('file', PDF, 'x.pdf')
@@ -183,7 +183,7 @@ describe('Signed documents controllers', () => {
 
     it('uploads with a valid service token and records uploadedBy from the actor headers (no admin audit)', async () => {
       const res = await request(app.getHttpServer())
-        .post('/customers/c-123/signed-documents')
+        .post('/customers/signed-documents?customerId=c-123')
         .set('x-service-token', SERVICE_TOKEN)
         .set('x-actor-user-id', 'integrator-9')
         .field('documentTypeKey', 'signed-offer')
@@ -198,7 +198,7 @@ describe('Signed documents controllers', () => {
 
     it('lists a customer’s signed documents with a valid token', async () => {
       await request(app.getHttpServer())
-        .post('/customers/c-123/signed-documents')
+        .post('/customers/signed-documents?customerId=c-123')
         .set('x-service-token', SERVICE_TOKEN)
         .field('documentTypeKey', 'signed-offer')
         .field('signedAt', '2026-06-15T00:00:00Z')
@@ -206,7 +206,7 @@ describe('Signed documents controllers', () => {
         .expect(201);
 
       const res = await request(app.getHttpServer())
-        .get('/customers/c-123/signed-documents')
+        .get('/customers/signed-documents?customerId=c-123')
         .set('x-service-token', SERVICE_TOKEN)
         .expect(200);
       expect(res.body.items).toHaveLength(1);

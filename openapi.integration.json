@@ -1,62 +1,11 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/customers/{customerId}/acceptances": {
+    "/customers/acceptances": {
       "post": {
-        "description": "The actor comes exclusively from the auth context; displayedConsentText is only a cross-check against the server-side versioned consent text. Replay with the same Idempotency-Key returns the identical 201 response.",
+        "description": "Resolves the customer by `customerId` or `externalRef`+`audience`, then records active consent through the shared acceptance flow (idempotency, version-current check, ACTIVE consent-text cross-check). The acting identity comes from `signerName`/`signerEmail` and/or the `x-actor-*` headers; channel = PORTAL. Replay with the same Idempotency-Key returns the identical 201.",
         "operationId": "ConsentController_accept",
         "parameters": [
-          {
-            "name": "x-customer-id",
-            "in": "header",
-            "description": "Authenticated customer (must match the path).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-user-id",
-            "in": "header",
-            "description": "Acting user in the calling tool.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-name",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-email",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-role",
-            "in": "header",
-            "description": "Portal role, logged with the evidence.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "customerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "Idempotency-Key",
             "in": "header",
@@ -64,6 +13,27 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Required with externalRef (resolution discriminator).",
+            "schema": {}
+          },
+          {
+            "name": "externalRef",
+            "required": false,
+            "in": "query",
+            "description": "Caller's external reference (requires audience).",
+            "schema": {}
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "description": "Internal customer id (exactly one of customerId | externalRef).",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -71,7 +41,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AcceptanceBodyModel"
+                "$ref": "#/components/schemas/IntegrationAcceptanceBodyModel"
               }
             }
           }
@@ -88,7 +58,7 @@
             }
           },
           "400": {
-            "description": "Missing Idempotency-Key / body validation failed (strict schema).",
+            "description": "Bad customer selector / missing Idempotency-Key / body validation failed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -98,17 +68,7 @@
             }
           },
           "401": {
-            "description": "Missing/invalid service token or customer context.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "description": "Missing/invalid service token.",
             "content": {
               "application/json": {
                 "schema": {
@@ -118,7 +78,7 @@
             }
           },
           "404": {
-            "description": "VERSION_NOT_FOUND",
+            "description": "CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND",
             "content": {
               "application/json": {
                 "schema": {
@@ -138,7 +98,7 @@
             }
           },
           "422": {
-            "description": "VERSION_NOT_CURRENT · ROLE_MISMATCH · CONSENT_TEXT_MISMATCH",
+            "description": "VERSION_NOT_CURRENT · ROLE_MISMATCH · CONSENT_TEXT_MISMATCH · UNKNOWN_AUDIENCE",
             "content": {
               "application/json": {
                 "schema": {
@@ -159,61 +119,10 @@
         ]
       }
     },
-    "/customers/{customerId}/objections": {
+    "/customers/objections": {
       "post": {
         "operationId": "ConsentController_object",
         "parameters": [
-          {
-            "name": "x-customer-id",
-            "in": "header",
-            "description": "Authenticated customer (must match the path).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-user-id",
-            "in": "header",
-            "description": "Acting user in the calling tool.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-name",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-email",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-role",
-            "in": "header",
-            "description": "Portal role, logged with the evidence.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "customerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "Idempotency-Key",
             "in": "header",
@@ -221,6 +130,27 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Required with externalRef (resolution discriminator).",
+            "schema": {}
+          },
+          {
+            "name": "externalRef",
+            "required": false,
+            "in": "query",
+            "description": "Caller's external reference (requires audience).",
+            "schema": {}
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "description": "Internal customer id (exactly one of customerId | externalRef).",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -245,7 +175,7 @@
             }
           },
           "400": {
-            "description": "Missing Idempotency-Key / body validation failed.",
+            "description": "Bad customer selector / missing Idempotency-Key / body validation failed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -255,17 +185,7 @@
             }
           },
           "401": {
-            "description": "Missing/invalid service token or customer context.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "description": "Missing/invalid service token.",
             "content": {
               "application/json": {
                 "schema": {
@@ -275,7 +195,7 @@
             }
           },
           "404": {
-            "description": "VERSION_NOT_FOUND",
+            "description": "CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND",
             "content": {
               "application/json": {
                 "schema": {
@@ -285,7 +205,7 @@
             }
           },
           "422": {
-            "description": "OBJECTION_NOT_APPLICABLE · OBJECTION_PERIOD_EXPIRED",
+            "description": "OBJECTION_NOT_APPLICABLE · OBJECTION_PERIOD_EXPIRED · UNKNOWN_AUDIENCE",
             "content": {
               "application/json": {
                 "schema": {
@@ -306,61 +226,31 @@
         ]
       }
     },
-    "/customers/{customerId}/notifications": {
+    "/customers/notifications": {
       "post": {
         "description": "notifiedAt is set to SERVER time, atomically and only from PENDING_NOTIFICATION. displayedAt is a plausibility check only. Naturally idempotent (no key needed).",
         "operationId": "ConsentController_notify",
         "parameters": [
           {
-            "name": "x-customer-id",
-            "in": "header",
-            "description": "Authenticated customer (must match the path).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-user-id",
-            "in": "header",
-            "description": "Acting user in the calling tool.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-name",
-            "in": "header",
+            "name": "audience",
             "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "in": "query",
+            "description": "Required with externalRef (resolution discriminator).",
+            "schema": {}
           },
           {
-            "name": "x-actor-email",
-            "in": "header",
+            "name": "externalRef",
             "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-role",
-            "in": "header",
-            "description": "Portal role, logged with the evidence.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "in": "query",
+            "description": "Caller's external reference (requires audience).",
+            "schema": {}
           },
           {
             "name": "customerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "required": false,
+            "in": "query",
+            "description": "Internal customer id (exactly one of customerId | externalRef).",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -385,7 +275,7 @@
             }
           },
           "400": {
-            "description": "Body validation failed.",
+            "description": "Bad customer selector / body validation failed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -395,17 +285,7 @@
             }
           },
           "401": {
-            "description": "Missing/invalid service token or customer context.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "FORBIDDEN — path customerId does not match the auth context.",
+            "description": "Missing/invalid service token.",
             "content": {
               "application/json": {
                 "schema": {
@@ -415,7 +295,7 @@
             }
           },
           "404": {
-            "description": "VERSION_NOT_FOUND",
+            "description": "CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND",
             "content": {
               "application/json": {
                 "schema": {
@@ -425,7 +305,7 @@
             }
           },
           "422": {
-            "description": "INVALID_STATE",
+            "description": "INVALID_STATE · UNKNOWN_AUDIENCE",
             "content": {
               "application/json": {
                 "schema": {
@@ -658,131 +538,31 @@
         ]
       }
     },
-    "/customers/by-external-ref/{externalRef}/acceptances": {
+    "/customers/signed-documents": {
       "post": {
-        "description": "Resolves the ACTIVE customer by (`externalRef`, `audience`) — the record carrying `externalRef` whose roles include the required `audience` query param — and records the portal user's active consent through the SAME acceptance flow as POST /customers/:customerId/acceptances (idempotency via Idempotency-Key, version-current check, ACTIVE consent-text cross-check; PASSIVE versions carry no consent text). The acting identity comes from `signerName`/`signerEmail` in the body and/or the `x-actor-*` headers; channel = PORTAL. Backs the Betreiberportal native accept overlay.",
-        "operationId": "IntegrationAcceptanceController_acceptByExternalRef",
-        "parameters": [
-          {
-            "name": "externalRef",
-            "required": true,
-            "in": "path",
-            "description": "Caller's stable external reference.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "audience",
-            "required": true,
-            "in": "query",
-            "description": "Audience key (resolution discriminator).",
-            "schema": {}
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IntegrationAcceptanceBodyModel"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AcceptanceResponseModel"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing `audience` / Idempotency-Key, or body validation failed (strict schema).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing/invalid service token.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "CUSTOMER_NOT_FOUND — no active customer for this (externalRef, audience) · VERSION_NOT_FOUND",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "ALREADY_ACCEPTED",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "VERSION_NOT_CURRENT · CONSENT_TEXT_MISMATCH · ROLE_MISMATCH · UNKNOWN_AUDIENCE",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "service-token": []
-          }
-        ],
-        "summary": "Record active consent by external reference (inbound integration)",
-        "tags": [
-          "integration-consent"
-        ]
-      }
-    },
-    "/customers/{id}/signed-documents": {
-      "post": {
-        "description": "Archives an externally-signed PDF (e.g. a counter-signed offer) against a customer. The documentType MUST be an external type (422 DOCUMENT_TYPE_NOT_EXTERNAL otherwise — non-external types use the version/clickwrap flow). Signed documents are a pure evidence archive and NEVER affect the compliance gate.",
+        "description": "Resolves the customer by `customerId` or `externalRef`+`audience`, then archives an externally-signed PDF (e.g. a counter-signed offer). The documentType MUST be an external type (422 DOCUMENT_TYPE_NOT_EXTERNAL otherwise). Signed documents are a pure evidence archive and NEVER affect the compliance gate.",
         "operationId": "SignedDocumentsIntegrationController_upload",
         "parameters": [
           {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Required with externalRef (resolution discriminator).",
+            "schema": {}
+          },
+          {
+            "name": "externalRef",
+            "required": false,
+            "in": "query",
+            "description": "Caller's external reference (requires audience).",
+            "schema": {}
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "description": "Internal customer id (exactly one of customerId | externalRef).",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -812,7 +592,7 @@
             }
           },
           "400": {
-            "description": "PDF / documentTypeKey / signedAt missing.",
+            "description": "Bad customer selector / PDF / documentTypeKey / signedAt missing.",
             "content": {
               "application/json": {
                 "schema": {
@@ -866,12 +646,25 @@
         "operationId": "SignedDocumentsIntegrationController_list",
         "parameters": [
           {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "name": "audience",
+            "required": false,
+            "in": "query",
+            "description": "Required with externalRef (resolution discriminator).",
+            "schema": {}
+          },
+          {
+            "name": "externalRef",
+            "required": false,
+            "in": "query",
+            "description": "Caller's external reference (requires audience).",
+            "schema": {}
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "description": "Internal customer id (exactly one of customerId | externalRef).",
+            "schema": {}
           }
         ],
         "responses": {
@@ -885,8 +678,38 @@
               }
             }
           },
+          "400": {
+            "description": "Bad customer selector.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing/invalid service token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CUSTOMER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_AUDIENCE",
             "content": {
               "application/json": {
                 "schema": {
@@ -907,67 +730,30 @@
         ]
       }
     },
-    "/customers/{customerId}/compliance": {
+    "/customers/compliance": {
       "get": {
-        "description": "compliant=false ONLY for EXPIRED_BLOCKING or a not-yet-accepted carry-over state. Without `audience` the result aggregates all of the customer's roles.",
+        "description": "Resolves the customer by `customerId` or `externalRef`+`audience` and returns the gate. compliant=false ONLY for EXPIRED_BLOCKING or a not-yet-accepted carry-over state. With `externalRef`, `audience` is required (resolution discriminator + scope). With `customerId`, `audience` is an optional scope — omit it to aggregate all of the customer's roles. Callers query this live per request and FAIL OPEN: any error/timeout or 404 is treated as compliant.",
         "operationId": "ComplianceController_getCompliance",
         "parameters": [
-          {
-            "name": "x-customer-id",
-            "in": "header",
-            "description": "Authenticated customer (must match the path).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-user-id",
-            "in": "header",
-            "description": "Acting user in the calling tool.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-name",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-email",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-role",
-            "in": "header",
-            "description": "Portal role, logged with the evidence.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "customerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "audience",
             "required": false,
             "in": "query",
-            "description": "Audience key of the calling tool.",
+            "description": "Required with externalRef; optional scope with customerId.",
+            "schema": {}
+          },
+          {
+            "name": "externalRef",
+            "required": false,
+            "in": "query",
+            "description": "Caller's external reference (requires audience).",
+            "schema": {}
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "description": "Internal customer id (exactly one of customerId | externalRef).",
             "schema": {}
           }
         ],
@@ -982,8 +768,8 @@
               }
             }
           },
-          "401": {
-            "description": "Missing/invalid service token or customer context.",
+          "400": {
+            "description": "Provide exactly one of customerId | externalRef; audience required with externalRef.",
             "content": {
               "application/json": {
                 "schema": {
@@ -992,8 +778,8 @@
               }
             }
           },
-          "403": {
-            "description": "FORBIDDEN — path customerId does not match the auth context.",
+          "401": {
+            "description": "Missing/invalid service token.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1003,7 +789,7 @@
             }
           },
           "404": {
-            "description": "CUSTOMER_NOT_FOUND",
+            "description": "CUSTOMER_NOT_FOUND.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1013,7 +799,7 @@
             }
           },
           "422": {
-            "description": "UNKNOWN_AUDIENCE",
+            "description": "UNKNOWN_AUDIENCE.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1034,240 +820,30 @@
         ]
       }
     },
-    "/customers/by-external-ref/{externalRef}/compliance": {
+    "/customers/pending-agreements": {
       "get": {
-        "description": "Resolves the ACTIVE customer by (`externalRef`, `audience`) — the record carrying `externalRef` whose roles include the required `audience` query param — and returns the compliance gate for that audience. `compliant=false` only for EXPIRED_BLOCKING or a not-yet-accepted carry-over state. Callers query this live per request (no cache) and FAIL OPEN: any error/timeout OR a 404 is treated as compliant (no block).",
-        "operationId": "IntegrationComplianceController_getComplianceByExternalRef",
-        "parameters": [
-          {
-            "name": "externalRef",
-            "required": true,
-            "in": "path",
-            "description": "Caller's stable external reference.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "audience",
-            "required": true,
-            "in": "query",
-            "description": "Audience key (resolution discriminator + compliance scope).",
-            "schema": {}
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ComplianceResponseModel"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing `audience` query parameter.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing/invalid service token.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "CUSTOMER_NOT_FOUND — no active customer for this (externalRef, audience).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "UNKNOWN_AUDIENCE",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "service-token": []
-          }
-        ],
-        "summary": "Compliance gate by external reference (inbound integration)",
-        "tags": [
-          "integration-compliance"
-        ]
-      }
-    },
-    "/customers/by-external-ref/{externalRef}/pending-agreements": {
-      "get": {
-        "description": "Resolves the ACTIVE customer by (`externalRef`, `audience`) — the record carrying `externalRef` whose roles include the required `audience` query param — and returns the outstanding agreements for that customer (empty array = nothing to show). The response is the SAME shape as GET /customers/:customerId/pending-agreements: current PUBLISHED versions with an open state plus UPCOMING published versions (advance acceptance). Backs the Betreiberportal native accept overlay.",
-        "operationId": "IntegrationPendingAgreementsController_getPendingAgreementsByExternalRef",
-        "parameters": [
-          {
-            "name": "externalRef",
-            "required": true,
-            "in": "path",
-            "description": "Caller's stable external reference.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "audience",
-            "required": true,
-            "in": "query",
-            "description": "Audience key (resolution discriminator + scope).",
-            "schema": {}
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PendingAgreementItemModel"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing `audience` query parameter.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing/invalid service token.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "CUSTOMER_NOT_FOUND — no active customer for this (externalRef, audience).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "UNKNOWN_AUDIENCE",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "service-token": []
-          }
-        ],
-        "summary": "Outstanding agreements by external reference (inbound integration)",
-        "tags": [
-          "integration-consent"
-        ]
-      }
-    },
-    "/customers/{customerId}/pending-agreements": {
-      "get": {
-        "description": "Current PUBLISHED versions with an open state (PENDING_NOTIFICATION | NOTIFIED | EXPIRED_BLOCKING) plus UPCOMING published versions (validFrom in the future, marked `upcoming: true` with their `validFrom`) — acceptance may be collected in advance; the current version stays required until the flip.",
+        "description": "Resolves the customer by `customerId` or `externalRef`+`audience`, then returns current PUBLISHED versions with an open state (PENDING_NOTIFICATION | NOTIFIED | EXPIRED_BLOCKING) plus UPCOMING published versions (validFrom in the future, marked `upcoming: true`). With `externalRef`, `audience` is required; with `customerId` it is an optional scope.",
         "operationId": "PendingAgreementsController_getPendingAgreements",
         "parameters": [
           {
-            "name": "x-customer-id",
-            "in": "header",
-            "description": "Authenticated customer (must match the path).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-user-id",
-            "in": "header",
-            "description": "Acting user in the calling tool.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-name",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-email",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-actor-role",
-            "in": "header",
-            "description": "Portal role, logged with the evidence.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "customerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "audience",
             "required": false,
             "in": "query",
-            "description": "Audience key of the calling tool.",
+            "description": "Required with externalRef; optional scope with customerId.",
+            "schema": {}
+          },
+          {
+            "name": "externalRef",
+            "required": false,
+            "in": "query",
+            "description": "Caller's external reference (requires audience).",
+            "schema": {}
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "description": "Internal customer id (exactly one of customerId | externalRef).",
             "schema": {}
           }
         ],
@@ -1285,8 +861,8 @@
               }
             }
           },
-          "401": {
-            "description": "Missing/invalid service token or customer context.",
+          "400": {
+            "description": "Provide exactly one of customerId | externalRef; audience required with externalRef.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1295,8 +871,8 @@
               }
             }
           },
-          "403": {
-            "description": "FORBIDDEN — path customerId does not match the auth context.",
+          "401": {
+            "description": "Missing/invalid service token.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1306,7 +882,7 @@
             }
           },
           "404": {
-            "description": "CUSTOMER_NOT_FOUND",
+            "description": "CUSTOMER_NOT_FOUND.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1316,7 +892,7 @@
             }
           },
           "422": {
-            "description": "UNKNOWN_AUDIENCE",
+            "description": "UNKNOWN_AUDIENCE.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1633,30 +1209,22 @@
       }
     },
     "schemas": {
-      "ErrorResponseDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "example": "INVALID_STATE",
-            "description": "Stable DomainErrorCode (see docs/API.md §7)."
-          },
-          "message": {
-            "type": "string",
-            "example": "A customer with externalRef \"ext-1\" and an overlapping role already exists"
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
-      },
-      "AcceptanceBodyModel": {
+      "IntegrationAcceptanceBodyModel": {
         "type": "object",
         "properties": {
           "versionId": {
             "type": "string",
             "example": "v-9"
+          },
+          "signerName": {
+            "type": "string",
+            "example": "Bob Portal",
+            "description": "The portal user's self-declared name. Recorded as the acceptance actor's name; falls back to the `x-actor-name` header when omitted."
+          },
+          "signerEmail": {
+            "type": "string",
+            "example": "bob@operator.example",
+            "description": "The portal user's self-declared e-mail. Recorded as the acceptance actor's e-mail; falls back to the `x-actor-email` header when omitted."
           },
           "displayedConsentText": {
             "type": "string",
@@ -1685,6 +1253,24 @@
         "required": [
           "acceptanceId",
           "state"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "INVALID_STATE",
+            "description": "Stable DomainErrorCode (see docs/API.md §7)."
+          },
+          "message": {
+            "type": "string",
+            "example": "A customer with externalRef \"ext-1\" and an overlapping role already exists"
+          }
+        },
+        "required": [
+          "code",
+          "message"
         ]
       },
       "ObjectionBodyModel": {
@@ -2115,33 +1701,6 @@
           "lastName",
           "roles",
           "contactEmails"
-        ]
-      },
-      "IntegrationAcceptanceBodyModel": {
-        "type": "object",
-        "properties": {
-          "versionId": {
-            "type": "string",
-            "example": "v-9"
-          },
-          "signerName": {
-            "type": "string",
-            "example": "Bob Portal",
-            "description": "The portal user's self-declared name. Recorded as the acceptance actor's name; falls back to the `x-actor-name` header when omitted."
-          },
-          "signerEmail": {
-            "type": "string",
-            "example": "bob@operator.example",
-            "description": "The portal user's self-declared e-mail. Recorded as the acceptance actor's e-mail; falls back to the `x-actor-email` header when omitted."
-          },
-          "displayedConsentText": {
-            "type": "string",
-            "example": "I have read the new revision and agree.",
-            "description": "Cross-check only — the evidence uses the server-side versioned consentText. Required for ACTIVE versions; omitted for a PASSIVE early acceptance."
-          }
-        },
-        "required": [
-          "versionId"
         ]
       },
       "SignedDocumentUploadBodyModel": {

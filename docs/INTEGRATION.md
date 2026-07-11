@@ -124,7 +124,11 @@ idempotent no-op (no event). Always returns **204 No Content**. Missing `audienc
 These two endpoints REPLACE the pull-based customer sync as the integration mechanism for the main
 portal.
 
-### `GET /customers/by-external-ref/:externalRef/compliance?audience=…` → 200 (compliance by external ref)
+## Addressing customer-scoped endpoints
+
+Every customer-scoped integration endpoint (compliance, pending-agreements, acceptances, objections, notifications, signed-documents) takes the customer as a **query parameter** — either `?customerId=<id>` **or** `?externalRef=<ref>&audience=<key>` (exactly one). `audience` is required only with `externalRef` (the disambiguator, since an externalRef is unique only per audience); with `customerId` it is an optional scope where the endpoint supports one. Auth is the shared `x-service-token`; the acting identity comes from the `x-actor-*` headers. Wrong/both/neither selector → `400`; unknown audience → `422 UNKNOWN_AUDIENCE`; no active match → `404 CUSTOMER_NOT_FOUND`. (The identity/sync endpoints `PUT`/`DELETE /customers/by-external-ref/:externalRef` keep their external-ref path form.)
+
+### `GET /customers/compliance?externalRef=…&audience=…` → 200 (compliance by external ref)
 
 The compliance gate for a caller that only knows the customer by its own external reference (not
 clickwrap's internal id). Auth: the shared `x-service-token` only (no `x-customer-id`). The
@@ -141,7 +145,7 @@ same result as [§3](#3-gate-access--get-customersidcomplianceaudience) is retur
   (access is never blocked on it). clickwrap returns the real compliance result or a `404` — it
   never guesses. Only an explicit `compliant: false` blocks.
 
-### `GET /customers/by-external-ref/:externalRef/pending-agreements?audience=…` → 200 (outstanding agreements by external ref)
+### `GET /customers/pending-agreements?externalRef=…&audience=…` → 200 (outstanding agreements by external ref)
 
 The outstanding-agreements feed for a caller that only knows the customer by its own external
 reference (not clickwrap's internal id). Auth: the shared `x-service-token` only (no
@@ -160,7 +164,7 @@ hosted page.
   `externalRef`+`audience`, or a same-`externalRef` record of a different audience); `422
   UNKNOWN_AUDIENCE`; `400` if `audience` is missing; `401` without the service token.
 
-### `POST /customers/by-external-ref/:externalRef/acceptances?audience=…` → 201 (record acceptance by external ref)
+### `POST /customers/acceptances?externalRef=…&audience=…` → 201 (record acceptance by external ref)
 
 Records the portal user's acceptance from the native overlay for a caller that only knows the
 customer by its external reference. Auth: the shared `x-service-token` only (no `x-customer-id`) plus
@@ -188,14 +192,14 @@ rules.
   `audience` or `Idempotency-Key` is missing; `409 ALREADY_ACCEPTED`; `401` without the service
   token.
 
-## 3. Gate access — `GET /customers/:id/compliance?audience=…`
+## 3. Gate access — `GET /customers/compliance?customerId=…&audience=…`
 
 Query with **your** audience key. `compliant=false` only for `EXPIRED_BLOCKING` (or a blocking
 carry-over) — pending items alone never block. Recommended: check on login and periodically
 (≤ 15 min) per session, invalidate immediately after an acceptance, fail-open with the last
 cached result on outage.
 
-## 4. Show the popup — `GET /customers/:id/pending-agreements?audience=…`
+## 4. Show the popup — `GET /customers/pending-agreements?customerId=…&audience=…`
 
 Returns the open items (empty array = show nothing) with `versionLabel`, `changeSummary`,
 presigned `pdfUrl` (15-minute TTL — do not cache), `mode`, `deadlineAt`, `blocking`, `upcoming`
@@ -239,7 +243,7 @@ The service supports two kinds of document, distinguished by the document type's
   **upload the signed PDF** as immutable evidence. These are a pure archive: they **never** affect
   `GET /compliance`, the pending popup or deadlines.
 
-### Upload a signed document — `POST /customers/:id/signed-documents` → 201
+### Upload a signed document — `POST /customers/signed-documents?customerId=…` → 201
 
 Auth: the shared `x-service-token` (no `x-customer-id` needed — the customer is in the path). The
 uploader is taken from the forwarded `x-actor-*` headers (recorded as `uploadedBy`), never the body.
@@ -253,7 +257,7 @@ the real signature date), `signerName?`, `reference?` (e.g. `"HubSpot deal 12345
 201 returns the created record with a presigned `pdfUrl` and a host-computed `contentHash`
 (`sha256:…`). The record is append-only — a correction is a new upload, not an edit.
 
-### List — `GET /customers/:id/signed-documents`
+### List — `GET /customers/signed-documents?customerId=…`
 
 `{ items: [...] }`, newest first (each with a fresh presigned `pdfUrl`).
 

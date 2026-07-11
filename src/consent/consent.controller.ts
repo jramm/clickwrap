@@ -1,126 +1,141 @@
 /**
- * Portal/service endpoints of the consent module.
- * ServiceGuard provides req.customerContext; the customerId in the path MUST match it (FORBIDDEN).
+ * Integration consent endpoints (active consent, objection, delivery report). The customer is
+ * addressed by query parameter — either `customerId` or `externalRef` (+ required `audience`); see
+ * {@link resolveIntegrationCustomer}. Auth: shared `x-service-token` via {@link ServiceTokenGuard};
+ * the acting identity comes from the forwarded `x-actor-*` headers (and, for consent, the body's
+ * `signerName`/`signerEmail`), never a customer-context header. Channel = PORTAL.
  */
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Headers,
-  HttpCode,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBody, ApiCreatedResponse, ApiHeader, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Headers, HttpCode, Inject, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiCreatedResponse, ApiHeader, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import type { CustomerContext } from '../common/auth/actor.js';
-import { ServiceGuard } from '../common/auth/service.guard.js';
+import type { Actor, CustomerContext } from '../common/auth/actor.js';
+import { ServiceTokenGuard } from '../common/auth/service-token.guard.js';
+import { resolveIntegrationCustomer } from '../common/integration/resolve-customer.js';
 import { ApiErrorResponses } from '../common/openapi/api-error-responses.decorator.js';
-import { ServiceContextHeaders } from '../common/openapi/security.decorators.js';
-import { DomainError } from '../common/errors.js';
+import { ServiceApiKey } from '../common/openapi/security.decorators.js';
+import type { AudienceRepo, CustomerRepo } from '../domain/ports.js';
+import { TOKENS } from '../persistence/tokens.js';
 import { AcceptanceService, type AcceptanceResponse } from './acceptance.service.js';
 import {
-  acceptanceBodySchema,
+  integrationAcceptanceBodySchema,
   notificationBodySchema,
   objectionBodySchema,
   ZodBodyPipe,
-  type AcceptanceBody,
+  type IntegrationAcceptanceBody,
   type NotificationBody,
   type ObjectionBody,
 } from './dto.js';
 import { NotificationService, type NotificationResponse } from './notification.service.js';
 import { ObjectionService, type ObjectionResponse } from './objection.service.js';
 import {
-  AcceptanceBodyModel,
   AcceptanceResponseModel,
+  IntegrationAcceptanceBodyModel,
   NotificationBodyModel,
   NotificationResponseModel,
   ObjectionBodyModel,
   ObjectionResponseModel,
 } from './openapi.models.js';
 
-type RequestWithContext = Request & { customerContext?: CustomerContext };
+type RequestWithServiceActor = Request & { serviceActor?: Actor };
+
+const CUSTOMER_QUERY = [
+  { name: 'customerId', required: false, description: 'Internal customer id (exactly one of customerId | externalRef).' },
+  { name: 'externalRef', required: false, description: "Caller's external reference (requires audience)." },
+  { name: 'audience', required: false, description: 'Required with externalRef (resolution discriminator).' },
+] as const;
 
 @ApiTags('integration-consent')
-@ServiceContextHeaders()
-@ApiErrorResponses({
-  401: 'Missing/invalid service token or customer context.',
-  403: 'FORBIDDEN — path customerId does not match the auth context.',
-})
-@Controller('customers/:customerId')
-@UseGuards(ServiceGuard)
+@ServiceApiKey()
+@Controller('customers')
+@UseGuards(ServiceTokenGuard)
 export class ConsentController {
   constructor(
     private readonly acceptanceService: AcceptanceService,
     private readonly objectionService: ObjectionService,
     private readonly notificationService: NotificationService,
+    @Inject(TOKENS.CustomerRepo) private readonly customers: CustomerRepo,
+    @Inject(TOKENS.AudienceRepo) private readonly audiences: AudienceRepo,
   ) {}
 
+  /** POST /customers/acceptances?customerId=... | ?externalRef=...&audience=... — Idempotency-Key required. */
   @Post('acceptances')
   @ApiOperation({
     summary: 'Record active consent (Idempotency-Key required)',
     description:
-      'The actor comes exclusively from the auth context; displayedConsentText is only a ' +
-      'cross-check against the server-side versioned consent text. Replay with the same ' +
-      'Idempotency-Key returns the identical 201 response.',
+      'Resolves the customer by `customerId` or `externalRef`+`audience`, then records active ' +
+      'consent through the shared acceptance flow (idempotency, version-current check, ACTIVE ' +
+      'consent-text cross-check). The acting identity comes from `signerName`/`signerEmail` and/or ' +
+      'the `x-actor-*` headers; channel = PORTAL. Replay with the same Idempotency-Key returns the ' +
+      'identical 201.',
   })
+  @ApiQuery(CUSTOMER_QUERY[0])
+  @ApiQuery(CUSTOMER_QUERY[1])
+  @ApiQuery(CUSTOMER_QUERY[2])
   @ApiHeader({ name: 'Idempotency-Key', required: true })
-  @ApiBody({ type: AcceptanceBodyModel })
+  @ApiBody({ type: IntegrationAcceptanceBodyModel })
   @ApiCreatedResponse({ type: AcceptanceResponseModel })
   @ApiErrorResponses({
-    400: 'Missing Idempotency-Key / body validation failed (strict schema).',
-    404: 'VERSION_NOT_FOUND',
+    400: 'Bad customer selector / missing Idempotency-Key / body validation failed.',
+    401: 'Missing/invalid service token.',
+    404: 'CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND',
     409: 'ALREADY_ACCEPTED',
-    422: 'VERSION_NOT_CURRENT · ROLE_MISMATCH · CONSENT_TEXT_MISMATCH',
+    422: 'VERSION_NOT_CURRENT · ROLE_MISMATCH · CONSENT_TEXT_MISMATCH · UNKNOWN_AUDIENCE',
   })
   @HttpCode(201)
   async accept(
-    @Param('customerId') customerId: string,
-    @Body(new ZodBodyPipe(acceptanceBodySchema)) body: AcceptanceBody,
+    @Query('customerId') customerId: string | undefined,
+    @Query('externalRef') externalRef: string | undefined,
+    @Query('audience') audience: string | undefined,
+    @Body(new ZodBodyPipe(integrationAcceptanceBodySchema)) body: IntegrationAcceptanceBody,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
-    @Req() req: RequestWithContext,
+    @Req() req: RequestWithServiceActor,
   ): Promise<AcceptanceResponse> {
-    const context = this.contextFor(req, customerId);
+    const customer = await resolveIntegrationCustomer(this.customers, this.audiences, { customerId, externalRef, audience });
     return this.acceptanceService.accept({
-      customerId,
+      customerId: customer.id,
       versionId: body.versionId,
       displayedConsentText: body.displayedConsentText,
       idempotencyKey: this.requireIdempotencyKey(idempotencyKey),
-      context,
+      context: this.contextFor(req, customer.id, { name: body.signerName, email: body.signerEmail }),
+      channel: 'PORTAL',
     });
   }
 
+  /** POST /customers/objections?customerId=... | ?externalRef=...&audience=... — Idempotency-Key required. */
   @Post('objections')
-  @ApiOperation({
-    summary: 'Record an objection — PASSIVE versions within the objection period only (Idempotency-Key required)',
-  })
+  @ApiOperation({ summary: 'Record an objection — PASSIVE versions within the objection period only (Idempotency-Key required)' })
+  @ApiQuery(CUSTOMER_QUERY[0])
+  @ApiQuery(CUSTOMER_QUERY[1])
+  @ApiQuery(CUSTOMER_QUERY[2])
   @ApiHeader({ name: 'Idempotency-Key', required: true })
   @ApiBody({ type: ObjectionBodyModel })
   @ApiCreatedResponse({ type: ObjectionResponseModel })
   @ApiErrorResponses({
-    400: 'Missing Idempotency-Key / body validation failed.',
-    404: 'VERSION_NOT_FOUND',
-    422: 'OBJECTION_NOT_APPLICABLE · OBJECTION_PERIOD_EXPIRED',
+    400: 'Bad customer selector / missing Idempotency-Key / body validation failed.',
+    401: 'Missing/invalid service token.',
+    404: 'CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND',
+    422: 'OBJECTION_NOT_APPLICABLE · OBJECTION_PERIOD_EXPIRED · UNKNOWN_AUDIENCE',
   })
   @HttpCode(201)
   async object(
-    @Param('customerId') customerId: string,
+    @Query('customerId') customerId: string | undefined,
+    @Query('externalRef') externalRef: string | undefined,
+    @Query('audience') audience: string | undefined,
     @Body(new ZodBodyPipe(objectionBodySchema)) body: ObjectionBody,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
-    @Req() req: RequestWithContext,
+    @Req() req: RequestWithServiceActor,
   ): Promise<ObjectionResponse> {
-    const context = this.contextFor(req, customerId);
+    const customer = await resolveIntegrationCustomer(this.customers, this.audiences, { customerId, externalRef, audience });
     return this.objectionService.object({
-      customerId,
+      customerId: customer.id,
       versionId: body.versionId,
       reason: body.reason,
       idempotencyKey: this.requireIdempotencyKey(idempotencyKey),
-      context,
+      context: this.contextFor(req, customer.id),
     });
   }
 
+  /** POST /customers/notifications?customerId=... | ?externalRef=...&audience=... — naturally idempotent. */
   @Post('notifications')
   @ApiOperation({
     summary: 'Report delivery ("popup was displayed") — starts the deadline',
@@ -128,35 +143,53 @@ export class ConsentController {
       'notifiedAt is set to SERVER time, atomically and only from PENDING_NOTIFICATION. ' +
       'displayedAt is a plausibility check only. Naturally idempotent (no key needed).',
   })
+  @ApiQuery(CUSTOMER_QUERY[0])
+  @ApiQuery(CUSTOMER_QUERY[1])
+  @ApiQuery(CUSTOMER_QUERY[2])
   @ApiBody({ type: NotificationBodyModel })
   @ApiOkResponse({ type: NotificationResponseModel })
-  @ApiErrorResponses({ 400: 'Body validation failed.', 404: 'VERSION_NOT_FOUND', 422: 'INVALID_STATE' })
+  @ApiErrorResponses({
+    400: 'Bad customer selector / body validation failed.',
+    401: 'Missing/invalid service token.',
+    404: 'CUSTOMER_NOT_FOUND · VERSION_NOT_FOUND',
+    422: 'INVALID_STATE · UNKNOWN_AUDIENCE',
+  })
   @HttpCode(200)
   async notify(
-    @Param('customerId') customerId: string,
+    @Query('customerId') customerId: string | undefined,
+    @Query('externalRef') externalRef: string | undefined,
+    @Query('audience') audience: string | undefined,
     @Body(new ZodBodyPipe(notificationBodySchema)) body: NotificationBody,
-    @Req() req: RequestWithContext,
+    @Req() req: RequestWithServiceActor,
   ): Promise<NotificationResponse> {
-    const context = this.contextFor(req, customerId);
+    const customer = await resolveIntegrationCustomer(this.customers, this.audiences, { customerId, externalRef, audience });
     return this.notificationService.notify({
-      customerId,
+      customerId: customer.id,
       versionId: body.versionId,
       channel: body.channel,
       displayedAt: body.displayedAt ? new Date(body.displayedAt) : undefined,
-      context,
+      context: this.contextFor(req, customer.id),
     });
   }
 
-  /** The actor comes from the auth context; the path customerId must match the context. */
-  private contextFor(req: RequestWithContext, customerId: string): CustomerContext {
-    const context = req.customerContext;
-    if (!context) {
-      throw new DomainError('FORBIDDEN', 'No customer context');
-    }
-    if (context.customerId !== customerId) {
-      throw new DomainError('FORBIDDEN', 'customerId in the path does not match the auth context');
-    }
-    return context;
+  /**
+   * Evidence context. The actor is the portal user forwarded via `x-actor-*` (ServiceTokenGuard →
+   * req.serviceActor); a self-declared signer name/e-mail (consent only) takes precedence for the
+   * recorded name/e-mail. IP/UA are taken server-side.
+   */
+  private contextFor(req: RequestWithServiceActor, customerId: string, signer?: { name?: string; email?: string }): CustomerContext {
+    const actor: Actor = req.serviceActor ?? { userId: 'service' };
+    return {
+      customerId,
+      actor: {
+        userId: actor.userId,
+        name: signer?.name ?? actor.name,
+        email: signer?.email ?? actor.email,
+        portalRole: actor.portalRole,
+      },
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+    };
   }
 
   private requireIdempotencyKey(key: string | undefined): string {
