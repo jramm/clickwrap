@@ -6,7 +6,8 @@
 # ---------- backend build ----------
 FROM node:26-slim AS backend-build
 WORKDIR /app
-RUN corepack enable
+# Node 26 no longer bundles corepack, so install pnpm directly (lockfileVersion 9.0).
+RUN npm install -g pnpm@11.10.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
@@ -20,7 +21,8 @@ RUN pnpm build && test -f dist/main.js
 # ---------- admin-ui build ----------
 FROM node:26-slim AS adminui-build
 WORKDIR /ui
-RUN corepack enable
+# Node 26 no longer bundles corepack, so install pnpm directly (lockfileVersion 9.0).
+RUN npm install -g pnpm@11.10.0
 COPY admin-ui/package.json admin-ui/pnpm-lock.yaml admin-ui/pnpm-workspace.yaml* ./
 RUN pnpm install --frozen-lockfile
 COPY admin-ui/ ./
