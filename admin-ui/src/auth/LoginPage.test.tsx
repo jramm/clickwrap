@@ -40,7 +40,7 @@ describe('LoginPage — dynamic methods', () => {
     expect(await screen.findByTestId('dashboard-grid')).toBeInTheDocument();
   });
 
-  it('falls back to the legacy Google flow with a warning when the endpoint 404s', async () => {
+  it('shows a no-methods message (and warns) when the endpoint 404s — no legacy fallback', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     server.use(
       http.get(`${BASE}/admin/auth/methods`, () => new HttpResponse(null, { status: 404 })),
@@ -48,7 +48,8 @@ describe('LoginPage — dynamic methods', () => {
 
     renderWithProviders(<LoginPage />);
 
-    expect(await screen.findByTestId('login-method-google')).toBeInTheDocument();
+    expect(await screen.findByText('No login methods are available.')).toBeInTheDocument();
+    expect(screen.queryByTestId('login-method-google')).not.toBeInTheDocument();
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
   });

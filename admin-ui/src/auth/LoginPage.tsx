@@ -17,9 +17,9 @@ import type { AuthMethod } from './authMethods';
 /**
  * Login screen. Discovers the available admin login methods from the
  * unauthenticated `GET /admin/auth/methods` and renders one option per method
- * (Google SSO / dev token / OIDC redirect). If the endpoint is unavailable
- * (older backend), it falls back to the legacy Google flow using the deprecated
- * VITE_GOOGLE_CLIENT_ID and logs a warning.
+ * (Google SSO / dev token / OIDC redirect). All method parameters (incl. the Google
+ * clientId) come from the backend at runtime. If the endpoint is unavailable, no
+ * methods can be shown (a warning is logged).
  */
 export function LoginPage() {
   const { isAuthenticated } = useAuth();
@@ -35,9 +35,7 @@ export function LoginPage() {
   useEffect(() => {
     if (isError) {
       // eslint-disable-next-line no-console
-      console.warn(
-        '[login] GET /admin/auth/methods unavailable — falling back to the legacy Google flow (VITE_GOOGLE_CLIENT_ID).',
-      );
+      console.warn('[login] GET /admin/auth/methods unavailable — no login methods can be shown.');
     }
   }, [isError]);
 
@@ -45,11 +43,7 @@ export function LoginPage() {
     return <Navigate to="/" replace />;
   }
 
-  const legacyClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
-  const fallbackMethods: AuthMethod[] = [
-    { key: 'google', flow: 'google', label: t('login.google'), params: { clientId: legacyClientId } },
-  ];
-  const methods = data ?? (isError ? fallbackMethods : []);
+  const methods = data ?? [];
 
   return (
     <Box

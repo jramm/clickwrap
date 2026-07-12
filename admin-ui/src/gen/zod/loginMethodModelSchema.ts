@@ -18,6 +18,6 @@ export const loginMethodModelSchema = z.object({
     .object({})
     .catchall(z.any())
     .describe(
-      'Flow parameters — google: { clientId }, token: {}, oidc-redirect: { authorizeUrl, clientId? }. The Google clientId comes from the BACKEND env (GOOGLE_CLIENT_ID); a frontend-side VITE_GOOGLE_CLIENT_ID is obsolete.',
+      'Flow parameters — google: { clientId }, token: {}, oidc-redirect: { authorizeUrl, clientId? }. The Google clientId comes from the BACKEND env (GOOGLE_CLIENT_ID) — the admin UI takes it from here at runtime.',
     ),
 }) as unknown as z.ZodType<LoginMethodModel>;

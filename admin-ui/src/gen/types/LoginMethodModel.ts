@@ -21,7 +21,7 @@ export type LoginMethodModel = {
    */
   label: string;
   /**
-   * @description Flow parameters — google: { clientId }, token: {}, oidc-redirect: { authorizeUrl, clientId? }. The Google clientId comes from the BACKEND env (GOOGLE_CLIENT_ID); a frontend-side VITE_GOOGLE_CLIENT_ID is obsolete.
+   * @description Flow parameters — google: { clientId }, token: {}, oidc-redirect: { authorizeUrl, clientId? }. The Google clientId comes from the BACKEND env (GOOGLE_CLIENT_ID) — the admin UI takes it from here at runtime.
    * @type object
    */
   params: {
