@@ -252,19 +252,30 @@ To render the page with your own client UI (e.g. your own component library), sh
 plugin whose `renderAcceptPage` returns a **shell that hands the view-model to your client app** —
 the capability-token flow stays server-side, so no new API is needed:
 
-1. **Embed the view-model as JSON** in a `<script type="application/json">` tag (escape `</` to
-   `<\/` so it can't terminate the block or inject markup). This is the single source of truth for
-   your UI — including the exact `consentText` per item.
+1. **Embed the view-model as JSON** in a `<script type="application/json">` tag (escape `</` so it
+   can't terminate the block or inject markup) — use `renderEmbeddedView(view)` from the SDK's
+   `accept-client` entry so the client can read it back with `readEmbeddedView()`.
 2. **Load your client assets** from your own host (`<script src="https://your-ui.example/…">`,
    `<link rel="stylesheet" …>`). The default page is fully self-contained, but an org renderer is
    free to reference external assets.
 3. **Mount your client app**, which reads the embedded `AcceptancePageView` and renders the cards, the signer
    block and the accept controls in your design system.
-4. **POST the acceptance to the existing endpoint** `POST /accept/:token/acceptances` (same origin,
-   same body the default page sends: `{ versionId, displayedConsentText, signerName, signerEmail }`
-   — `displayedConsentText` omitted for `PASSIVE` early acceptance — plus an `Idempotency-Key`
-   header). The link token already in the URL is the auth; handle the same result codes the default
-   page does (`ALREADY_ACCEPTED`, `VERSION_NOT_CURRENT`, `RATE_LIMITED`, …).
+4. **Accept/object via the SDK client — you don't need to know the HTTP contract.** Import
+   `createAcceptanceClient` from `@jramm/clickwrap-plugin-sdk/accept-client`; it derives the
+   endpoints from the page URL, sets the `Idempotency-Key`, and maps `{ code, message }` errors to a
+   typed outcome:
+
+   ```ts
+   import { createAcceptanceClient, readEmbeddedView } from '@jramm/clickwrap-plugin-sdk/accept-client';
+   const view = readEmbeddedView();                       // the embedded AcceptancePageView
+   const client = createAcceptanceClient();               // basePath defaults to /accept/<token>
+   const r = await client.accept({ versionId, displayedConsentText, signerName, signerEmail });
+   if (!r.ok && r.code === 'ALREADY_ACCEPTED') { /* … */ }   // typed result + error codes
+   await client.object({ versionId, reason, signerName, signerEmail });
+   ```
+
+   (Under the hood it POSTs to `/accept/:token/acceptances` and `…/objections` — the same contract
+   the default page uses; `displayedConsentText` is omitted for a `PASSIVE` early acceptance.)
 
 Activate it with `ACCEPTANCE_PAGE=<key>`. A minimal skeleton:
 

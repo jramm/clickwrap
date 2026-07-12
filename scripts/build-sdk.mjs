@@ -22,7 +22,11 @@ const pkg = {
   type: 'module',
   main: './index.js',
   types: './index.d.ts',
-  exports: { '.': { types: './index.d.ts', default: './index.js' } },
+  exports: {
+    '.': { types: './index.d.ts', default: './index.js' },
+    // Browser client for the hosted acceptance page (kept out of the main entry).
+    './accept-client': { types: './accept-client.d.ts', default: './accept-client.js' },
+  },
   files: ['**/*.js', '**/*.d.ts', 'README.md', 'LICENSE'],
   repository: { type: 'git', url: 'git+https://github.com/jramm/clickwrap.git', directory: 'src/plugin-sdk' },
   // Only needed by plugins that ship a module() (controllers/jobs); the type import is erased at
