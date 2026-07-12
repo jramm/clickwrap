@@ -143,6 +143,34 @@ describeIfDb('PrismaCustomerVersionStateRepo (against real Postgres)', () => {
     });
   });
 
+  describe('findDueForNotification / clearNotificationDue (@@index([state, notificationDueAt]))', () => {
+    it('returns PENDING_NOTIFICATION states with notificationDueAt set, oldest first; excludes NOTIFIED / no-due; the field round-trips', async () => {
+      await repo.save(aState({ id: 'due-old', customerId: 'c-123', state: 'PENDING_NOTIFICATION', notificationDueAt: new Date('2026-07-01T00:00:00Z') }));
+      await repo.save(aState({ id: 'due-new', customerId: 'c-2', state: 'PENDING_NOTIFICATION', notificationDueAt: new Date('2026-07-05T00:00:00Z') }));
+      await repo.save(aState({ id: 'no-due', customerId: 'c-3', state: 'PENDING_NOTIFICATION' }));
+      await repo.save(aState({ id: 'notified', customerId: 'c-4', state: 'NOTIFIED', notifiedAt: T0, notificationDueAt: new Date('2026-07-02T00:00:00Z') }));
+
+      const due = await repo.findDueForNotification(10);
+      expect(due.map((s) => s.id)).toEqual(['due-old', 'due-new']);
+      expect((await repo.findById('due-old'))?.notificationDueAt).toEqual(new Date('2026-07-01T00:00:00Z'));
+    });
+
+    it('respects the limit', async () => {
+      await repo.save(aState({ id: 'a', customerId: 'c-123', state: 'PENDING_NOTIFICATION', notificationDueAt: new Date('2026-07-01T00:00:00Z') }));
+      await repo.save(aState({ id: 'b', customerId: 'c-2', state: 'PENDING_NOTIFICATION', notificationDueAt: new Date('2026-07-02T00:00:00Z') }));
+      expect(await repo.findDueForNotification(1)).toHaveLength(1);
+    });
+
+    it('clearNotificationDue clears only notificationDueAt, leaving state untouched', async () => {
+      await repo.save(aState({ id: 'due', customerId: 'c-123', state: 'PENDING_NOTIFICATION', notificationDueAt: T0 }));
+      await repo.clearNotificationDue('due');
+      const cleared = await repo.findById('due');
+      expect(cleared?.notificationDueAt).toBeUndefined();
+      expect(cleared?.state).toBe('PENDING_NOTIFICATION');
+      expect(await repo.findDueForNotification(10)).toHaveLength(0);
+    });
+  });
+
   describe('findOpenByVersion', () => {
     it('returns all non-terminal states of the version (without ACCEPTED/SUPERSEDED)', async () => {
       await repo.save(aState({ id: 'p', customerId: 'c-123', state: 'PENDING_NOTIFICATION' }));

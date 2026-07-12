@@ -304,6 +304,11 @@ model CustomerVersionState {
   // predecessorWasBlocking). Set by publish/rollout; default false = normal case.
   carryOverBlocking Boolean @default(false)
 
+  // Set at publish rollout: this state still owes a "new version published" e-mail. The
+  // rollout-notification sweeper sends it async (off the publish request) and clears it on success.
+  // NULL = nothing owed (default; only publish sets it).
+  notificationDueAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -314,6 +319,8 @@ model CustomerVersionState {
   @@index([customerId, state])
   // Hot path deadline sweeper (daily).
   @@index([state, deadlineAt])
+  // Rollout-notification sweeper: state=PENDING_NOTIFICATION AND notificationDueAt IS NOT NULL.
+  @@index([state, notificationDueAt])
   // Per-version lookups (findByVersion / findOpenByVersion at publish + version customer list):
   // the (customerId, versionId) unique index can't serve a versionId-only predicate, so without
   // this every such query seq-scans the whole table. Leading versionId + state also covers the

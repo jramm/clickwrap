@@ -14,7 +14,6 @@ import type {
 } from '../domain/ports.js';
 import type { CustomerVersionState } from '../domain/types.js';
 import { ADMIN_AUDIT_TOKEN, type AdminAuditRepo } from './audit.js';
-import { AGREEMENTS_TOKENS, type RolloutNotifier } from './ports.js';
 import { newId } from './ids.js';
 
 export interface PublishResult {
@@ -32,7 +31,9 @@ export interface PublishResult {
  *  4. all open CustomerVersionStates of the predecessor version → supersede() (returns wasBlocking)
  *  5. rollout: new PENDING_NOTIFICATION state per customer with a matching role;
  *     carryOverBlocking=true when the predecessor state was EXPIRED_BLOCKING
- *  6. e-mail delivery via RolloutNotifier; audit log (PUBLISH)
+ *  6. mark each rollout state notificationDueAt; audit log (PUBLISH). The rollout e-mails are sent
+ *     ASYNCHRONOUSLY afterwards by RolloutNotificationSweeper — publish itself does no e-mail I/O,
+ *     so it returns immediately regardless of how many customers are rolled out.
  *
  * Scheduled effectiveness (validFrom in the future): steps 3+4 are DEFERRED — the predecessor
  * stays PUBLISHED (it remains the compliance baseline until the flip at validFrom) and its open
@@ -47,7 +48,6 @@ export class PublishService {
     @Inject(TOKENS.AgreementDocumentRepo) private readonly documents: AgreementDocumentRepo,
     @Inject(TOKENS.CustomerRepo) private readonly customers: CustomerRepo,
     @Inject(TOKENS.CustomerVersionStateRepo) private readonly states: CustomerVersionStateRepo,
-    @Inject(AGREEMENTS_TOKENS.RolloutNotifier) private readonly notifier: RolloutNotifier,
     @Inject(ADMIN_AUDIT_TOKEN) private readonly audit: AdminAuditRepo,
     @Inject(TOKENS.Clock) private readonly clock: Clock,
     @Optional() private readonly recorder?: EventRecorder,
@@ -67,7 +67,7 @@ export class PublishService {
 
     const publishedAt = this.clock.now();
     const effectiveImmediately = version.validFrom.getTime() <= publishedAt.getTime();
-    const published = await this.versions.save({
+    await this.versions.save({
       ...version,
       status: 'PUBLISHED',
       publishedAt,
@@ -119,6 +119,9 @@ export class PublishService {
         deadlineAt: rolloutDeadlineFor(version),
         remindersSent: 0,
         carryOverBlocking: carryOverBlocking ? true : undefined,
+        // The rollout e-mail is sent ASYNCHRONOUSLY by RolloutNotificationSweeper (off this
+        // request), so publishing to many customers never blocks / times out. Cleared once sent.
+        notificationDueAt: publishedAt,
       };
       await this.states.save(state);
       // Authoritative "customer put under obligation" record — crucial for customers without a
@@ -136,7 +139,6 @@ export class PublishService {
         versionLabel: version.versionLabel,
         summary: `Customer put under obligation for version ${version.versionLabel}`,
       });
-      await this.notifier.notifyVersionPublished(customer, published);
     }
 
     await this.audit.append({

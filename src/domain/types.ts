@@ -237,6 +237,14 @@ export interface CustomerVersionState {
    * Set by publish/rollout.
    */
   carryOverBlocking?: boolean;
+  /**
+   * Set at publish rollout: this state still owes its "new version published" notification e-mail.
+   * The rollout-notification sweeper (src/sweeper/rollout-notification.*) sends it ASYNCHRONOUSLY —
+   * off the publish request, so publishing to many customers never blocks — and clears it on a
+   * successful send (a failed send leaves it set → retried on the next run). undefined = nothing
+   * owed (the default; onboarding/manual/activation-created states are not swept for rollout mail).
+   */
+  notificationDueAt?: Date;
 }
 
 export type AcceptanceMethod = 'ACTIVE_CONSENT' | 'TACIT' | 'IMPORT';

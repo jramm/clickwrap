@@ -59,6 +59,21 @@ export class InMemoryCustomerVersionStateRepo implements CustomerVersionStateRep
     );
   }
 
+  async findDueForNotification(limit: number): Promise<CustomerVersionState[]> {
+    const due = [...this.states.values()]
+      .filter((s) => s.state === 'PENDING_NOTIFICATION' && s.notificationDueAt !== undefined)
+      .sort((a, b) => (a.notificationDueAt as Date).getTime() - (b.notificationDueAt as Date).getTime());
+    return deepCopy(due.slice(0, limit));
+  }
+
+  async clearNotificationDue(id: string): Promise<void> {
+    const stored = this.states.get(id);
+    if (stored) {
+      // Single-column write — leave `state` untouched so a concurrent accept/supersede is not lost.
+      this.states.set(id, { ...stored, notificationDueAt: undefined });
+    }
+  }
+
   async setNotifiedAtomically(
     id: string,
     update: Pick<CustomerVersionState, 'state' | 'notifiedAt' | 'deadlineAt'>,

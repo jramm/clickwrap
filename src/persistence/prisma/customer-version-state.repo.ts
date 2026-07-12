@@ -81,6 +81,22 @@ export class PrismaCustomerVersionStateRepo implements CustomerVersionStateRepo 
     return rows.map(toDomain);
   }
 
+  async findDueForNotification(limit: number): Promise<CustomerVersionState[]> {
+    // state=PENDING_NOTIFICATION AND notificationDueAt IS NOT NULL, oldest first.
+    // Covered by @@index([state, notificationDueAt]).
+    const rows = await this.prisma.customerVersionState.findMany({
+      where: { state: 'PENDING_NOTIFICATION', notificationDueAt: { not: null } },
+      orderBy: { notificationDueAt: 'asc' },
+      take: limit,
+    });
+    return rows.map(toDomain);
+  }
+
+  async clearNotificationDue(id: string): Promise<void> {
+    // Single-column UPDATE (never touches `state`) — updateMany so an unknown id is a no-op count=0.
+    await this.prisma.customerVersionState.updateMany({ where: { id }, data: { notificationDueAt: null } });
+  }
+
   async setNotifiedAtomically(
     id: string,
     update: Pick<CustomerVersionState, 'state' | 'notifiedAt' | 'deadlineAt'>,

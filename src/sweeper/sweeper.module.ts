@@ -22,6 +22,8 @@ import { SWEEPER_TOKENS } from './ports.js';
 import { InMemoryReminderCandidateRepo } from './reminder-candidate.repo.inmemory.js';
 import { ReminderJob } from './reminder.job.js';
 import { ReminderService } from './reminder.service.js';
+import { RolloutNotificationJob } from './rollout-notification.job.js';
+import { RolloutNotificationService } from './rollout-notification.service.js';
 
 @Module({
   providers: [
@@ -30,9 +32,13 @@ import { ReminderService } from './reminder.service.js';
     DeadlineSweeperJob,
     ReminderService,
     ReminderJob,
+    // Sends publish-rollout e-mails asynchronously (off the publish request). The notifier
+    // (AgreementRolloutNotifier) comes from the @Global EmailModule — no import needed here.
+    RolloutNotificationService,
+    RolloutNotificationJob,
     { provide: SWEEPER_TOKENS.ReminderCandidateRepo, useClass: InMemoryReminderCandidateRepo },
     { provide: SWEEPER_TOKENS.ReminderMailer, useExisting: AgreementEmailService },
   ],
-  exports: [ActivationSweeperService, DeadlineSweeperService, ReminderService],
+  exports: [ActivationSweeperService, DeadlineSweeperService, ReminderService, RolloutNotificationService],
 })
 export class SweeperModule {}

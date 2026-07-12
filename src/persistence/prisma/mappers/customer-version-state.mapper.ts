@@ -16,6 +16,7 @@ export const toDomain = (row: PrismaCustomerVersionState): CustomerVersionState 
   deadlineAt: nullToUndefined(row.deadlineAt),
   remindersSent: row.remindersSent,
   carryOverBlocking: row.carryOverBlocking,
+  notificationDueAt: nullToUndefined(row.notificationDueAt),
 });
 
 /** Domain type → Prisma create/update data (lastReminderAt remains untouched, see above). */
@@ -29,6 +30,7 @@ export const toUpsertData = (
   deadlineAt: Date | null;
   remindersSent: number;
   carryOverBlocking: boolean;
+  notificationDueAt: Date | null;
 } => ({
   customerId: state.customerId,
   versionId: state.versionId,
@@ -37,4 +39,5 @@ export const toUpsertData = (
   deadlineAt: state.deadlineAt ?? null,
   remindersSent: state.remindersSent,
   carryOverBlocking: state.carryOverBlocking ?? false,
+  notificationDueAt: state.notificationDueAt ?? null,
 });

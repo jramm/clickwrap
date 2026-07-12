@@ -44,7 +44,10 @@ describe('PublishService', () => {
     audit = new InMemoryAdminAuditRepo();
     clock = new FixedClock(T0);
     events = new InMemoryEventRepo();
-    service = new PublishService(versions, documents, customers, states, notifier, audit, clock, new EventRecorder(events, clock));
+    // NOTE: publish no longer takes a notifier — rollout e-mails are sent asynchronously by
+    // RolloutNotificationService (see rollout-notification.service.spec.ts). The `notifier` here is
+    // only used to assert publish sends NOTHING inline.
+    service = new PublishService(versions, documents, customers, states, audit, clock, new EventRecorder(events, clock));
     await documents.save({ id: 'doc-dpa-customer', type: 'dpa', audience: 'customer', name: 'DPA — Customers' });
   });
 
@@ -86,8 +89,9 @@ describe('PublishService', () => {
 
       expect(result).toMatchObject({ versionId: 'v-next', status: 'PUBLISHED', rolloutCustomers: 1, publishedAt: T0 });
       expect(await versions.findById('v-next')).toMatchObject({ status: 'PUBLISHED', publishedAt: T0, publishedBy: 'admin-1' });
-      expect(await states.findByCustomerAndVersion('c-1', 'v-next')).toMatchObject({ state: 'PENDING_NOTIFICATION' });
-      expect(notifier.published).toEqual([{ customerId: 'c-1', versionId: 'v-next' }]);
+      // Rollout queued for async notification (notificationDueAt set), no inline e-mail.
+      expect(await states.findByCustomerAndVersion('c-1', 'v-next')).toMatchObject({ state: 'PENDING_NOTIFICATION', notificationDueAt: T0 });
+      expect(notifier.published).toEqual([]);
     });
 
     it('does NOT retire the predecessor and does NOT supersede its open states — the old version stays the compliance baseline until the flip', async () => {
@@ -164,13 +168,11 @@ describe('PublishService', () => {
 
       expect(result.rolloutCustomers).toBe(2);
       const s1 = await states.findByCustomerAndVersion('c-1', 'v-1');
-      expect(s1).toMatchObject({ state: 'PENDING_NOTIFICATION', remindersSent: 0 });
-      expect(notifier.published).toEqual(
-        expect.arrayContaining([
-          { customerId: 'c-1', versionId: 'v-1' },
-          { customerId: 'c-2', versionId: 'v-1' },
-        ]),
-      );
+      expect(s1).toMatchObject({ state: 'PENDING_NOTIFICATION', remindersSent: 0, notificationDueAt: T0 });
+      // Each rollout state is queued for async notification; publish sends no e-mail itself.
+      const s2 = await states.findByCustomerAndVersion('c-2', 'v-1');
+      expect(s2).toMatchObject({ state: 'PENDING_NOTIFICATION', notificationDueAt: T0 });
+      expect(notifier.published).toEqual([]);
     });
 
     it('ACTIVE rollout stamps the absolute hard deadline on each created state (before any access)', async () => {

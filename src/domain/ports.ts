@@ -152,6 +152,16 @@ export interface CustomerVersionStateRepo {
   /** Sweeper candidates: state=NOTIFIED and deadlineAt <= now. */
   findDueForSweep(now: Date): Promise<CustomerVersionState[]>;
   /**
+   * Rollout-notification sweeper candidates: state=PENDING_NOTIFICATION and notificationDueAt set
+   * (the state still owes its rollout e-mail), oldest first, capped at `limit`.
+   */
+  findDueForNotification(limit: number): Promise<CustomerVersionState[]>;
+  /**
+   * Clears notificationDueAt (single-column write — never touches `state`, so it can't clobber a
+   * concurrent accept/supersede), after the rollout e-mail was sent. No-op for an unknown id.
+   */
+  clearNotificationDue(id: string): Promise<void>;
+  /**
    * Atomic delivery (SET notifiedAt=... WHERE notifiedAt IS NULL AND state='PENDING_NOTIFICATION'):
    * writes state/notifiedAt/deadlineAt only if notifiedAt is still empty AND the state is still
    * PENDING_NOTIFICATION — a state that became SUPERSEDED/ACCEPTED in the meantime is never
