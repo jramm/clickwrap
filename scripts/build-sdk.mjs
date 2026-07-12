@@ -33,7 +33,7 @@ const pkg = {
   // runtime, so plugins without one need no dependency at all.
   peerDependencies: { '@nestjs/common': '>=11' },
   peerDependenciesMeta: { '@nestjs/common': { optional: true } },
-  publishConfig: { registry: 'https://registry.npmjs.org', access: 'public' },
+  publishConfig: { registry: 'https://npm.pkg.github.com' },
   engines: { node: '>=20' },
 };
 writeFileSync('sdk-dist/package.json', `${JSON.stringify(pkg, null, 2)}\n`);
