@@ -1972,6 +1972,11 @@
             "example": "dpa",
             "description": "Document type key."
           },
+          "documentName": {
+            "type": "string",
+            "example": "Data Processing Agreement",
+            "description": "Human-readable document name (heading)."
+          },
           "audience": {
             "type": "string",
             "example": "customer",
@@ -1996,6 +2001,11 @@
               "PASSIVE"
             ]
           },
+          "consentText": {
+            "type": "string",
+            "example": "I have read and accept the Data Processing Agreement.",
+            "description": "ACTIVE only — the exact checkbox consent text. A consumer recording acceptances MUST echo this back verbatim as displayedConsentText (server-side CONSENT_TEXT_MISMATCH check)."
+          },
           "deadlineAt": {
             "type": "string",
             "format": "date-time"
@@ -2012,11 +2022,21 @@
             "type": "string",
             "format": "date-time",
             "description": "Date from which the revision applies."
+          },
+          "canObject": {
+            "type": "boolean",
+            "description": "PASSIVE, in-effect items may still be objected to within the objection period."
+          },
+          "objectionConsequence": {
+            "type": "string",
+            "example": "Objecting keeps the previous terms until the contract ends.",
+            "description": "PASSIVE only — version-specific text explaining what objecting means."
           }
         },
         "required": [
           "versionId",
           "documentType",
+          "documentName",
           "audience",
           "versionLabel",
           "changeSummary",
@@ -2024,7 +2044,8 @@
           "mode",
           "blocking",
           "upcoming",
-          "validFrom"
+          "validFrom",
+          "canObject"
         ]
       },
       "LinkAcceptanceBodyModel": {

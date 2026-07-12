@@ -11,7 +11,7 @@ import {
   InMemoryCustomerRepo,
   InMemoryCustomerVersionStateRepo,
 } from '../persistence/inmemory/index.js';
-import { aCustomer, aDocument, aState, anActiveVersion, anAudience } from '../domain/testing/fixtures.js';
+import { aCustomer, aDocument, aState, aVersion, anActiveVersion, anAudience } from '../domain/testing/fixtures.js';
 import { PendingAgreementsService } from './pending-agreements.service.js';
 import { FakePdfUrlProvider } from './testing/fake-pdf-url-provider.js';
 
@@ -107,15 +107,43 @@ describe('PendingAgreementsService', () => {
       expect.objectContaining({
         versionId: version.id,
         documentType: 'dpa',
+        documentName: expect.any(String),
         audience: 'customer',
         versionLabel: 'June 2026 edition',
         changeSummary: 'New sub-processor for e-mail delivery.',
         mode: 'ACTIVE',
+        // ACTIVE carries the checkbox consent text (needed for the acceptance cross-check); an
+        // ACTIVE item is never objectable.
+        consentText: version.consentText,
+        canObject: false,
         blocking: false,
         deadlineAt: undefined,
       }),
     ]);
+    expect(result[0].consentText).toBeDefined();
     expect(result[0].pdfUrl).toBe('https://fake-storage.test/presigned/s3%3A%2F%2Fbucket%2Fv-dpa-c.pdf?expires=900');
+  });
+
+  it('PASSIVE in-effect item exposes canObject=true + objectionConsequence, no consentText (parity with the hosted page)', async () => {
+    const customer = await customers.save(aCustomer());
+    const document = aDocument({ id: 'doc-tos-c', type: 'tos', audience: 'customer' });
+    await documentsRepo.save(document);
+    const version = aVersion({
+      id: 'v-tos-c',
+      documentId: 'doc-tos-c',
+      objectionConsequence: 'Objecting keeps the previous terms until the contract ends.',
+    });
+    await versionsRepo.save(version);
+    await statesRepo.save(aState({ versionId: version.id, state: 'NOTIFIED', notifiedAt: T0, deadlineAt: DEADLINE }));
+
+    const result = await service.getPendingAgreements(customer.id, 'customer');
+
+    expect(result[0]).toMatchObject({
+      mode: 'PASSIVE',
+      canObject: true,
+      objectionConsequence: 'Objecting keeps the previous terms until the contract ends.',
+    });
+    expect(result[0].consentText).toBeUndefined();
   });
 
   it('carry-over: PENDING_NOTIFICATION with carryOverBlocking appears as blocking=true (blocking popup)', async () => {

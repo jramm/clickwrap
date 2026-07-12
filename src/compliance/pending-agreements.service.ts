@@ -29,18 +29,30 @@ export interface PendingAgreementItem {
   versionId: string;
   /** Document type key. */
   documentType: string;
+  /** Human-readable document name (heading), falls back to the type key when unnamed. */
+  documentName: string;
   /** Audience key. */
   audience: string;
   versionLabel: string;
   changeSummary: string;
   pdfUrl: string;
   mode: AcceptanceMode;
+  /**
+   * ACTIVE only — the exact checkbox consent text. The acceptance POST must echo it verbatim
+   * (server-side CONSENT_TEXT_MISMATCH check), so a consumer that records acceptances MUST surface
+   * this value and send it back. Undefined for PASSIVE (no consent checkbox).
+   */
+  consentText?: string;
   deadlineAt?: Date;
   blocking: boolean;
   /** true = published but not yet in effect (validFrom in the future) — advance acceptance. */
   upcoming: boolean;
   /** Date from which the revision applies (informational; relevant for upcoming items). */
   validFrom: Date;
+  /** PASSIVE, in-effect items may still be objected to within the objection period. */
+  canObject: boolean;
+  /** PASSIVE only — version-specific text explaining what objecting means (undefined when none). */
+  objectionConsequence?: string;
 }
 
 @Injectable()
@@ -94,15 +106,21 @@ export class PendingAgreementsService {
         items.push({
           versionId: version.id,
           documentType: document.type,
+          documentName: document.name ?? document.type,
           audience: document.audience,
           versionLabel: version.versionLabel,
           changeSummary: version.changeSummary,
           pdfUrl: await this.pdfUrlProvider.getPresignedUrl(version.storageKey),
           mode: version.acceptanceMode,
+          consentText: version.consentText,
           deadlineAt: state.deadlineAt,
           blocking: isBlocking(state),
           upcoming: isUpcoming,
           validFrom: version.validFrom,
+          // PASSIVE, in-effect items can be objected to within the objection period (same rule the
+          // hosted acceptance page uses); ACTIVE / upcoming items cannot.
+          canObject: version.acceptanceMode === 'PASSIVE' && !isUpcoming,
+          objectionConsequence: version.objectionConsequence,
         });
       }
     }

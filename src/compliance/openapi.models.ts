@@ -63,6 +63,9 @@ export class PendingAgreementItemModel {
   @ApiProperty({ example: 'dpa', description: 'Document type key.' })
   documentType!: string;
 
+  @ApiProperty({ example: 'Data Processing Agreement', description: 'Human-readable document name (heading).' })
+  documentName!: string;
+
   @ApiProperty({ example: 'customer', description: 'Audience key.' })
   audience!: string;
 
@@ -77,6 +80,14 @@ export class PendingAgreementItemModel {
 
   @ApiProperty({ enum: ['ACTIVE', 'PASSIVE'] })
   mode!: string;
+
+  @ApiPropertyOptional({
+    example: 'I have read and accept the Data Processing Agreement.',
+    description:
+      'ACTIVE only — the exact checkbox consent text. A consumer recording acceptances MUST echo ' +
+      'this back verbatim as displayedConsentText (server-side CONSENT_TEXT_MISMATCH check).',
+  })
+  consentText?: string;
 
   @ApiPropertyOptional({ type: String, format: 'date-time' })
   deadlineAt?: Date;
@@ -93,4 +104,13 @@ export class PendingAgreementItemModel {
 
   @ApiProperty({ type: String, format: 'date-time', description: 'Date from which the revision applies.' })
   validFrom!: Date;
+
+  @ApiProperty({ description: 'PASSIVE, in-effect items may still be objected to within the objection period.' })
+  canObject!: boolean;
+
+  @ApiPropertyOptional({
+    example: 'Objecting keeps the previous terms until the contract ends.',
+    description: 'PASSIVE only — version-specific text explaining what objecting means.',
+  })
+  objectionConsequence?: string;
 }
