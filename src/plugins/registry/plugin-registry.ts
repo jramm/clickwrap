@@ -8,11 +8,14 @@
  *     `devDependencies` whose own package.json carries the `"clickwrap"` manifest field.
  *  3. **`CLICKWRAP_PLUGIN_PATHS`**: comma-separated local plugin directories (each a package.json +
  *     main entry), loaded explicitly by path.
- *  4. **`CLICKWRAP_PLUGIN_DIR`**: comma-separated directories that are SCANNED — every immediate
- *     subdirectory carrying a `"clickwrap"` manifest is loaded as a plugin. This is the "drop-in"
- *     path: mount a volume of plugins (default scan dir `/app/plugins` in the container images) and
- *     they are picked up at boot with no per-plugin config. Subdirs without a manifest are ignored;
- *     a missing scan dir is a no-op.
+ *  4. **`CLICKWRAP_PLUGIN_DIR`**: comma-separated directories that are SCANNED (default scan dir
+ *     `/app/plugins` in the container images). Two layouts are picked up, so no per-plugin config
+ *     and no rebuild are needed:
+ *       - immediate subdirectories carrying a `"clickwrap"` manifest — the "drop-in" case (mount a
+ *         volume of plugin folders);
+ *       - a `node_modules` under the scan dir — so a PUBLISHED plugin package is consumed with
+ *         `npm install --prefix <scanDir> @scope/plugin` (the package + its deps land here).
+ *     Entries without a manifest are ignored; a missing scan dir is a no-op.
  *
  * The module main entry must default-export a plugin matching the manifest's kind/key
  * (validated structurally — see `isClickwrapPlugin`). Every loaded plugin is logged one-line.
@@ -182,12 +185,32 @@ export class PluginRegistry {
       this.logger.log(`plugin scan dir ${dir} not present — skipping`);
       return;
     }
+    // (a) immediate subdirectories that are themselves plugin packages (drop-in source/built dirs).
     for (const name of readdirSync(dir)) {
-      const subdir = join(dir, name);
-      const pkg = readPackageJson(subdir);
-      if (!pkg || pkg.clickwrap === undefined) continue; // not a plugin directory — ignore
-      this.loadPath(subdir);
+      this.loadIfPlugin(join(dir, name));
     }
+    // (b) an npm-installed layout under <dir>/node_modules — so consuming a PUBLISHED plugin package
+    //     is just `npm install --prefix <dir> @scope/plugin` (no source clone, no rebuild); the
+    //     package and its deps land here and are picked up. Scoped packages nest one level deeper.
+    const nodeModules = join(dir, 'node_modules');
+    if (existsSync(nodeModules) && statSync(nodeModules).isDirectory()) {
+      for (const name of readdirSync(nodeModules)) {
+        if (name.startsWith('.')) continue; // .bin, .package-lock.json, etc.
+        const entry = join(nodeModules, name);
+        if (name.startsWith('@') && statSync(entry).isDirectory()) {
+          for (const scoped of readdirSync(entry)) this.loadIfPlugin(join(entry, scoped));
+        } else {
+          this.loadIfPlugin(entry);
+        }
+      }
+    }
+  }
+
+  /** Loads `dir` as a plugin iff it carries a "clickwrap" manifest; otherwise ignores it. */
+  private loadIfPlugin(dir: string): void {
+    const pkg = readPackageJson(dir);
+    if (!pkg || pkg.clickwrap === undefined) return;
+    this.loadPath(dir);
   }
 }
 

@@ -347,3 +347,33 @@ EMAIL_PROVIDER=acme            # + the plugin's own env (ACME_API_TOKEN=…)
 Test the boot: the registry logs your plugin; an invalid export, a manifest mismatch or a
 duplicate key fails the boot with a descriptive error (see `test/plugin-discovery.spec.ts` for the
 exact behavior).
+
+## Using a published plugin package (no source clone, no clickwrap rebuild)
+
+Once your plugin is published to a registry (npm / GitHub Packages), consume it as a **package** —
+you never clone or mount its source. Pick one:
+
+**A. Derived image (recommended — immutable, version-pinned).** A ~3-line image `FROM` a clickwrap
+image installs the package into the scan dir; the registry's `node_modules` scan picks it up:
+
+```dockerfile
+FROM ghcr.io/jramm/clickwrap-combined:0.2.0
+# (private registry? add an .npmrc/token here). --prefix keeps it out of the app's own node_modules.
+RUN npm install --prefix /app/plugins @acme/clickwrap-email
+ENV EMAIL_PROVIDER=acme            # activate it (+ the plugin's own env, e.g. ACME_API_TOKEN)
+```
+
+**B. No image build — install into a mounted volume at runtime.** Pre-install the package into a
+volume (host, CI, or an initContainer) and mount it at the scan dir (`/app/plugins`):
+
+```bash
+npm install --prefix ./clickwrap-plugins @acme/clickwrap-email     # once, anywhere
+docker run -p 3000:3000 \
+  -v "$PWD/clickwrap-plugins:/app/plugins:ro" \
+  -e EMAIL_PROVIDER=acme \
+  ghcr.io/jramm/clickwrap-combined:0.2.0
+```
+
+Both drop `@acme/clickwrap-email` (and its deps) into `/app/plugins/node_modules`, which `CLICKWRAP_PLUGIN_DIR`
+(default `/app/plugins`) scans — the package is loaded by its manifest, its deps resolve locally, and
+activation is the usual env var. No source beside the container.

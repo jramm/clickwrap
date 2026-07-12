@@ -74,6 +74,20 @@ describe('PluginRegistry', () => {
     expect(registry.keys('email-provider')).toContain('dropin');
   });
 
+  it('scans an npm-installed layout in the scan dir (published package via node_modules, incl. scoped)', () => {
+    const scanDir = join(root, 'plugins');
+    // Simulate `npm install --prefix <scanDir> @acme/mailer other-storage`.
+    writePluginPackage(join(scanDir, 'node_modules', '@acme', 'mailer'), { kind: 'email-provider', key: 'acme-pub' });
+    writePluginPackage(join(scanDir, 'node_modules', 'other-storage'), { kind: 'file-storage', key: 'other-pub' });
+    // A regular dependency (no clickwrap manifest) in node_modules is ignored.
+    mkdirSync(join(scanDir, 'node_modules', 'left-pad'), { recursive: true });
+    writeFileSync(join(scanDir, 'node_modules', 'left-pad', 'package.json'), JSON.stringify({ name: 'left-pad' }));
+
+    const registry = PluginRegistry.bootstrap({ appRoot: root, pluginPaths: [], pluginDirs: [scanDir] });
+    expect(registry.keys('email-provider')).toContain('acme-pub');
+    expect(registry.keys('file-storage')).toContain('other-pub');
+  });
+
   it('treats a missing scan dir as a no-op (built-ins still load, no throw)', () => {
     const registry = PluginRegistry.bootstrap({ appRoot: root, pluginPaths: [], pluginDirs: [join(root, 'absent')] });
     expect(registry.keys('email-provider')).toContain('noop');
