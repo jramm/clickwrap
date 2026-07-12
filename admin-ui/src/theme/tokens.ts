@@ -2,8 +2,8 @@
  * Design tokens — the single source of truth for the visual language.
  *
  * These are neutral, brand-agnostic defaults (indigo primary, teal secondary).
- * To re-brand the app, adjust the ramps below (and, if desired, the app name via
- * the VITE_APP_NAME env var). `src/theme/theme.ts` maps these tokens onto MUI's
+ * To re-brand the app, adjust the ramps below (and, if desired, the app name in
+ * `src/config.ts`). `src/theme/theme.ts` maps these tokens onto MUI's
  * semantic palette; the `src/ui/` adapter layer consumes only the resulting
  * theme, so a re-brand never touches page or component code.
  */

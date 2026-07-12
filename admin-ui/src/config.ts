@@ -1,6 +1,6 @@
 /**
- * Global app configuration derived from build-time environment variables.
- * The brand name shown in the AppBar, page title and login screen is fully
- * configurable via VITE_APP_NAME (defaults to "clickwrap-server").
+ * Global app configuration. The brand name shown in the AppBar, page title and login screen is a
+ * fixed constant — deliberately not configurable (the backend's own APP_NAME env only brands the
+ * e-mails it sends).
  */
-export const APP_NAME = import.meta.env.VITE_APP_NAME || 'clickwrap-server';
+export const APP_NAME = 'ClickWrap';
