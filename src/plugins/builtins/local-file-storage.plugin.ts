@@ -24,7 +24,9 @@ export const localFileStoragePlugin = definePlugin({
       );
     }
     return new LocalFileStorage({
-      dir: ctx.requireEnv('FILE_STORAGE_LOCAL_DIR'),
+      // Directory is just a path (created recursively) — default it so local storage needs no config;
+      // the HMAC secret stays required (a predictable signing key would let anyone forge /files URLs).
+      dir: ctx.env('FILE_STORAGE_LOCAL_DIR') ?? './data/files',
       secret: ctx.requireEnv('FILE_STORAGE_LOCAL_SECRET'),
       baseUrl,
     });

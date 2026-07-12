@@ -2,6 +2,9 @@
 // while the imports below are evaluated. Without this, `cp .env.example .env` (README quick
 // start) silently had no effect.
 import 'dotenv/config';
+// Dev-convenience env defaults + warnings — MUST run after dotenv and before AppModule is
+// evaluated (plugins read env during container construction). Side-effect import.
+import './env-defaults.js';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { configureApp } from './bootstrap.js';

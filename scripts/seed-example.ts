@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import '../src/env-defaults.js'; // dev-convenience env defaults + warnings (PUBLIC_BASE_URL, tokens)
 /**
  * Quick-start seed: boots the service with REPOSITORY_DRIVER=inmemory (no Postgres needed) and
  * builds a small but realistic sample configuration through the REAL admin HTTP API — the fastest

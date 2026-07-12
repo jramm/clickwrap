@@ -259,9 +259,9 @@ All configuration is via environment variables (see [`.env.example`](.env.exampl
 | `SMTP_USER` | – | SMTP username; empty = no auth. |
 | `SMTP_PASS` | – | SMTP password. |
 | `FILE_STORAGE` | `memory` | File-storage plugin key. Built-ins: `memory` (nothing persists), `local` (server disk, single-node). |
-| `FILE_STORAGE_LOCAL_DIR` | – | **Required** for `FILE_STORAGE=local`: blob directory (created recursively). |
+| `FILE_STORAGE_LOCAL_DIR` | `./data/files` | Blob directory for `FILE_STORAGE=local` (created recursively). |
 | `FILE_STORAGE_LOCAL_SECRET` | – | **Required** for `FILE_STORAGE=local`: HMAC secret for the time-limited `/files` links. |
-| `PUBLIC_BASE_URL` | – | Absolute public base URL of this service. Used for `/files` links (empty = relative, same-origin only) and **required** for minting hosted acceptance links (`/accept/<token>` URLs). |
+| `PUBLIC_BASE_URL` | `http://localhost:${PORT}` | Absolute public base URL of this service, used for `/files` links and hosted acceptance links (`/accept/<token>`). Defaults to localhost for dev (startup warning) — **set it in production**. |
 | `ADMIN_AUTH` | `google-sso,static-token` | Ordered admin-auth plugin keys; the first strategy returning an identity wins. |
 | `ADMIN_API_TOKEN` | `change-me` | `static-token` strategy (`x-admin-token`, dev/CI); empty = disabled. |
 | `SERVICE_API_TOKEN` | `change-me` | Service-to-service token (`x-service-token`) for the `/customers/**` API. |
