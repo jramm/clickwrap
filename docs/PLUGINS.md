@@ -13,7 +13,7 @@ special path.
 
 ## How discovery works
 
-At boot the host builds a **plugin registry** from three sources (all validated identically):
+At boot the host builds a **plugin registry** from four sources (all validated identically):
 
 1. **Built-ins** (`src/plugins/builtins/`).
 2. **Installed dependencies**: every entry in the app's `package.json` `dependencies` +
@@ -23,8 +23,26 @@ At boot the host builds a **plugin registry** from three sources (all validated 
    { "clickwrap": { "kind": "email-provider" | "file-storage" | "admin-auth" | "acceptance-page" | "admin-notification", "key": "<slug>" } }
    ```
 
-3. **`CLICKWRAP_PLUGIN_PATHS`** — comma-separated local directories (each a package with a
-   package.json + main entry). For development and test fixtures.
+3. **`CLICKWRAP_PLUGIN_PATHS`** — comma-separated local plugin directories (each a package with a
+   package.json + main entry), loaded explicitly by path.
+4. **`CLICKWRAP_PLUGIN_DIR`** — comma-separated directories that are **scanned**: every immediate
+   subdirectory carrying a `"clickwrap"` manifest is loaded. This is the **drop-in / runtime** path
+   — no rebuild: take a published image, mount a volume of plugin folders and they are picked up at
+   boot. The container images default this to **`/app/plugins`**, so mounting a volume there and
+   activating the key via env is all it takes. Subdirs without a manifest are ignored; a missing
+   scan dir is a no-op.
+
+   ```bash
+   docker run -p 3000:3000 \
+     -v /host/my-plugin:/app/plugins/my-plugin:ro \
+     -e EMAIL_PROVIDER=my-key \
+     ghcr.io/jramm/clickwrap-combined:latest
+   ```
+
+   The plugin must be **compiled to JS** (the images ship no TS toolchain) and bring its own deps
+   (bundle them, or mount under `/app/…` so the container's `node_modules` is on the resolution
+   path). It needs no SDK import — a plain default-export object of the `{ kind, key, create }`
+   shape is enough (see below).
 
 Rules:
 

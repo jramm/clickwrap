@@ -63,6 +63,22 @@ describe('PluginRegistry', () => {
     expect(registry.keys('email-provider')).toContain('dev-mailer');
   });
 
+  it('scans pluginDirs (CLICKWRAP_PLUGIN_DIR) for drop-in plugin subdirs, ignoring non-plugins', () => {
+    const scanDir = join(root, 'plugins');
+    writePluginPackage(join(scanDir, 'my-mailer'), { kind: 'email-provider', key: 'dropin' });
+    // A subdirectory without a clickwrap manifest is ignored (not every folder is a plugin).
+    mkdirSync(join(scanDir, 'notes'), { recursive: true });
+    writeFileSync(join(scanDir, 'notes', 'package.json'), JSON.stringify({ name: 'notes', main: 'index.js' }));
+
+    const registry = PluginRegistry.bootstrap({ appRoot: root, pluginPaths: [], pluginDirs: [scanDir] });
+    expect(registry.keys('email-provider')).toContain('dropin');
+  });
+
+  it('treats a missing scan dir as a no-op (built-ins still load, no throw)', () => {
+    const registry = PluginRegistry.bootstrap({ appRoot: root, pluginPaths: [], pluginDirs: [join(root, 'absent')] });
+    expect(registry.keys('email-provider')).toContain('noop');
+  });
+
   it('rejects a duplicate (kind,key) — including clashes with a built-in — as a hard boot error', () => {
     const dir = writePluginPackage(join(root, 'clash'), { kind: 'email-provider', key: 'noop' });
     expect(() => PluginRegistry.bootstrap({ appRoot: root, pluginPaths: [dir] })).toThrow(/duplicate|already registered/i);

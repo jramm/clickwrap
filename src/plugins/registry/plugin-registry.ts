@@ -6,13 +6,18 @@
  *     external plugins; no special path.
  *  2. **Installed dependencies**: every entry of the app package.json `dependencies` +
  *     `devDependencies` whose own package.json carries the `"clickwrap"` manifest field.
- *  3. **`CLICKWRAP_PLUGIN_PATHS`**: comma-separated local directories (each with a package.json +
- *     main entry) — for development and test fixtures.
+ *  3. **`CLICKWRAP_PLUGIN_PATHS`**: comma-separated local plugin directories (each a package.json +
+ *     main entry), loaded explicitly by path.
+ *  4. **`CLICKWRAP_PLUGIN_DIR`**: comma-separated directories that are SCANNED — every immediate
+ *     subdirectory carrying a `"clickwrap"` manifest is loaded as a plugin. This is the "drop-in"
+ *     path: mount a volume of plugins (default scan dir `/app/plugins` in the container images) and
+ *     they are picked up at boot with no per-plugin config. Subdirs without a manifest are ignored;
+ *     a missing scan dir is a no-op.
  *
  * The module main entry must default-export a plugin matching the manifest's kind/key
  * (validated structurally — see `isClickwrapPlugin`). Every loaded plugin is logged one-line.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { Logger } from '@nestjs/common';
@@ -39,9 +44,17 @@ export interface PluginRegistryOptions {
   appRoot?: string;
   /** Plugins registered before any discovery. Default: the built-ins. */
   builtins?: AnyClickwrapPlugin[];
-  /** Local plugin directories. Default: CLICKWRAP_PLUGIN_PATHS (comma-separated). */
+  /** Local plugin directories loaded by path. Default: CLICKWRAP_PLUGIN_PATHS (comma-separated). */
   pluginPaths?: string[];
+  /** Directories to SCAN for plugin subdirs. Default: CLICKWRAP_PLUGIN_DIR (comma-separated). */
+  pluginDirs?: string[];
 }
+
+const splitEnvList = (value: string | undefined): string[] =>
+  (value ?? '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 
 interface PackageJson {
   dependencies?: Record<string, string>;
@@ -98,14 +111,13 @@ export class PluginRegistry {
       registry.register(plugin, 'builtin');
     }
     registry.discoverDependencies(appRoot);
-    const pluginPaths =
-      options.pluginPaths ??
-      (process.env.CLICKWRAP_PLUGIN_PATHS ?? '')
-        .split(',')
-        .map((path) => path.trim())
-        .filter((path) => path.length > 0);
+    const pluginPaths = options.pluginPaths ?? splitEnvList(process.env.CLICKWRAP_PLUGIN_PATHS);
     for (const path of pluginPaths) {
       registry.loadPath(resolve(appRoot, path));
+    }
+    const pluginDirs = options.pluginDirs ?? splitEnvList(process.env.CLICKWRAP_PLUGIN_DIR);
+    for (const dir of pluginDirs) {
+      registry.scanDir(resolve(appRoot, dir));
     }
     return registry;
   }
@@ -157,6 +169,25 @@ export class PluginRegistry {
     }
     const manifest = parseManifest(pkg.clickwrap, dir);
     this.register(loadPluginFromDir(dir, manifest), `path ${dir}`);
+  }
+
+  /**
+   * Scans `dir` for immediate subdirectories that carry a "clickwrap" manifest and loads each one
+   * (drop-in plugins, e.g. a mounted /app/plugins volume). Subdirectories without a manifest are
+   * ignored; a missing/!directory scan dir is a no-op. A subdir WITH a (broken) manifest still fails
+   * loudly via loadPath — a declared plugin that cannot load should not be silently skipped.
+   */
+  private scanDir(dir: string): void {
+    if (!existsSync(dir) || !statSync(dir).isDirectory()) {
+      this.logger.log(`plugin scan dir ${dir} not present — skipping`);
+      return;
+    }
+    for (const name of readdirSync(dir)) {
+      const subdir = join(dir, name);
+      const pkg = readPackageJson(subdir);
+      if (!pkg || pkg.clickwrap === undefined) continue; // not a plugin directory — ignore
+      this.loadPath(subdir);
+    }
   }
 }
 

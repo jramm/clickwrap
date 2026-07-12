@@ -248,7 +248,8 @@ All configuration is via environment variables (see [`.env.example`](.env.exampl
 | `DATABASE_URL` | – | PostgreSQL connection string; required for `REPOSITORY_DRIVER=prisma`. |
 | `LEGAL_ENTITIES_CONFIG` | `config/legal-entities.json` | Path to the JSON config declaring audiences + document types (reconciled at boot). A missing/malformed file fails the boot. |
 | `PORT` | `3000` | HTTP port. |
-| `CLICKWRAP_PLUGIN_PATHS` | – | Comma-separated local plugin directories (development/fixtures; see [`docs/PLUGINS.md`](docs/PLUGINS.md)). |
+| `CLICKWRAP_PLUGIN_PATHS` | – | Comma-separated local plugin directories, loaded by path (see [`docs/PLUGINS.md`](docs/PLUGINS.md)). |
+| `CLICKWRAP_PLUGIN_DIR` | `/app/plugins` (in the images) | Comma-separated directories **scanned** for drop-in plugin subdirs — mount a volume here to add plugins to a published image with no rebuild. |
 | `EMAIL_PROVIDER` | `noop` | E-mail delivery plugin key. Built-ins: `postmark`, `smtp`, `noop`. |
 | `EMAIL_FROM` | – | Sender address; **required** for `postmark` and `smtp` (no hardcoded fallback). |
 | `POSTMARK_API_TOKEN` | – | Postmark server token; empty = no real sending, fake provider refs. |

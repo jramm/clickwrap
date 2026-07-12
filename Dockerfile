@@ -72,6 +72,9 @@ COPY package.json ./
 COPY openapi.admin.json openapi.integration.json ./
 # Legal-entities config — reconciled at boot (LEGAL_ENTITIES_CONFIG overrides the path).
 COPY config ./config
+# Drop-in plugins: mount a volume of plugin subdirs at /app/plugins and they are auto-loaded at
+# boot (each subdir = a package.json with a "clickwrap" manifest + compiled entry). No rebuild.
+ENV CLICKWRAP_PLUGIN_DIR=/app/plugins
 EXPOSE 3000
 CMD ["node", "dist/main.js"]
 
