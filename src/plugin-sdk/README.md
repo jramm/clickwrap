@@ -3,14 +3,10 @@
 Contracts for third-party clickwrap-server plugins: the package manifest, `definePlugin`, and the
 interfaces of the three plugin kinds (`email-provider`, `file-storage`, `admin-auth`).
 
-**Published as [`@jramm/clickwrap-plugin-sdk`](https://github.com/jramm/clickwrap/pkgs/npm/clickwrap-plugin-sdk)**
-on GitHub Packages, so plugin authors can depend on the types without vendoring this repo. Install
-it with a one-line `.npmrc` for the `@jramm` scope:
+**Published as [`@jramm/clickwrap-plugin-sdk`](https://www.npmjs.com/package/@jramm/clickwrap-plugin-sdk)**
+on the public npm registry, so plugin authors can depend on the types without vendoring this repo.
+No registry config needed:
 
-```
-# .npmrc
-@jramm:registry=https://npm.pkg.github.com
-```
 ```bash
 npm i -D @jramm/clickwrap-plugin-sdk @nestjs/common   # @nestjs/common only if your plugin ships a module()
 ```

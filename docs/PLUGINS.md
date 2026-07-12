@@ -330,14 +330,11 @@ from `ctx.env`.
 
 ## The SDK package
 
-The types + `definePlugin` are published as **`@jramm/clickwrap-plugin-sdk`** on GitHub Packages
-(built from `src/plugin-sdk/` by `scripts/build-sdk.mjs`, released on a `v*` tag). Depend on it for
-type safety — a plugin needs it only at build time, never at runtime (the host validates default
-exports structurally). Consumers add one `.npmrc` line for the scope:
+The types + `definePlugin` are published as **`@jramm/clickwrap-plugin-sdk`** on the public npm
+registry (built from `src/plugin-sdk/` by `scripts/build-sdk.mjs`, released on a `v*` tag). Depend on
+it for type safety — a plugin needs it only at build time, never at runtime (the host validates
+default exports structurally). No registry config needed:
 
-```
-@jramm:registry=https://npm.pkg.github.com
-```
 ```bash
 npm i -D @jramm/clickwrap-plugin-sdk @nestjs/common   # @nestjs/common only for plugins that ship a module()
 ```
