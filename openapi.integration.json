@@ -1271,7 +1271,7 @@
   "info": {
     "title": "clickwrap-server — integration API",
     "description": "Service-to-service surface for the calling tools: compliance gate, pending-agreements popup feed, consent/objection/delivery writes, customer onboarding (`POST /customers`) and the Postmark delivery webhook. Auth: shared `x-service-token`; the customer-scoped routes additionally require the verified context headers (`x-customer-id`, `x-actor-*`) — actor and customer NEVER come from the body. Exception: the hosted acceptance page (`/accept/**`) is authenticated by its capability link token alone (no integration needed). Errors are always `{ code, message }`.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "contact": {}
   },
   "tags": [],

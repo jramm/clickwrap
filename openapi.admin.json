@@ -2189,7 +2189,7 @@
   "info": {
     "title": "clickwrap-server — admin API",
     "description": "Administration surface (`/admin/**`): documents & versions, publish/rollout, customers, operations (per-version dashboard, history, manual acceptance, deadlines/reminders) and the dynamic entities (audiences, document types). Errors are always `{ code, message }` — the codes are documented in docs/API.md §7.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "contact": {}
   },
   "tags": [],
