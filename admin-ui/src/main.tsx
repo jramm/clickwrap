@@ -22,6 +22,10 @@ const queryClient = new QueryClient({
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('#root not found.');
 
+// Router base path = Vite's `base` (BASE_URL). '/' by default; the "combined" Docker image
+// builds with VITE_BASE=/ui/ so the SPA is served under /ui alongside the backend at root.
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+
 createRoot(rootElement).render(
   <StrictMode>
     <I18nProvider>
@@ -29,7 +33,7 @@ createRoot(rootElement).render(
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <ToastProvider>
-            <BrowserRouter>
+            <BrowserRouter basename={routerBasename}>
               <AuthProvider>
                 <App />
               </AuthProvider>

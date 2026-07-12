@@ -1,7 +1,15 @@
-# clickwrap-server — multi-stage build.
-# Final image contains the compiled backend (served on :3000) and the admin-ui
-# production build at /app/admin-ui-dist (NOT served by the backend — put it behind
-# any static host / reverse proxy, see README "Deployment").
+# clickwrap-server — multi-stage build producing THREE images:
+#
+#   --target backend    API + hosted acceptance page only.
+#   --target admin-ui   nginx serving the admin SPA + reverse-proxying /api to a SEPARATE backend
+#                       (upstream configurable at runtime via CLICKWRAP_BACKEND). SPA built with
+#                       VITE_API_URL=/api, VITE_BASE=/.
+#   --target combined   backend AND the admin SPA in one container — the backend serves the SPA
+#                       under /ui (ServeStaticModule, SERVE_ADMIN_UI=true) and redirects / → /ui.
+#                       SPA built with VITE_API_URL=/, VITE_BASE=/ui/.
+#
+# `combined` is the LAST stage, so a plain `docker build .` (and docker-compose's default) build it.
+# release.yml builds all three explicitly by target with the matching build args.
 
 # ---------- backend build ----------
 FROM node:26-slim AS backend-build
@@ -19,29 +27,33 @@ COPY src ./src
 RUN pnpm build && test -f dist/main.js
 
 # ---------- admin-ui build ----------
+# VITE_API_URL + VITE_BASE are baked at build time. Defaults target the `combined` image (the
+# default build); the `admin-ui` image overrides them (VITE_API_URL=/api, VITE_BASE=/).
 FROM node:26-slim AS adminui-build
 WORKDIR /ui
-# Node 26 no longer bundles corepack, so install pnpm directly (lockfileVersion 9.0).
 RUN npm install -g pnpm@11.10.0
 COPY admin-ui/package.json admin-ui/pnpm-lock.yaml admin-ui/pnpm-workspace.yaml* ./
 RUN pnpm install --frozen-lockfile
 COPY admin-ui/ ./
-# VITE_API_URL is baked at build time; override with a build arg when needed.
 ARG VITE_API_URL=/
+ARG VITE_BASE=/ui/
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_BASE=$VITE_BASE
 RUN pnpm build
 
-# ---------- admin-ui reverse proxy (optional target) ----------
-# Serves the built admin-ui SPA and proxies the admin-facing backend paths (see
-# deploy/nginx/clickwrap-admin.conf). Placed BEFORE the runtime stage so the DEFAULT build target
-# stays the backend image (`docker build .` and release.yml are unaffected); build this image
-# explicitly with `--target adminui-nginx`.
-FROM nginx:1.27-alpine AS adminui-nginx
+# ---------- image: admin-ui (nginx + SPA, proxies /api to a separate backend) ----------
+# Build: --target admin-ui --build-arg VITE_API_URL=/api --build-arg VITE_BASE=/
+# The upstream backend is set at runtime via CLICKWRAP_BACKEND; the nginx official image runs
+# envsubst on /etc/nginx/templates/*.template at startup. NGINX_ENVSUBST_FILTER limits substitution
+# to CLICKWRAP_* so nginx's own $host/$uri/... are left intact.
+FROM nginx:1.27-alpine AS admin-ui
+ENV CLICKWRAP_BACKEND=http://backend:3000
+ENV NGINX_ENVSUBST_FILTER=CLICKWRAP_
 COPY --from=adminui-build /ui/dist /usr/share/nginx/html
-COPY deploy/nginx/clickwrap-admin.conf /etc/nginx/conf.d/default.conf
+COPY deploy/nginx/clickwrap-admin.conf.template /etc/nginx/templates/default.conf.template
 
-# ---------- runtime ----------
-FROM node:26-slim
+# ---------- image: backend (API + hosted acceptance page only) ----------
+FROM node:26-slim AS backend
 WORKDIR /app
 ENV NODE_ENV=production
 # Prisma engines need OpenSSL at runtime.
@@ -60,6 +72,14 @@ COPY package.json ./
 COPY openapi.admin.json openapi.integration.json ./
 # Legal-entities config — reconciled at boot (LEGAL_ENTITIES_CONFIG overrides the path).
 COPY config ./config
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
+
+# ---------- image: combined (backend + admin SPA under /ui, one container) ----------
+# Build: --target combined --build-arg VITE_API_URL=/ --build-arg VITE_BASE=/ui/
+FROM backend AS combined
+# The SPA build (base=/ui) is served by the backend under /ui via ServeStaticModule; a bare / → /ui.
 COPY --from=adminui-build /ui/dist ./admin-ui-dist
+ENV SERVE_ADMIN_UI=true
 EXPOSE 3000
 CMD ["node", "dist/main.js"]

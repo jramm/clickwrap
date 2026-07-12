@@ -10,9 +10,28 @@ permissions:
 
 jobs:
   docker:
-    name: Build & push Docker image
+    name: Build & push ${{ matrix.target }} image
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          # backend: API + hosted acceptance page only.
+          - target: backend
+            image: ghcr.io/${{ github.repository }}
+            build_args: ''
+          # admin-ui: nginx + SPA, proxies /api to a separate backend (SPA base=/, VITE_API_URL=/api).
+          - target: admin-ui
+            image: ghcr.io/${{ github.repository }}-admin-ui
+            build_args: |
+              VITE_API_URL=/api
+              VITE_BASE=/
+          # combined: backend + SPA under /ui in one container (SPA base=/ui/, VITE_API_URL=/).
+          - target: combined
+            image: ghcr.io/${{ github.repository }}-combined
+            build_args: |
+              VITE_API_URL=/
+              VITE_BASE=/ui/
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
@@ -24,7 +43,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ matrix.image }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -32,11 +51,13 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: .
+          target: ${{ matrix.target }}
+          build-args: ${{ matrix.build_args }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target }}
 
   github-release:
     name: Create GitHub release

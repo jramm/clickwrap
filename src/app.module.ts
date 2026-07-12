@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AcceptModule } from './accept/accept.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { AgreementsModule } from './agreements/agreements.module.js';
+import { AdminUiStaticModule } from './admin-ui-static/admin-ui-static.module.js';
 import { AdminAuthModule } from './common/auth/admin-auth.module.js';
 import { DomainErrorFilter } from './common/http/domain-error.filter.js';
 import { ComplianceModule } from './compliance/compliance.module.js';
@@ -35,6 +36,9 @@ import { SweeperModule } from './sweeper/sweeper.module.js';
  */
 @Module({
   imports: [
+    // Optionally serves the admin-ui SPA under /ui (combined image; SERVE_ADMIN_UI=true) — a no-op
+    // module otherwise, so the plain backend image serves only the API.
+    AdminUiStaticModule.forRootFromEnv(),
     ScheduleModule.forRoot(),
     RepositoryModule.forRoot(),
     FileStorageModule.forRoot(),

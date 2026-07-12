@@ -190,7 +190,7 @@ Load a small example dataset (a few documents, versions and customers). The audi
 pnpm seed-example
 ```
 
-### 2. Run the full stack with Docker (Postgres + backend + admin UI)
+### 2. Run the full stack with Docker (one combined container)
 
 The simplest way to run everything locally — needs Docker:
 
@@ -198,20 +198,19 @@ The simplest way to run everything locally — needs Docker:
 docker compose up --build
 ```
 
-This starts four services: Postgres, a one-shot `migrate` step (`prisma db push` + the partial
-unique index), the **backend**, and an **nginx** container serving the admin UI. Two entry points:
+This starts Postgres, a one-shot `migrate` step (`prisma db push` + the partial unique index), and
+the **combined** image — one container that serves the API *and* the admin UI:
 
-- **Admin UI** → http://localhost:8080 — log in with the `ADMIN_API_TOKEN` (default `dev-admin-token`).
-- **Public API + hosted acceptance page** → http://localhost:3000 (= `PUBLIC_BASE_URL`); Swagger at
+- **Admin UI** → http://localhost:3000/ui — log in with the `ADMIN_API_TOKEN` (default
+  `dev-admin-token`). A bare http://localhost:3000/ redirects to `/ui`.
+- **API + hosted acceptance page** → http://localhost:3000 (= `PUBLIC_BASE_URL`); Swagger at
   `/docs/admin` and `/docs/integration`.
 
-> **What's in the container?** The Dockerfile's default (backend) image bundles *both* build outputs
-> — the compiled backend (`dist`, served on :3000) and the admin-ui production build
-> (`/app/admin-ui-dist`) — but the backend process serves **only** the API. The admin UI is served
-> by a **separate** image (Dockerfile target `adminui-nginx`: an nginx that serves the SPA and
-> reverse-proxies `/api/*` → backend). So compose runs the backend and the admin UI as **two
-> containers**, not one — see [Deployment](#deployment) for the reasoning. The tokens/secrets in
-> `docker-compose.yml` are dev-only throwaways; never reuse them.
+> **What's in the container?** The combined image runs a single Node process: the backend serves the
+> API + hosted acceptance page at the root, and the admin-ui SPA under `/ui` (NestJS
+> `ServeStaticModule`, enabled by `SERVE_ADMIN_UI=true`). The SPA is built with `base=/ui` so its
+> client routes (`/customers`, `/documents`, …) never collide with the backend controllers of the
+> same name. The tokens/secrets in `docker-compose.yml` are dev-only throwaways; never reuse them.
 
 ### 3. Run against PostgreSQL for local development (hot reload)
 
@@ -384,10 +383,19 @@ a real Postgres instance; see [`docs/PERSISTENCE.md`](docs/PERSISTENCE.md) for h
 
 ## Deployment
 
-A multi-stage `Dockerfile` builds the backend and the admin UI:
+The multi-stage `Dockerfile` produces **three** images (each a build `--target`); the release
+workflow publishes all three to ghcr.io on a `v*` tag:
+
+| Image | Target | What it is |
+|---|---|---|
+| `ghcr.io/jramm/clickwrap` | `backend` | API + hosted acceptance page only. |
+| `ghcr.io/jramm/clickwrap-admin-ui` | `admin-ui` | nginx + admin SPA, reverse-proxies `/api` to a **separate** backend (upstream via `CLICKWRAP_BACKEND`; SPA built `VITE_API_URL=/api`). |
+| `ghcr.io/jramm/clickwrap-combined` | `combined` | **backend *and* admin UI in one container** — the backend serves the SPA under `/ui` and redirects `/` → `/ui`. |
+
+The **combined** image is the simplest way to run everything behind one hostname:
 
 ```bash
-docker build -t clickwrap-server .
+docker build --target combined -t clickwrap-combined .   # or: docker build .  (combined is the default)
 docker run -p 3000:3000 \
   -e DATABASE_URL=postgresql://clickwrap:clickwrap@db:5432/clickwrap \
   -e REPOSITORY_DRIVER=prisma \
@@ -396,36 +404,27 @@ docker run -p 3000:3000 \
   -e SERVICE_API_TOKEN=... -e ACCEPTANCE_LINK_SECRET=... \
   -e PUBLIC_BASE_URL=https://clickwrap.example.com \
   -e EMAIL_PROVIDER=postmark -e POSTMARK_API_TOKEN=... -e EMAIL_FROM=legal@example.com \
-  clickwrap-server
+  ghcr.io/jramm/clickwrap-combined:latest
 ```
 
-Apply `prisma db push`/migrations plus `prisma/partial-indexes.sql` against the database before the
-first start (see Quickstart). The admin UI production build ships inside the image at
-`/app/admin-ui-dist` — serve it with any static host or reverse proxy (it is a plain SPA; set
-`VITE_API_URL` as a build arg when the API origin differs). The backend deliberately does not serve
-static files.
+The API + hosted acceptance page are at the root; the admin UI is at `/ui` (and `/` redirects there).
+`SERVE_ADMIN_UI=true` is baked into the combined image. Apply `prisma db push`/migrations plus
+`prisma/partial-indexes.sql` against the database before the first start (see Quickstart).
+
+Prefer separate deployments? Run the `backend` image and put the `admin-ui` image (or any static
+host) in front of it — set the admin-ui image's `CLICKWRAP_BACKEND` to the backend's URL.
 
 ### Full stack via docker-compose
 
-`docker compose up --build` runs the whole thing locally: Postgres, a one-shot `migrate` step
-(`prisma db push` + the partial unique index), the backend, and an `nginx` container that serves
-the admin UI and reverse-proxies the admin API **same-origin**:
-
-- **Admin UI** → `http://localhost:8080` (log in with `ADMIN_API_TOKEN`, `dev-admin-token` by default).
-- **Public/integration API + hosted acceptance page** → `http://localhost:3000` (= `PUBLIC_BASE_URL`).
-
-Two surfaces on purpose: nginx (`deploy/nginx/clickwrap-admin.conf`) serves the SPA at `/` and
-reverse-proxies the **entire backend under `/api/*`** (the admin UI is built with `VITE_API_URL=/api`;
-nginx strips the prefix). Because the SPA owns every non-`/api` path, its client-side routes
-(`/customers`, `/documents`, …) never collide with the backend's controllers of the same name — and
-no future backend route can either. Same-origin, so no CORS. The reverse-proxy image is a dedicated
-Dockerfile target: `docker build --target adminui-nginx --build-arg VITE_API_URL=/api -t clickwrap-admin-nginx .`.
+`docker compose up --build` runs the combined image locally (Postgres + one-shot `migrate` +
+the combined container). Admin UI at `http://localhost:3000/ui` (a bare `/` redirects there); API +
+hosted acceptance page + Swagger at `http://localhost:3000`.
 
 ### Health probes
 
 `GET /health` is a cheap liveness check (no I/O); `GET /health/ready` is readiness — it pings the
 database with the `prisma` driver (503 when the DB is down) and is a no-op with `inmemory`. Wire
-these into your orchestrator's `livenessProbe` / `readinessProbe` (see the compose `backend`
+these into your orchestrator's `livenessProbe` / `readinessProbe` (see the compose `clickwrap`
 healthcheck for an example).
 
 CI (GitHub Actions) runs on every push/PR: backend lint/unit/build, **Prisma integration tests

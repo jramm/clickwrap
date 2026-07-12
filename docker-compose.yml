@@ -1,11 +1,10 @@
-# Local full-stack clickwrap-server: Postgres + backend (:3000, public/integration surface incl.
-# the hosted acceptance page) + nginx serving the admin-ui SPA and reverse-proxying the admin API
-# same-origin (:8080). Mirrors the intended two-surface topology (public host = backend,
-# admin host = nginx) used for a Kubernetes deployment.
+# Local single-container clickwrap: Postgres + a one-shot migrate + the "combined" image (backend
+# AND admin UI in one container, mirroring production under legal.<env>). This is the default build
+# target, so `docker compose up --build` builds the combined image.
 #
 # Quick start:  docker compose up --build
-#   Admin UI:   http://localhost:8080         (login with ADMIN_API_TOKEN below)
-#   Public API + hosted acceptance page:       http://localhost:3000  (= PUBLIC_BASE_URL)
+#   Admin UI:   http://localhost:3000/ui   (a bare http://localhost:3000/ redirects here)
+#   API + hosted acceptance page:          http://localhost:3000  (= PUBLIC_BASE_URL)
 #   Swagger:    http://localhost:3000/docs/admin , /docs/integration
 #
 # The tokens/secrets below are DEV-ONLY throwaway values — never reuse them anywhere real.
@@ -34,7 +33,8 @@ services:
   migrate:
     build:
       context: .
-    image: clickwrap-server:local
+      target: combined
+    image: clickwrap-combined:local
     environment:
       REPOSITORY_DRIVER: prisma
       DATABASE_URL: postgresql://clickwrap:clickwrap@postgres:5432/clickwrap
@@ -50,19 +50,22 @@ services:
         condition: service_healthy
     restart: 'no'
 
-  backend:
+  # Combined image: the backend serves the API + hosted acceptance page at the root AND the admin-ui
+  # SPA under /ui (ServeStaticModule, SERVE_ADMIN_UI baked into the image); a bare / redirects to /ui.
+  clickwrap:
     build:
       context: .
-    image: clickwrap-server:local
+      target: combined
+    image: clickwrap-combined:local
     restart: unless-stopped
     environment:
       REPOSITORY_DRIVER: prisma
       DATABASE_URL: postgresql://clickwrap:clickwrap@postgres:5432/clickwrap
       PORT: '3000'
-      # Public surface base (hosted acceptance links + document URLs are built from this).
+      # Public base — hosted acceptance links + document URLs are built from this (kept clean; the
+      # admin UI lives under /ui at the same origin, so no separate host and no CORS).
       PUBLIC_BASE_URL: http://localhost:3000
       APP_NAME: Clickwrap (local)
-      # Admin UI is served same-origin by nginx → no CORS needed (ADMIN_UI_ORIGINS unset).
       ADMIN_AUTH: static-token
       ADMIN_API_TOKEN: dev-admin-token
       SERVICE_API_TOKEN: dev-service-token
@@ -93,24 +96,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-
-  # Admin surface: serves the admin-ui SPA and reverse-proxies /admin, /files, /health, /docs to
-  # the backend same-origin (config: deploy/nginx/clickwrap-admin.conf).
-  nginx:
-    build:
-      context: .
-      target: adminui-nginx
-      args:
-        # The served admin-ui calls the backend under /api (nginx strips the prefix). Baked at
-        # build time into the SPA (see deploy/nginx/clickwrap-admin.conf).
-        VITE_API_URL: /api
-    image: clickwrap-admin-nginx:local
-    restart: unless-stopped
-    ports:
-      - '8080:80'
-    depends_on:
-      backend:
-        condition: service_healthy
 
 volumes:
   clickwrap-postgres-data:
