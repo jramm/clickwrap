@@ -3,8 +3,20 @@
 Contracts for third-party clickwrap-server plugins: the package manifest, `definePlugin`, and the
 interfaces of the three plugin kinds (`email-provider`, `file-storage`, `admin-auth`).
 
-**This directory is prepared for extraction as a published npm package** (working title
-`@clickwrap/plugin-sdk`) so plugin authors can depend on the types without vendoring this repo:
+**Published as [`@jramm/clickwrap-plugin-sdk`](https://github.com/jramm/clickwrap/pkgs/npm/clickwrap-plugin-sdk)**
+on GitHub Packages, so plugin authors can depend on the types without vendoring this repo. Install
+it with a one-line `.npmrc` for the `@jramm` scope:
+
+```
+# .npmrc
+@jramm:registry=https://npm.pkg.github.com
+```
+```bash
+npm i -D @jramm/clickwrap-plugin-sdk @nestjs/common   # @nestjs/common only if your plugin ships a module()
+```
+
+The source of truth stays in this directory; the package is built from it (`scripts/build-sdk.mjs`)
+and published by the release workflow on a `v*` tag. Why it stays cleanly extractable:
 
 - It has **zero imports from the rest of `src/`** — no domain types, no persistence, no host
   services. Keep it that way; the host imports FROM the SDK, never the other way around.

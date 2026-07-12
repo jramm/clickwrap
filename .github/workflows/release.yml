@@ -59,6 +59,26 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.target }}
           cache-to: type=gha,mode=max,scope=${{ matrix.target }}
 
+  publish-sdk:
+    name: Publish plugin SDK to GitHub Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@jramm'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # Build @jramm/clickwrap-plugin-sdk from src/plugin-sdk at the tag version, then publish it.
+      - run: node scripts/build-sdk.mjs "${{ github.ref_name }}"
+      - run: npm publish
+        working-directory: sdk-dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   github-release:
     name: Create GitHub release
     runs-on: ubuntu-latest

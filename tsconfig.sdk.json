@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src/plugin-sdk",
+    "outDir": "sdk-dist",
+    "declaration": true,
+    "sourceMap": false,
+    "types": ["node"]
+  },
+  "include": ["src/plugin-sdk/**/*"],
+  "exclude": ["**/*.spec.ts", "dist", "node_modules"]
+}
