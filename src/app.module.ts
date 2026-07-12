@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AcceptModule } from './accept/accept.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { AgreementsModule } from './agreements/agreements.module.js';
+import { AcceptAssetsModule } from './accept-assets/accept-assets.module.js';
 import { AdminUiStaticModule } from './admin-ui-static/admin-ui-static.module.js';
 import { AdminAuthModule } from './common/auth/admin-auth.module.js';
 import { DomainErrorFilter } from './common/http/domain-error.filter.js';
@@ -39,6 +40,9 @@ import { SweeperModule } from './sweeper/sweeper.module.js';
     // Optionally serves the admin-ui SPA under /ui (combined image; SERVE_ADMIN_UI=true) — a no-op
     // module otherwise, so the plain backend image serves only the API.
     AdminUiStaticModule.forRootFromEnv(),
+    // Optionally serves an acceptance-page plugin's client bundle at /accept-assets (ACCEPT_ASSETS_DIR)
+    // — a no-op module when unset, so the default self-contained page needs nothing.
+    AcceptAssetsModule.forRootFromEnv(),
     ScheduleModule.forRoot(),
     RepositoryModule.forRoot(),
     FileStorageModule.forRoot(),

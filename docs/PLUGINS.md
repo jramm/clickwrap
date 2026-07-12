@@ -255,9 +255,11 @@ the capability-token flow stays server-side, so no new API is needed:
 1. **Embed the view-model as JSON** in a `<script type="application/json">` tag (escape `</` so it
    can't terminate the block or inject markup) — use `renderEmbeddedView(view)` from the SDK's
    `accept-client` entry so the client can read it back with `readEmbeddedView()`.
-2. **Load your client assets** from your own host (`<script src="https://your-ui.example/…">`,
-   `<link rel="stylesheet" …>`). The default page is fully self-contained, but an org renderer is
-   free to reference external assets.
+2. **Load your client assets.** Either reference an external host
+   (`<script src="https://your-ui.example/…">`), inline the bundle, or — to keep them same-origin
+   and cacheable — let the backend serve them: set **`ACCEPT_ASSETS_DIR`** to your plugin's built
+   asset directory and the container serves it at **`/accept-assets`**, so the renderer references
+   `<script src="/accept-assets/app.js">`. (Off by default; the built-in page is self-contained.)
 3. **Mount your client app**, which reads the embedded `AcceptancePageView` and renders the cards, the signer
    block and the accept controls in your design system.
 4. **Accept/object via the SDK client — you don't need to know the HTTP contract.** Import
