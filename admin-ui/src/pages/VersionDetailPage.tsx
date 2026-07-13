@@ -6,11 +6,12 @@ import LinearProgress from '@mui/material/LinearProgress';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
 import { useDocuments, useVersion } from '../api/hooks';
 import type { Version } from '../api/hooks';
+import { PublishDialog } from '../components/PublishDialog';
 import { useTranslation } from '../i18n';
 import { Button, Card, PageHeader } from '../ui';
 
@@ -69,6 +70,7 @@ export function VersionDetailPage() {
   const { data: version, isLoading, isError, error } = useVersion(id);
   const { data: documents } = useDocuments();
   const document = documents?.find((entry) => entry.id === version?.documentId);
+  const [publishOpen, setPublishOpen] = useState(false);
 
   const back = (
     <Button component={RouterLink} to="/documents" variant="text" color="inherit" startIcon={<ArrowBackIcon />} sx={{ mb: 1 }}>
@@ -108,11 +110,28 @@ export function VersionDetailPage() {
         title={version.versionLabel || t('versionDetail.title')}
         subtitle={document ? `${document.name} · ${document.type} · ${document.audience}` : undefined}
         actions={
-          <Button component={RouterLink} to={`/versions/${encodeURIComponent(version.id)}/customers`} startIcon={<GroupIcon />}>
-            {t('versionDetail.customerRollout')}
-          </Button>
+          version.status === 'DRAFT' ? (
+            <Button onClick={() => setPublishOpen(true)}>{t('documents.publish')}</Button>
+          ) : (
+            <Button
+              component={RouterLink}
+              to={`/versions/${encodeURIComponent(version.id)}/customers`}
+              startIcon={<GroupIcon />}
+            >
+              {t('versionDetail.customerRollout')}
+            </Button>
+          )
         }
       />
+
+      {version.status === 'DRAFT' && (
+        <PublishDialog
+          documentId={version.documentId}
+          version={version}
+          open={publishOpen}
+          onClose={() => setPublishOpen(false)}
+        />
+      )}
 
       <Stack spacing={3}>
         <Card title={t('versionDetail.overview')}>

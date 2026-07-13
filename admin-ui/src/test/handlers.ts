@@ -521,9 +521,12 @@ export const handlers = [
   }),
   http.get(`${BASE}/admin/documents`, () => HttpResponse.json(documentsFixture)),
   http.get(`${BASE}/admin/documents/:id/versions`, () => HttpResponse.json(versionsFixture)),
-  http.get(`${BASE}/admin/versions/:id`, ({ params }) =>
-    HttpResponse.json(makeVersion({ id: params.id as string, documentId: 'doc-dpa-op' })),
-  ),
+  http.get(`${BASE}/admin/versions/:id`, ({ params }) => {
+    const id = params.id as string;
+    return HttpResponse.json(
+      makeVersion({ id, documentId: 'doc-dpa-op', status: id === 'v-draft' ? 'DRAFT' : 'PUBLISHED' }),
+    );
+  }),
   http.get(`${BASE}/admin/customers`, () => HttpResponse.json(customersFixture)),
   http.get(`${BASE}/admin/events`, () => HttpResponse.json(eventsFixture)),
   http.get(`${BASE}/admin/customers/:id/history`, () => HttpResponse.json(historyFixture)),

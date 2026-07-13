@@ -31,10 +31,17 @@ describe('VersionDetailPage', () => {
     );
   });
 
-  it('links to the per-version customer rollout', async () => {
+  it('links to the per-version customer rollout for a published version', async () => {
     renderAt('v-100');
 
     const rollout = await screen.findByRole('link', { name: /customer rollout/i });
     expect(rollout).toHaveAttribute('href', '/versions/v-100/customers');
+  });
+
+  it('shows a publish button for a DRAFT version (instead of the rollout link)', async () => {
+    renderAt('v-draft');
+
+    expect(await screen.findByRole('button', { name: /publish/i })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /customer rollout/i })).not.toBeInTheDocument();
   });
 });
