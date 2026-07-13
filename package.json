@@ -1,6 +1,6 @@
 {
   "name": "clickwrap-server",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Self-hosted agreement/clickwrap acceptance service: versioned contract documents, active click-consent and passive tacit acceptance, and a compliance-gate API.",
   "license": "Apache-2.0",
   "private": true,
