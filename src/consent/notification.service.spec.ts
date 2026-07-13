@@ -172,5 +172,17 @@ describe('NotificationService', () => {
         actorKind: 'CUSTOMER',
       });
     });
+
+    it('records a PAGE_ACCESSED on every display, but the NotificationEvent (deadline evidence) only once', async () => {
+      await states.save(aState({ state: 'PENDING_NOTIFICATION' }));
+
+      await service.notify(input());
+      clock.advanceDays(1);
+      await service.notify(input());
+
+      const accessEvents = (await eventRepo.query({})).items.filter((event) => event.type === 'PAGE_ACCESSED');
+      expect(accessEvents).toHaveLength(2); // every display is tracked
+      expect(await events.findByState('cvs-1')).toHaveLength(1); // deadline evidence stays first-access-only
+    });
   });
 });

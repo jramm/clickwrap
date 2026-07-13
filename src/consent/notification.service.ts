@@ -1,6 +1,8 @@
 /**
  * Delivery evidence from the portal (POST /customers/:id/notifications): "popup was displayed".
- * notifiedAt = server time (no backdating); displayedAt is only used for plausibility checks. Idempotent.
+ * notifiedAt = server time (no backdating); displayedAt is only used for plausibility checks. The
+ * deadline is idempotent (notifiedAt set once, on first access), but EVERY display is recorded as a
+ * PAGE_ACCESSED audit event — the delivery-evidence NotificationEvent is still written only once.
  */
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import type { CustomerContext } from '../common/auth/actor.js';
@@ -78,9 +80,10 @@ export class NotificationService {
       deadlineAt: updated.deadlineAt,
     });
 
-    // Delivery evidence only if the atomic write actually applied (checked against saved, not
-    // our own snapshot): if the delivery hit a state that was superseded in the meantime, there
-    // is neither a state update nor a NotificationEvent.
+    // FIRST provable access is the delivery evidence that starts the deadline — recorded ONCE as a
+    // NotificationEvent (also the reminder's recipient source). Only if the atomic write actually
+    // applied (checked against saved, not our own snapshot): a delivery that hit a state superseded
+    // in the meantime records nothing.
     if (wasFirstAccess && saved.notifiedAt !== undefined) {
       await this.events.append({
         id: this.ids.next('n'),
@@ -89,6 +92,12 @@ export class NotificationService {
         recipient: input.context.actor.userId,
         occurredAt: this.clock.now(),
       });
+    }
+    // EVERY display of the page/popup is recorded as a PAGE_ACCESSED audit event — not just the
+    // first — so repeated displays are tracked in the event log. notifiedAt/deadlineAt stay
+    // first-access-only (set atomically above); this is a pure audit trail and never shifts the
+    // deadline. Skipped only when the access can't apply (e.g. superseded → saved.notifiedAt unset).
+    if (saved.notifiedAt !== undefined) {
       await this.recorder?.record({
         type: 'PAGE_ACCESSED',
         category: 'ACCESS',
