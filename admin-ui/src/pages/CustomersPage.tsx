@@ -190,6 +190,7 @@ export function CustomersPage() {
               loading={isLoading}
               onRowClick={(rowParams) => navigate(`/customers/${rowParams.id}`)}
               getRowId={(row: CustomerRow) => row.id}
+              hideFooter
             />
           </Card>
         )}

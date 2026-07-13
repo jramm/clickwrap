@@ -226,7 +226,7 @@ export function EventsPage() {
           <EventCardList rows={rows} loading={isLoading} onOpenCustomer={(id) => navigate(`/customers/${id}`)} />
         ) : (
           <Card disableContentPadding>
-            <DataTable rows={rows} columns={columns} loading={isLoading} getRowId={(row: Event) => row.id} />
+            <DataTable rows={rows} columns={columns} loading={isLoading} getRowId={(row: Event) => row.id} hideFooter />
           </Card>
         )}
       </Box>
