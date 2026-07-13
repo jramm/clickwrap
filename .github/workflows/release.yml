@@ -63,21 +63,34 @@ jobs:
     name: Publish plugin SDK to npm
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Only publish the SDK when NPM_TOKEN is configured; otherwise skip cleanly (the container
+    # images + GitHub release still run) instead of failing the whole release. (secrets can't be
+    # used in a job-level `if`, so it's surfaced via env + guarded on the steps.)
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - if: ${{ env.NPM_TOKEN == '' }}
+        run: echo "::notice::NPM_TOKEN not set — skipping SDK publish for ${{ github.ref_name }}."
+      - if: ${{ env.NPM_TOKEN != '' }}
+        uses: actions/checkout@v7
+      - if: ${{ env.NPM_TOKEN != '' }}
+        uses: actions/setup-node@v6
         with:
           node-version: 26
           registry-url: 'https://registry.npmjs.org'
           scope: '@jramm'
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
+      - if: ${{ env.NPM_TOKEN != '' }}
+        run: corepack enable
+      - if: ${{ env.NPM_TOKEN != '' }}
+        run: pnpm install --frozen-lockfile
       # Build @jramm/clickwrap-plugin-sdk from src/plugin-sdk at the tag version, then publish it.
-      - run: node scripts/build-sdk.mjs "${{ github.ref_name }}"
-      - run: npm publish --access public
+      - if: ${{ env.NPM_TOKEN != '' }}
+        run: node scripts/build-sdk.mjs "${{ github.ref_name }}"
+      - if: ${{ env.NPM_TOKEN != '' }}
+        run: npm publish --access public
         working-directory: sdk-dist
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
 
   github-release:
     name: Create GitHub release
