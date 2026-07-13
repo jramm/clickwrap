@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>clickwrap — self-hosted agreement acceptance & evidence</title>
+    <meta
+      name="description"
+      content="clickwrap is a self-hosted service for provable acceptance of versioned agreements (terms, DPAs, privacy policies) with a tamper-evident evidence chain — plus an archive for externally-signed documents. Apache-2.0."
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta property="og:title" content="clickwrap — self-hosted agreement acceptance & evidence" />
+    <meta
+      property="og:description"
+      content="Provable acceptance of versioned agreements with an append-only evidence chain. Self-hosted, plugin-extensible, Apache-2.0."
+    />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">✓</span>
+        <span class="brand-name">clickwrap</span>
+      </a>
+      <nav class="site-nav">
+        <a href="#features">Features</a>
+        <a href="#quickstart">Quickstart</a>
+        <a href="#deploy">Deploy</a>
+        <a href="#plugins">Plugins</a>
+        <a class="nav-cta" href="https://github.com/jramm/clickwrap">GitHub ↗</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <p class="eyebrow">Self-hosted · Apache-2.0</p>
+        <h1>Provable acceptance for your legal documents.</h1>
+        <p class="lede">
+          clickwrap is a self-hosted service for capturing <strong>provable acceptance</strong> of
+          versioned agreements — terms of service, DPAs, privacy policies, any document your users
+          must accept — backed by an append-only <strong>evidence chain</strong>. It also archives
+          externally-signed documents as immutable per-customer evidence.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#quickstart">Get started</a>
+          <a class="btn btn-ghost" href="https://github.com/jramm/clickwrap">View on GitHub</a>
+        </div>
+        <p class="hero-sub">
+          One <span class="mono">compliant: true | false</span> answer per customer. Two acceptance
+          modes. A tamper-evident audit trail. Runs in a single container.
+        </p>
+      </section>
+
+      <section id="features" class="section">
+        <h2 class="section-title">What it does</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Two acceptance modes</h3>
+            <p>
+              <strong>Active click-consent</strong> — the user ticks a box against the exact,
+              versioned consent text. <strong>Passive tacit acceptance</strong> — a new version
+              counts as accepted unless objected to within an objection period.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Deadlines start on provable access</h3>
+            <p>
+              A passive objection period begins only on <strong>provable access</strong> (e-mail
+              delivery confirmation or a confirmed popup display) — never on publish alone. Active
+              versions carry an absolute hard deadline stamped at rollout.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Append-only evidence chain</h3>
+            <p>
+              Who accepted which version, when, from which IP / user-agent, against which exact
+              consent text and document hash. Immutable — enforced by DB privileges; corrections are
+              new rows, never edits.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Compliance-gate API</h3>
+            <p>
+              Downstream apps ask one question — <span class="mono">is this customer allowed in?</span>
+              — and get <span class="mono">compliant: true | false</span> with per-document detail.
+              The single integration point for your portals and tools.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Versioned documents</h3>
+            <p>
+              One document per (type × audience) with an immutable version history
+              (DRAFT → PUBLISHED → RETIRED). Publish rolls out to customers, tracks deadlines, sends
+              reminders and escalates.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Externally-signed archive</h3>
+            <p>
+              Flag a document type <span class="mono">external</span> to skip the clickwrap machinery
+              and instead store already-signed PDFs (e.g. counter-signed offers) per customer as
+              immutable evidence — never part of the compliance gate.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Plugin-extensible</h3>
+            <p>
+              E-mail delivery, file storage, admin auth, the acceptance-page renderer and admin
+              notifications are all plugins, discovered from installed npm packages. Ship your own
+              without forking.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Admin web UI included</h3>
+            <p>
+              A React admin UI for legal / operations staff: documents, versions, customers,
+              compliance dashboards and the evidence history — served from the same container.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="quickstart" class="section">
+        <h2 class="section-title">Quickstart</h2>
+        <p class="section-lede">
+          The <strong>combined</strong> image serves the API, the hosted acceptance page and the
+          admin UI from one container. This runs a self-contained demo (in-memory store, no external
+          services):
+        </p>
+        <pre class="code"><code>docker run -p 3000:3000 \
+  -e ADMIN_API_TOKEN="$(openssl rand -hex 24)" \
+  -e SERVICE_API_TOKEN="$(openssl rand -hex 24)" \
+  -e ACCEPTANCE_LINK_SECRET="$(openssl rand -hex 32)" \
+  -e PUBLIC_BASE_URL="http://localhost:3000" \
+  ghcr.io/jramm/clickwrap-combined:latest</code></pre>
+        <p class="section-lede">
+          Then open <a class="mono" href="http://localhost:3000">http://localhost:3000</a> — a bare
+          <span class="mono">/</span> redirects to the admin UI at <span class="mono">/ui</span>.
+          For a production setup (Postgres via Prisma, S3 storage, an e-mail provider), see the
+          <a href="https://github.com/jramm/clickwrap#readme">README</a> and
+          <a href="https://github.com/jramm/clickwrap/tree/main/docs">docs</a>.
+        </p>
+      </section>
+
+      <section id="deploy" class="section">
+        <h2 class="section-title">Three images, one for every shape</h2>
+        <div class="grid grid-3">
+          <article class="card">
+            <h3 class="mono">backend</h3>
+            <p>The API + hosted acceptance page only. Put your own frontend in front of it.</p>
+          </article>
+          <article class="card">
+            <h3 class="mono">admin-ui</h3>
+            <p>nginx serving the admin SPA, proxying <span class="mono">/api</span> to a separate backend.</p>
+          </article>
+          <article class="card">
+            <h3 class="mono">combined</h3>
+            <p>Everything in one container — API at the root, admin UI under <span class="mono">/ui</span>.</p>
+          </article>
+        </div>
+        <p class="section-lede">
+          Public images on <span class="mono">ghcr.io/jramm/clickwrap</span>,
+          <span class="mono">-admin-ui</span> and <span class="mono">-combined</span> — anonymous
+          pull, semver-tagged.
+        </p>
+      </section>
+
+      <section id="plugins" class="section">
+        <h2 class="section-title">Extend it with plugins</h2>
+        <p class="section-lede">
+          Everything pluggable ships as an npm package the host discovers at boot: e-mail providers
+          (Postmark / SMTP / no-op), file storage (memory / local / S3), admin auth (Google SSO /
+          static token / SuperTokens), the acceptance-page renderer and admin notifications. Build
+          your own against the typed SDK:
+        </p>
+        <pre class="code"><code>npm i -D @jramm/clickwrap-plugin-sdk</code></pre>
+        <p class="section-lede">
+          See the <a href="https://github.com/jramm/clickwrap/blob/main/docs/PLUGINS.md">plugin guide</a>
+          for the <span class="mono">definePlugin</span> contract and a worked example.
+        </p>
+      </section>
+
+      <section class="cta-band">
+        <h2>Run it yourself.</h2>
+        <p>Open source, Apache-2.0, no SaaS lock-in. Your agreements and evidence stay on your infrastructure.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/jramm/clickwrap">Star on GitHub</a>
+          <a class="btn btn-ghost" href="https://github.com/jramm/clickwrap#readme">Read the docs</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">✓</span> clickwrap
+      </div>
+      <nav class="footer-links">
+        <a href="https://github.com/jramm/clickwrap">GitHub</a>
+        <a href="https://github.com/jramm/clickwrap/tree/main/docs">Docs</a>
+        <a href="https://www.npmjs.com/package/@jramm/clickwrap-plugin-sdk">Plugin SDK</a>
+        <a href="https://github.com/jramm/clickwrap/blob/main/LICENSE">Apache-2.0</a>
+      </nav>
+    </footer>
+  </body>
+</html>
