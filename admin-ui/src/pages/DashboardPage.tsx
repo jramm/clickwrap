@@ -14,7 +14,7 @@ import { Card, PageHeader } from '../ui';
  * Per-version acceptance dashboard — the landing page after login. One card per relevant version
  * (current + upcoming published versions of every document) with a progress bar, the acceptance
  * counters as chips and a channel breakdown. Tapping a card opens the per-version customer list
- * (`/versions/:id`), which reports each customer's status FOR THAT version — so an upcoming version
+ * (`/versions/:id/customers`), which reports each customer's status FOR THAT version — so an upcoming version
  * shows who has (not) accepted it, rather than only the currently effective version.
  * Cards stack on narrow viewports.
  */
@@ -56,7 +56,7 @@ export function DashboardPage() {
             <VersionStatsCard
               key={item.versionId}
               item={item}
-              onOpen={() => navigate(`/versions/${encodeURIComponent(item.versionId)}`)}
+              onOpen={() => navigate(`/versions/${encodeURIComponent(item.versionId)}/customers`)}
             />
           ))}
         </Box>

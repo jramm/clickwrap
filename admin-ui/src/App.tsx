@@ -10,6 +10,7 @@ import { EmailTemplatesPage } from './pages/EmailTemplatesPage';
 import { EventsPage } from './pages/EventsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VersionCustomersPage } from './pages/VersionCustomersPage';
+import { VersionDetailPage } from './pages/VersionDetailPage';
 
 /**
  * Routing of the admin UI. /login is public; everything under ProtectedRoute
@@ -22,7 +23,8 @@ export function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/versions/:id" element={<VersionCustomersPage />} />
+          <Route path="/versions/:id" element={<VersionDetailPage />} />
+          <Route path="/versions/:id/customers" element={<VersionCustomersPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/customers/:id" element={<CustomerDetailPage />} />
           <Route path="/events" element={<EventsPage />} />

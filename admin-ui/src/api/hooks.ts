@@ -31,6 +31,7 @@ import {
   agreementsAdminControllerDeleteVersion,
   agreementsAdminControllerListDocumentsQueryKey,
   agreementsAdminControllerListDocumentsQueryOptions,
+  agreementsAdminControllerGetVersionQueryOptions,
   agreementsAdminControllerListVersionsQueryKey,
   agreementsAdminControllerListVersionsQueryOptions,
   createVersionResponseModelSchema,
@@ -277,6 +278,14 @@ export function useVersions(documentId: string, enabled = true) {
     ...agreementsAdminControllerListVersionsQueryOptions({ id: documentId }),
     enabled: enabled && Boolean(documentId),
     select: (data) => data.items,
+  });
+}
+
+/** A single agreement version with everything entered at creation (detail page). */
+export function useVersion(versionId: string, enabled = true) {
+  return useQuery({
+    ...agreementsAdminControllerGetVersionQueryOptions({ id: versionId }),
+    enabled: enabled && Boolean(versionId),
   });
 }
 

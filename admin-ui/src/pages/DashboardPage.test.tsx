@@ -45,7 +45,7 @@ describe('DashboardPage', () => {
     await screen.findByTestId('dashboard-grid');
     await user.click(screen.getByText('April 2026 edition'));
 
-    expect(navigateMock).toHaveBeenCalledWith('/versions/v-100');
+    expect(navigateMock).toHaveBeenCalledWith('/versions/v-100/customers');
   });
 
   it('shows an empty state when there are no versions', async () => {

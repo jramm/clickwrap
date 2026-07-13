@@ -96,6 +96,28 @@
       "objected": "Objected"
     }
   },
+  "versionDetail": {
+    "title": "Version",
+    "back": "Back to documents",
+    "loadError": "The version could not be loaded.",
+    "overview": "Overview",
+    "details": "Details entered at creation",
+    "status": "Status",
+    "mode": "Acceptance mode",
+    "changeSummary": "What changed",
+    "consentText": "Consent text",
+    "objectionPeriodDays": "Objection period (days)",
+    "objectionConsequence": "Objection consequence",
+    "gracePeriodDays": "Grace period (days)",
+    "hardDeadline": "Acceptance deadline",
+    "validFrom": "Valid from",
+    "publishedAt": "Published",
+    "document": "Document",
+    "fileName": "File",
+    "contentHash": "Content hash",
+    "versionId": "Version ID",
+    "customerRollout": "Customer rollout"
+  },
   "appShell": {
     "subtitle": "Admin",
     "signedIn": "Signed in",

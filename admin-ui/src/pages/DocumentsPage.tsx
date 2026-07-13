@@ -14,6 +14,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import { useMemo, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { ApiError, errorMessageKey } from '../api/errors';
 import {
   useAudiences,
@@ -236,7 +237,11 @@ function VersionRow({ documentId, version }: { documentId: string; version: Vers
 
   return (
     <TableRow>
-      <TableCell>{version.versionLabel ?? version.id}</TableCell>
+      <TableCell>
+        <Link component={RouterLink} to={`/versions/${encodeURIComponent(version.id)}`}>
+          {version.versionLabel ?? version.id}
+        </Link>
+      </TableCell>
       <TableCell>
         <Chip size="small" color={STATUS_COLOR[version.status]} label={version.status} />
       </TableCell>

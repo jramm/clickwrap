@@ -96,6 +96,28 @@
       "objected": "Widersprochen"
     }
   },
+  "versionDetail": {
+    "title": "Version",
+    "back": "Zurück zu Dokumenten",
+    "loadError": "Die Version konnte nicht geladen werden.",
+    "overview": "Übersicht",
+    "details": "Bei der Erstellung erfasste Angaben",
+    "status": "Status",
+    "mode": "Zustimmungsmodus",
+    "changeSummary": "Was sich geändert hat",
+    "consentText": "Zustimmungstext",
+    "objectionPeriodDays": "Widerspruchsfrist (Tage)",
+    "objectionConsequence": "Folge des Widerspruchs",
+    "gracePeriodDays": "Kulanzfrist (Tage)",
+    "hardDeadline": "Annahmefrist",
+    "validFrom": "Gültig ab",
+    "publishedAt": "Veröffentlicht",
+    "document": "Dokument",
+    "fileName": "Datei",
+    "contentHash": "Inhalts-Hash",
+    "versionId": "Versions-ID",
+    "customerRollout": "Kundenübersicht"
+  },
   "appShell": {
     "subtitle": "Admin",
     "signedIn": "Angemeldet",
