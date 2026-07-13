@@ -74,7 +74,7 @@ describe('RolloutNotificationService', () => {
     expect(notifier.published).toEqual([]);
   });
 
-  it('is failure-isolated: a send that throws keeps its marker (retried), others are still cleared', async () => {
+  it('is at-most-once: a send that throws is NOT retried (claimed before send), others still send', async () => {
     await dueState({ id: 'cvs-1', customerId: 'c-1' });
     await dueState({ id: 'cvs-2', customerId: 'c-2' });
     const flaky = new FlakyNotifier('c-1');
@@ -82,8 +82,23 @@ describe('RolloutNotificationService', () => {
     await make(flaky).run();
 
     expect(flaky.published).toEqual(['c-2']);
-    expect((await states.findById('cvs-1'))?.notificationDueAt).toEqual(T0); // failed → still owed
+    // Both markers are cleared: the claim commits BEFORE the send, so a failed send is never re-sent
+    // on the next run/restart (the anti-flood invariant — a missed mail beats a duplicate flood).
+    expect((await states.findById('cvs-1'))?.notificationDueAt).toBeUndefined(); // claimed, send failed → not retried
     expect((await states.findById('cvs-2'))?.notificationDueAt).toBeUndefined(); // sent → cleared
+  });
+
+  it('honours the ROLLOUT_NOTIFICATIONS_DISABLED kill switch (no send, markers kept)', async () => {
+    await dueState({ id: 'cvs-1', customerId: 'c-1' });
+    process.env.ROLLOUT_NOTIFICATIONS_DISABLED = 'true';
+    try {
+      await service.run();
+    } finally {
+      delete process.env.ROLLOUT_NOTIFICATIONS_DISABLED;
+    }
+
+    expect(notifier.published).toEqual([]);
+    expect((await states.findById('cvs-1'))?.notificationDueAt).toEqual(T0); // untouched → sends once re-enabled
   });
 
   it('clears an orphaned marker (version gone) without sending', async () => {
