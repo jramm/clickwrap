@@ -1,6 +1,8 @@
 # clickwrap-server
 
-[![CI](https://github.com/jramm/clickwrap/actions/workflows/ci.yml/badge.svg)](https://github.com/jramm/clickwrap/actions/workflows/ci.yml)
+[![CI](https://github.com/jramm/clickwrap/actions/workflows/ci.yml/badge.svg)](https://github.com/jramm/clickwrap/actions/workflows/ci.yml) [![Website](https://img.shields.io/badge/website-jramm.github.io%2Fclickwrap-4f46e5)](https://jramm.github.io/clickwrap/)
+
+**Website:** <https://jramm.github.io/clickwrap/>
 
 A self-hosted **legal signed document service** — for provable acceptance of versioned agreements
 (terms of service, data processing agreements, privacy policies, or any contract document you need
