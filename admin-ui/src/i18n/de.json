@@ -227,12 +227,15 @@
   "stateAction": {
     "extendTitle": "Frist verlängern",
     "unblockTitle": "Block aussetzen",
+    "reopenTitle": "Widerspruch zurücksetzen",
+    "reopenHint": "Der Widerspruch bleibt dokumentiert; die Version wird wieder offen, damit der Kunde erneut entscheiden kann (akzeptieren oder erneut widersprechen).",
     "newDeadline": "Neue Frist",
     "reason": "Begründung (Pflicht)",
     "validationReason": "Begründung ist Pflicht (Audit-Log).",
     "validationDeadline": "Neues Fristdatum erforderlich.",
     "extended": "Frist verlängert.",
     "unblocked": "Block ausgesetzt.",
+    "reopened": "Widerspruch zurückgesetzt — der Kunde sieht das Popup wieder.",
     "failed": "Aktion fehlgeschlagen."
   },
   "manualAcceptance": {
@@ -277,6 +280,7 @@
     "blocking": "blockierend",
     "extendDeadline": "Frist verlängern",
     "suspendBlock": "Block aussetzen",
+    "resetObjection": "Widerspruch zurücksetzen",
     "sendReminder": "Erinnerung senden",
     "reminderSent": "Erinnerung gesendet.",
     "reminderFailed": "Erinnerung fehlgeschlagen.",

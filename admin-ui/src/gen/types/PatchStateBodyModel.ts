@@ -14,6 +14,11 @@ export type PatchStateBodyModel = {
    */
   suspendBlock?: boolean;
   /**
+   * @description true: OBJECTED → NOTIFIED — reopen the objection so the customer can reconsider (evidence kept).
+   * @type boolean | undefined
+   */
+  reopenObjection?: boolean;
+  /**
    * @type string
    */
   reason: string;

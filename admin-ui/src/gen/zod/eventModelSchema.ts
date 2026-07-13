@@ -16,6 +16,7 @@ export const eventModelSchema = z.object({
     'PAGE_ACCESSED',
     'VERSION_ACCEPTED',
     'OBJECTION_RAISED',
+    'OBJECTION_REOPENED',
     'VERSION_PUBLISHED',
     'VERSION_ACTIVATED',
     'VERSION_RETIRED',

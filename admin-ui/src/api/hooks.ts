@@ -377,6 +377,7 @@ export interface PatchStateInput {
   stateId: string;
   deadlineAt?: string;
   suspendBlock?: boolean;
+  reopenObjection?: boolean;
   reason: string;
 }
 
@@ -386,7 +387,12 @@ export function usePatchCustomerVersionState(customerId: string) {
     mutationFn: (input: PatchStateInput) =>
       adminControllerPatchState({
         id: input.stateId,
-        data: { deadlineAt: input.deadlineAt, suspendBlock: input.suspendBlock, reason: input.reason },
+        data: {
+          deadlineAt: input.deadlineAt,
+          suspendBlock: input.suspendBlock,
+          reopenObjection: input.reopenObjection,
+          reason: input.reason,
+        },
       }),
     onSuccess: () =>
       void qc.invalidateQueries({ queryKey: adminControllerHistoryQueryKey({ id: customerId }) }),

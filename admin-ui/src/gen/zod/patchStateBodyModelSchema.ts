@@ -13,5 +13,12 @@ export const patchStateBodyModelSchema = z.object({
       .boolean()
       .describe('true: EXPIRED_BLOCKING → NOTIFIED with a new deadlineAt (then required).'),
   ),
+  reopenObjection: z.optional(
+    z
+      .boolean()
+      .describe(
+        'true: OBJECTED → NOTIFIED — reopen the objection so the customer can reconsider (evidence kept).',
+      ),
+  ),
   reason: z.string(),
 }) as unknown as z.ZodType<PatchStateBodyModel>;

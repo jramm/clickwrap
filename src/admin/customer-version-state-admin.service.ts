@@ -19,6 +19,12 @@ export interface PatchStateInput {
   deadlineAt?: Date;
   /** Suspend the block: EXPIRED_BLOCKING → NOTIFIED with a new deadlineAt. */
   suspendBlock?: boolean;
+  /**
+   * Reopen an objection: OBJECTED → NOTIFIED so the customer sees the popup again and can
+   * reconsider (accept or object anew). The append-only Objection evidence is kept untouched — the
+   * trace that they initially objected is preserved.
+   */
+  reopenObjection?: boolean;
   /** Mandatory reason (audit). */
   reason: string;
 }
@@ -43,7 +49,15 @@ export class CustomerVersionStateAdminService {
     const state = await this.getState(stateId);
 
     let updated: CustomerVersionState;
-    if (input.suspendBlock) {
+    if (input.reopenObjection) {
+      if (state.state !== 'OBJECTED') {
+        throw new DomainError('INVALID_STATE', `Reopening is only allowed from OBJECTED, not from ${state.state}`);
+      }
+      // OBJECTED → NOTIFIED: the version becomes outstanding again (the customer sees the popup and
+      // can accept or object anew); notifiedAt/deadlineAt are kept. The append-only Objection
+      // evidence is deliberately NOT touched — the trace that the customer objected is preserved.
+      updated = { ...state, state: 'NOTIFIED' };
+    } else if (input.suspendBlock) {
       if (state.state !== 'EXPIRED_BLOCKING') {
         throw new DomainError('INVALID_STATE', `Block suspension is only allowed from EXPIRED_BLOCKING, not from ${state.state}`);
       }
@@ -54,7 +68,7 @@ export class CustomerVersionStateAdminService {
     } else if (input.deadlineAt) {
       updated = { ...state, deadlineAt: input.deadlineAt };
     } else {
-      throw new DomainError('INVALID_STATE', 'Neither a deadline extension nor a block suspension was specified');
+      throw new DomainError('INVALID_STATE', 'Neither a deadline extension, a block suspension nor an objection reopen was specified');
     }
 
     const saved = await this.states.save(updated);
@@ -65,19 +79,32 @@ export class CustomerVersionStateAdminService {
       targetType: 'CustomerVersionState',
       targetId: stateId,
       reason: input.reason,
-      metadata: { deadlineAt: input.deadlineAt, suspendBlock: input.suspendBlock === true },
+      metadata: {
+        deadlineAt: input.deadlineAt,
+        suspendBlock: input.suspendBlock === true,
+        reopenObjection: input.reopenObjection === true,
+      },
       createdAt: this.clock.now(),
     });
 
-    const suspendedBlock = input.suspendBlock === true;
+    const eventType = input.reopenObjection
+      ? 'OBJECTION_REOPENED'
+      : input.suspendBlock
+        ? 'BLOCK_SUSPENDED'
+        : 'DEADLINE_EXTENDED';
+    const summaryLabel = input.reopenObjection
+      ? 'Objection reset'
+      : input.suspendBlock
+        ? 'Block suspended'
+        : 'Deadline extended';
     await this.recorder?.record({
-      type: suspendedBlock ? 'BLOCK_SUSPENDED' : 'DEADLINE_EXTENDED',
+      type: eventType,
       category: 'ADMINISTRATION',
       actorKind: 'ADMIN',
       actorLabel: adminUserId,
       customerId: saved.customerId,
       versionId: saved.versionId,
-      summary: suspendedBlock ? `Block suspended — ${input.reason}` : `Deadline extended — ${input.reason}`,
+      summary: `${summaryLabel} — ${input.reason}`,
       metadata: {
         reason: input.reason,
         ...(input.deadlineAt !== undefined ? { deadlineAt: input.deadlineAt.toISOString() } : {}),

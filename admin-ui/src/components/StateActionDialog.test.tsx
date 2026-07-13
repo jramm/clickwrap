@@ -29,6 +29,16 @@ const blockedState: HistoryState = {
   remindersSent: 1,
 };
 
+const objectedState: HistoryState = {
+  id: 'cvs-3',
+  versionId: 'v-3',
+  documentType: 'tos',
+  versionLabel: 'V2',
+  state: 'OBJECTED',
+  deadlineAt: '2026-07-01T00:00:00.000Z',
+  remindersSent: 0,
+};
+
 /** Capture every PATCH body; echo back a schema-valid CustomerVersionStateModel. */
 function capturePatchBodies(): Array<Record<string, unknown>> {
   const bodies: Array<Record<string, unknown>> = [];
@@ -88,5 +98,23 @@ describe('StateActionDialog', () => {
     expect(bodies).toHaveLength(1);
     expect(bodies[0].suspendBlock).toBe(true);
     expect(bodies[0].deadlineAt).toBe('2026-08-01T00:00:00.000Z');
+  });
+
+  it('reopen mode sends reopenObjection with no deadline (objection evidence kept)', async () => {
+    const bodies = capturePatchBodies();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <StateActionDialog customerId="c-1" state={objectedState} mode="reopen" open onClose={() => {}} />,
+    );
+
+    // No deadline field in reopen mode — it only flips OBJECTED → NOTIFIED.
+    expect(screen.queryByLabelText(/New deadline/)).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText(/Reason/), 'Customer changed their mind');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText(/Objection reset/)).toBeInTheDocument();
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0].reopenObjection).toBe(true);
+    expect(bodies[0].deadlineAt).toBeUndefined();
   });
 });

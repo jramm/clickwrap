@@ -240,6 +240,11 @@ export class PatchStateBodyModel {
   @ApiPropertyOptional({ description: 'true: EXPIRED_BLOCKING → NOTIFIED with a new deadlineAt (then required).' })
   suspendBlock?: boolean;
 
+  @ApiPropertyOptional({
+    description: 'true: OBJECTED → NOTIFIED — reopen the objection so the customer can reconsider (evidence kept).',
+  })
+  reopenObjection?: boolean;
+
   @ApiProperty({ example: 'Customer in clarification with legal' })
   reason!: string;
 }

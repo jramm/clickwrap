@@ -331,7 +331,7 @@ function OpenStatesSection({ customerId, states }: { customerId: string; states:
   const toast = useToast();
   const remind = useRemind(customerId);
   const createAcceptanceLink = useCreateAcceptanceLink();
-  const [action, setAction] = useState<{ state: HistoryState; mode: 'extend' | 'unblock' } | null>(
+  const [action, setAction] = useState<{ state: HistoryState; mode: 'extend' | 'unblock' | 'reopen' } | null>(
     null,
   );
 
@@ -420,6 +420,15 @@ function OpenStatesSection({ customerId, states }: { customerId: string; states:
                   onClick={() => setAction({ state, mode: 'unblock' })}
                 >
                   {t('customerDetail.suspendBlock')}
+                </Button>
+              )}
+              {state.state === 'OBJECTED' && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setAction({ state, mode: 'reopen' })}
+                >
+                  {t('customerDetail.resetObjection')}
                 </Button>
               )}
               <Button

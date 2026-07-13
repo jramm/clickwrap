@@ -91,6 +91,7 @@ interface ManualAcceptanceBody {
 interface PatchStateBody {
   deadlineAt?: string;
   suspendBlock?: boolean;
+  reopenObjection?: boolean;
   reason: string;
 }
 
@@ -372,7 +373,7 @@ export class AdminController {
   }
 
   @Patch('customer-version-states/:id')
-  @ApiOperation({ summary: 'Extend a deadline / suspend a block (reason required)' })
+  @ApiOperation({ summary: 'Extend a deadline / suspend a block / reopen an objection (reason required)' })
   @ApiBody({ type: PatchStateBodyModel })
   @ApiOkResponse({ type: CustomerVersionStateModel })
   @ApiErrorResponses({ 404: 'VERSION_NOT_FOUND (unknown state id)', 422: 'INVALID_STATE' })
@@ -382,6 +383,7 @@ export class AdminController {
       {
         deadlineAt: body.deadlineAt ? new Date(body.deadlineAt) : undefined,
         suspendBlock: body.suspendBlock,
+        reopenObjection: body.reopenObjection,
         reason: body.reason,
       },
       adminUserId(req),

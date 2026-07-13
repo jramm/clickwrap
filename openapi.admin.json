@@ -1400,7 +1400,7 @@
             "admin-token": []
           }
         ],
-        "summary": "Extend a deadline / suspend a block (reason required)",
+        "summary": "Extend a deadline / suspend a block / reopen an objection (reason required)",
         "tags": [
           "admin"
         ]
@@ -3783,6 +3783,10 @@
             "type": "boolean",
             "description": "true: EXPIRED_BLOCKING → NOTIFIED with a new deadlineAt (then required)."
           },
+          "reopenObjection": {
+            "type": "boolean",
+            "description": "true: OBJECTED → NOTIFIED — reopen the objection so the customer can reconsider (evidence kept)."
+          },
           "reason": {
             "type": "string",
             "example": "Customer in clarification with legal"
@@ -4215,6 +4219,7 @@
               "PAGE_ACCESSED",
               "VERSION_ACCEPTED",
               "OBJECTION_RAISED",
+              "OBJECTION_REOPENED",
               "VERSION_PUBLISHED",
               "VERSION_ACTIVATED",
               "VERSION_RETIRED",

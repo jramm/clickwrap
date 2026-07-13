@@ -28,7 +28,7 @@ export type AdminControllerPatchStateMutationKey = ReturnType<
 >;
 
 /**
- * @summary Extend a deadline / suspend a block (reason required)
+ * @summary Extend a deadline / suspend a block / reopen an objection (reason required)
  * {@link /admin/customer-version-states/:id}
  */
 export async function adminControllerPatchState(
@@ -87,7 +87,7 @@ export function adminControllerPatchStateMutationOptions<TContext = unknown>(
 }
 
 /**
- * @summary Extend a deadline / suspend a block (reason required)
+ * @summary Extend a deadline / suspend a block / reopen an objection (reason required)
  * {@link /admin/customer-version-states/:id}
  */
 export function useAdminControllerPatchState<TContext>(

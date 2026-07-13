@@ -90,6 +90,27 @@ describe('CustomerVersionStateAdminService', () => {
       await expectCode(service.patch('cvs-1', { reason: 'x' }, 'admin-1'), 'INVALID_STATE');
     });
 
+    it('reopen objection: OBJECTED → NOTIFIED (keeps notifiedAt) + audit + OBJECTION_REOPENED event', async () => {
+      await states.save(
+        aState({ id: 'cvs-1', state: 'OBJECTED', notifiedAt: T0, deadlineAt: new Date('2026-07-21T09:00:00Z') }),
+      );
+      const result = await service.patch(
+        'cvs-1',
+        { reopenObjection: true, reason: 'Customer changed their mind' },
+        'admin-1',
+      );
+      expect(result).toMatchObject({ state: 'NOTIFIED', notifiedAt: T0 });
+      const logs = await audit.findByTarget('CustomerVersionState', 'cvs-1');
+      expect(logs[0]).toMatchObject({ action: 'CUSTOMER_VERSION_STATE_PATCH', reason: 'Customer changed their mind' });
+      const reopened = (await events.query({})).items.filter((event) => event.type === 'OBJECTION_REOPENED');
+      expect(reopened).toHaveLength(1);
+    });
+
+    it('reopen from a non-OBJECTED state → INVALID_STATE', async () => {
+      await states.save(aState({ id: 'cvs-1', state: 'NOTIFIED' }));
+      await expectCode(service.patch('cvs-1', { reopenObjection: true, reason: 'x' }, 'admin-1'), 'INVALID_STATE');
+    });
+
     it('unknown state → INVALID_STATE', async () => {
       await expectCode(service.patch('cvs-unknown', { deadlineAt: NEW_DEADLINE, reason: 'x' }, 'admin-1'), 'INVALID_STATE');
     });

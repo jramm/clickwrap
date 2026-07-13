@@ -227,12 +227,15 @@
   "stateAction": {
     "extendTitle": "Extend deadline",
     "unblockTitle": "Suspend block",
+    "reopenTitle": "Reset objection",
+    "reopenHint": "The objection stays on record; the version becomes outstanding again so the customer can reconsider (accept or object anew).",
     "newDeadline": "New deadline",
     "reason": "Reason (required)",
     "validationReason": "A reason is required (audit log).",
     "validationDeadline": "A new deadline is required.",
     "extended": "Deadline extended.",
     "unblocked": "Block suspended.",
+    "reopened": "Objection reset — the customer will see the popup again.",
     "failed": "Action failed."
   },
   "manualAcceptance": {
@@ -277,6 +280,7 @@
     "blocking": "blocking",
     "extendDeadline": "Extend deadline",
     "suspendBlock": "Suspend block",
+    "resetObjection": "Reset objection",
     "sendReminder": "Send reminder",
     "reminderSent": "Reminder sent.",
     "reminderFailed": "Reminder failed.",
