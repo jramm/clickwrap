@@ -46,7 +46,7 @@ RUN pnpm build
 # The upstream backend is set at runtime via CLICKWRAP_BACKEND; the nginx official image runs
 # envsubst on /etc/nginx/templates/*.template at startup. NGINX_ENVSUBST_FILTER limits substitution
 # to CLICKWRAP_* so nginx's own $host/$uri/... are left intact.
-FROM nginx:1.27-alpine AS admin-ui
+FROM nginx:1.31-alpine AS admin-ui
 ENV CLICKWRAP_BACKEND=http://backend:3000
 ENV NGINX_ENVSUBST_FILTER=CLICKWRAP_
 COPY --from=adminui-build /ui/dist /usr/share/nginx/html
