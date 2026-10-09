@@ -61,7 +61,8 @@ export class PrismaAcceptanceRepo implements AcceptanceRepo {
             `An effective acceptance already exists for (${acceptance.customerId}, ${acceptance.versionId})`,
           );
         }
-        if (targets.includes('id')) {
+        // Prisma ≥7.10 (pg adapter) reports the PK only by its constraint name, not as ['id'].
+        if (targets.includes('id') || targets.includes('Acceptance_pkey')) {
           throw new DomainError('INVALID_STATE', `Acceptance ${acceptance.id} already exists (append-only)`);
         }
       }
