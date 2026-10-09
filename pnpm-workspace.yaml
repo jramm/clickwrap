@@ -3,6 +3,7 @@ packages:
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
+  '@parcel/watcher': false
   '@scarf/scarf': false
   esbuild: true
   prisma: true
