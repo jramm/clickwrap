@@ -32,7 +32,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@kubb/cli": "^4.39.2",
+    "@kubb/cli": "^5.6.0",
     "@kubb/core": "^4.39.2",
     "@kubb/plugin-client": "^4.39.2",
     "@kubb/plugin-oas": "^4.39.3",
