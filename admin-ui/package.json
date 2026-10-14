@@ -36,7 +36,7 @@
     "@kubb/core": "^4.39.2",
     "@kubb/plugin-client": "^4.39.2",
     "@kubb/plugin-oas": "^4.39.3",
-    "@kubb/plugin-react-query": "^4.39.2",
+    "@kubb/plugin-react-query": "^5.1.5",
     "@kubb/plugin-ts": "^4.39.2",
     "@kubb/plugin-zod": "^4.39.2",
     "@testing-library/jest-dom": "^6.6.3",
