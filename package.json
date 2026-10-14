@@ -35,7 +35,7 @@
     "google-auth-library": "^10.9.0",
     "jose": "^6.2.12",
     "multer": "^2.4.0",
-    "nodemailer": "^9.0.3",
+    "nodemailer": "^10.1.0",
     "pg": "^8.23.1",
     "postmark": "^5.1.0",
     "reflect-metadata": "^0.2.2",
