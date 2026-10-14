@@ -32,7 +32,7 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "dotenv": "^17.4.2",
-    "google-auth-library": "^10.9.0",
+    "google-auth-library": "^11.2.0",
     "jose": "^6.2.12",
     "multer": "^2.4.0",
     "nodemailer": "^9.0.3",
