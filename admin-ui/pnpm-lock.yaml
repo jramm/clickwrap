@@ -49,8 +49,8 @@ importers:
         specifier: ^4.39.2
         version: 4.39.2(typescript@7.0.2)
       '@kubb/core':
-        specifier: ^4.39.2
-        version: 4.39.2(@kubb/fabric-core@0.14.0)(@kubb/react-fabric@0.14.0)
+        specifier: ^5.6.0
+        version: 5.6.0
       '@kubb/plugin-client':
         specifier: ^4.39.2
         version: 4.39.2
@@ -372,6 +372,10 @@ packages:
     resolution: {integrity: sha512-orBqMCiABnHzqXpqvZm3LrgkFaUCR+Rym8tf2QviOdHnulFSFd//rhiSXMKy4yhJm6kSX+dLxdyrXRWezGCHfA==}
     engines: {node: '>=20'}
 
+  '@kubb/ast@5.6.0':
+    resolution: {integrity: sha512-519zY8/2lyFkA3ZnanPXdm3/gKQ5Ts2u0AmVrSqDkgzE6oM3FLD2QrgxeVXJjMpDCqtZHa6IeP4n56sWADsd5w==}
+    engines: {node: '>=22'}
+
   '@kubb/cli@4.39.2':
     resolution: {integrity: sha512-8nRG9AgCNuDqg3hGo3b3Lc1WcEsCbCSz8Lv3QF4D8+N0An4FEK48OJsWURctlfud8I8UugNG5/3Okf9Hs3w1rQ==}
     engines: {node: '>=20'}
@@ -390,6 +394,10 @@ packages:
     peerDependencies:
       '@kubb/fabric-core': 0.16.1
       '@kubb/react-fabric': 0.16.1
+
+  '@kubb/core@5.6.0':
+    resolution: {integrity: sha512-wQ3OKEXU9dQFrF7UpOg7mmB/fzyy8GRIyGd084x5ZMuNDWG9PB7tToGSjexyg3QWx2gNlqZPOST2JC9451RVqA==}
+    engines: {node: '>=22'}
 
   '@kubb/fabric-core@0.14.0':
     resolution: {integrity: sha512-j4bG8RlOIkKLENHsTuD1oKuyjzAgBBOprXsBkpQ2l2XVzc84hQzMShP6CE6D4VSM+5jF2g3FhCz7YjAc6DQnqg==}
@@ -2389,6 +2397,8 @@ snapshots:
 
   '@kubb/ast@4.39.3': {}
 
+  '@kubb/ast@5.6.0': {}
+
   '@kubb/cli@4.39.2(typescript@7.0.2)':
     dependencies:
       '@clack/prompts': 1.7.0
@@ -2421,6 +2431,11 @@ snapshots:
       remeda: 2.39.0
       semver: 7.8.5
       tinyexec: 1.2.4
+
+  '@kubb/core@5.6.0':
+    dependencies:
+      '@kubb/ast': 5.6.0
+      tinyexec: 1.3.1
 
   '@kubb/fabric-core@0.14.0':
     dependencies:
